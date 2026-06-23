@@ -13,11 +13,25 @@ import com.example.data.repository.RentalRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
+
+data class RentalReview(
+    val rentalItemId: Int,
+    val rating: Int,
+    val comment: String,
+    val author: String,
+    val date: String
+)
 
 class RentalViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = AppDatabase.getDatabase(application)
     private val repository = RentalRepository(db.rentalDao())
+
+    // Reviews State Flow
+    private val _reviews = MutableStateFlow<Map<Int, List<RentalReview>>>(emptyMap())
+    val reviews: StateFlow<Map<Int, List<RentalReview>>> = _reviews.asStateFlow()
 
     // Onboarding navigation state:
     // 0: Splash, 1: Onboarding Welcome, 2: Onboarding Payments, 3: Onboarding Trust, 4: Main App Dashboard
@@ -115,6 +129,7 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     val searchQuery = MutableStateFlow("")
     val selectedCategory = MutableStateFlow("Tous")
     val selectedCity = MutableStateFlow("Tous")
+    val selectedMinPrice = MutableStateFlow(0)
     val selectedMaxPrice = MutableStateFlow(0) // 0 means no limit
 
     // Selected item for details/booking/chat
@@ -126,10 +141,39 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     val paymentState: StateFlow<PaymentState> = _paymentState.asStateFlow()
 
     init {
+        // Preseed reviews
+        val initialReviews = mapOf(
+            1 to listOf(
+                RentalReview(1, 5, "Superbe villa, très propre et spacieuse. Quartier résidentiel très sécurisé !", "Stéphane Koumba", "20/06/2026"),
+                RentalReview(1, 4, "Belle vue, accès facile. Idéal pour un séjour à Libreville.", "Patricia Ndong", "15/05/2026")
+            ),
+            2 to listOf(
+                RentalReview(2, 5, "Le Prado est impeccable, très robuste pour circuler sur les routes de Port-Gentil.", "Marc Aubame", "10/06/2026"),
+                RentalReview(2, 4, "Véhicule propre et confortable. Bon retour de caution sans accroc.", "Yannick Mba", "02/06/2026")
+            ),
+            3 to listOf(
+                RentalReview(3, 5, "Appartement très moderne et bien climatisé. Équipements de cuisine haut de gamme.", "Inès Bongo", "22/06/2026")
+            ),
+            4 to listOf(
+                RentalReview(4, 4, "Bon matériel professionnel, idéal pour de l'événementiel sur Akanda.", "David Ogoula", "18/06/2026")
+            )
+        )
+        _reviews.value = initialReviews
+
         // Seed database immediately on launch
         viewModelScope.launch {
             repository.seedDatabase()
         }
+    }
+
+    fun addReview(rentalItemId: Int, rating: Int, comment: String) {
+        val current = _reviews.value.toMutableMap()
+        val list = current[rentalItemId]?.toMutableList() ?: mutableListOf()
+        val authorName = "Visiteur Gabonais"
+        val currentDate = SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE).format(Date())
+        list.add(0, RentalReview(rentalItemId, rating, comment, authorName, currentDate))
+        current[rentalItemId] = list
+        _reviews.value = current
     }
 
     // Exposing Reactive Flows
@@ -148,8 +192,9 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         searchQuery,
         selectedCategory,
         selectedCity,
+        selectedMinPrice,
         selectedMaxPrice
-    ) { items, query, category, city, maxPrice ->
+    ) { items, query, category, city, minPrice, maxPrice ->
         items.filter { item ->
             val matchesQuery = item.title.contains(query, ignoreCase = true) ||
                     item.description.contains(query, ignoreCase = true) ||
@@ -157,7 +202,7 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
             
             val matchesCategory = category == "Tous" || item.category.equals(category, ignoreCase = true)
             val matchesCity = city == "Tous" || item.city.equals(city, ignoreCase = true)
-            val matchesPrice = maxPrice == 0 || item.pricePerDay <= maxPrice
+            val matchesPrice = item.pricePerDay >= minPrice && (maxPrice == 0 || item.pricePerDay <= maxPrice)
 
             matchesQuery && matchesCategory && matchesCity && matchesPrice
         }
@@ -225,11 +270,22 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
             _paymentState.value = PaymentState.Processing(
                 "Demande de paiement de " + (rentalItem.pricePerDay * days) + " F CFA envoyée à " + paymentMethod + " (" + phoneInput + ")."
             )
-            delay(2000)
+            delay(1500)
 
-            _paymentState.value = PaymentState.Processing(
-                "En attente de votre code confidentiel de sécurité..."
-            )
+            // Dynamic interactive change: switch state to AwaitingPin instead of auto-completing
+            _paymentState.value = PaymentState.AwaitingPin(rentalItem, days, paymentMethod, phoneInput)
+        }
+    }
+
+    fun confirmBookingPayment(
+        rentalItem: RentalItem,
+        days: Int,
+        paymentMethod: String,
+        phoneInput: String,
+        pinCode: String
+    ) {
+        viewModelScope.launch {
+            _paymentState.value = PaymentState.Processing("Validation du code PIN et sécurisation des fonds de caution...")
             delay(2000)
 
             // Creating actual Booking records in Db
@@ -354,6 +410,7 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
 sealed interface PaymentState {
     object Idle : PaymentState
     data class Processing(val status: String) : PaymentState
+    data class AwaitingPin(val rentalItem: RentalItem, val days: Int, val paymentMethod: String, val phoneInput: String) : PaymentState
     data class Success(val booking: Booking) : PaymentState
 }
 

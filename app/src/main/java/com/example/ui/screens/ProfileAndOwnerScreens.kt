@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -1694,10 +1695,36 @@ fun IdentityVerificationScreen(
     val currentStatus by viewModel.identityVerificationStatus.collectAsState()
     var selectedIdType by remember { mutableStateOf("CNI (Carte Nationale d'Identité)") }
     var inputDocNumber by remember { mutableStateOf("") }
-    var isUploading by remember { mutableStateOf(false) }
+    
+    // Interactive Scanner States
+    var showScanOverlay by remember { mutableStateOf(false) }
+    var scanStep by remember { mutableStateOf("voyer") } // "voyer", "scanning", "ocr_reading", "scanned_success"
+    var scanLaserOffset by remember { mutableStateOf(0f) }
+    var documentPhotoTaken by remember { mutableStateOf(false) }
+    
+    // Interactive Biometric States
+    var showSelfieGuide by remember { mutableStateOf(false) }
+    var selfieInstruction by remember { mutableStateOf("Alignez votre visage") }
     var isSelfieTaking by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
+
+    // Scanning visual loop
+    LaunchedEffect(showScanOverlay, scanStep) {
+        if (showScanOverlay && scanStep == "scanning") {
+            var goingDown = true
+            while (scanStep == "scanning") {
+                delay(16)
+                if (goingDown) {
+                    scanLaserOffset += 0.02f
+                    if (scanLaserOffset >= 1f) goingDown = false
+                } else {
+                    scanLaserOffset -= 0.02f
+                    if (scanLaserOffset <= 0f) goingDown = true
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -1771,26 +1798,43 @@ fun IdentityVerificationScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp)
+                    .height(160.dp)
                     .padding(vertical = 8.dp)
                     .clickable {
-                        isUploading = true
+                        showScanOverlay = true
+                        scanStep = "scanning"
                         coroutineScope.launch {
-                            delay(1500)
-                            isUploading = false
+                            delay(2500)
+                            scanStep = "ocr_reading"
+                            delay(2000)
+                            scanStep = "scanned_success"
+                            documentPhotoTaken = true
                         }
                     },
                 shape = RoundedCornerShape(14.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f))
+                border = BorderStroke(1.dp, if (documentPhotoTaken) PrimaryGreen else Color.White.copy(alpha = 0.10f))
             ) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    if (isUploading) {
-                        CircularProgressIndicator(color = PrimaryGreen)
+                    if (documentPhotoTaken) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(PrimaryGreen.copy(alpha = 0.15f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(28.dp))
+                            }
+                            Text("CNI de NGUEMA Pierre scannée avec succès !", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("ID: " + inputDocNumber.ifBlank { "CNI-84729" } + " | OCR Valide", color = PrimaryGreen, fontSize = 11.sp)
+                        }
                     } else {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Icon(Icons.Rounded.AddAPhoto, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(32.dp))
-                            Text("Prendre une photo du document", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                            Text("Lancer le Scanner Intelligent LocAll (Vision AI)", color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Reconnaissance OCR de la CNI / Passeport", color = Color.White.copy(alpha = 0.4f), fontSize = 10.sp)
                         }
                     }
                 }
@@ -1802,7 +1846,7 @@ fun IdentityVerificationScreen(
                 onClick = { 
                     viewModel.setIdentityVerificationStatus("Documents soumis") 
                 },
-                enabled = inputDocNumber.isNotBlank(),
+                enabled = inputDocNumber.isNotBlank() && documentPhotoTaken,
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
@@ -1820,28 +1864,30 @@ fun IdentityVerificationScreen(
                 modifier = Modifier
                     .size(240.dp)
                     .clip(CircleShape)
-                    .border(4.dp, PrimaryGreen, CircleShape)
-                    .background(Color.DarkGray)
+                    .border(4.dp, if (isSelfieTaking) PrimaryGreen else Color.White.copy(alpha = 0.3f), CircleShape)
+                    .background(Color.DarkGray),
+                contentAlignment = Alignment.Center
             ) {
                 // Show face outline / target circle mockup
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    drawCircle(Color.White.copy(alpha = 0.1f), radius = size.minDimension * 0.45f)
-                    drawCircle(PrimaryGreen.copy(alpha = 0.15f), radius = size.minDimension * 0.4f)
+                    drawCircle(Color.White.copy(alpha = 0.05f), radius = size.minDimension * 0.45f)
+                    drawCircle(PrimaryGreen.copy(alpha = 0.08f), radius = size.minDimension * 0.4f)
                 }
 
                 if (isSelfieTaking) {
-                    CircularProgressIndicator(
-                        color = PrimaryGreen,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        CircularProgressIndicator(color = PrimaryGreen)
+                        Text(selfieInstruction, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 12.dp))
+                    }
                 } else {
                     Icon(
                         Icons.Rounded.Face,
                         contentDescription = null,
                         tint = Color.White.copy(alpha = 0.3f),
-                        modifier = Modifier
-                            .size(120.dp)
-                            .align(Alignment.Center)
+                        modifier = Modifier.size(120.dp)
                     )
                 }
             }
@@ -1852,7 +1898,14 @@ fun IdentityVerificationScreen(
                 onClick = {
                     isSelfieTaking = true
                     coroutineScope.launch {
-                        delay(2500)
+                        selfieInstruction = "Alignement du visage..."
+                        delay(1500)
+                        selfieInstruction = "Veuillez cligner des yeux..."
+                        delay(1500)
+                        selfieInstruction = "Veuillez sourire doucement..."
+                        delay(1500)
+                        selfieInstruction = "Liveness 3D en cours..."
+                        delay(1500)
                         isSelfieTaking = false
                         viewModel.setIdentityVerificationStatus("En révision")
                     }
@@ -1863,7 +1916,7 @@ fun IdentityVerificationScreen(
                     .fillMaxWidth()
                     .height(52.dp)
             ) {
-                Text("Prendre le Selfie Photo", fontWeight = FontWeight.Bold)
+                Text("Lancer la vérification biométrique", fontWeight = FontWeight.Bold)
             }
         } else if (currentStatus == "En révision") {
             // Step 3: Pending review status screen
@@ -1904,6 +1957,48 @@ fun IdentityVerificationScreen(
                     ) {
                         Text("Découvrir l'application")
                     }
+
+                    // DEMO ADMIN BYPASS BUTTON
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp)
+                            .border(1.dp, Color(0xFFFFB300).copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1508))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(14.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                "FONCTIONALITÉ DE DÉMO LOCALL",
+                                color = Color(0xFFFFB300),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
+                            Text(
+                                "En mode démo, vous pouvez forcer la validation automatique instantanée pour débloquer votre badge 'Vérifié'.",
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontSize = 11.sp,
+                                textAlign = TextAlign.Center
+                            )
+                            Button(
+                                onClick = { viewModel.setIdentityVerificationStatus("Vérifié") },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB300), contentColor = Color.Black),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(Icons.Rounded.VerifiedUser, contentDescription = null, tint = Color.Black)
+                                    Text("Approuver instantanément", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         } else {
@@ -1928,6 +2023,179 @@ fun IdentityVerificationScreen(
             }
         }
         Spacer(modifier = Modifier.height(30.dp))
+    }
+
+    // HIGH FIDELITY SCANNER MODAL OVERLAY
+    if (showScanOverlay) {
+        Dialog(onDismissRequest = { showScanOverlay = false }) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(360.dp)
+                    .border(2.dp, PrimaryGreen, RoundedCornerShape(24.dp)),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF090E17))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "SCANNER DE DOCUMENT LOCALL AI",
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
+
+                    // Viewfinder Mock
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(16.dp))
+                            .background(Color.Black),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Scanner layout viewfinder guides
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+                            val strokeW = 4.dp.toPx()
+                            val lineL = 20.dp.toPx()
+                            // Top Left Corner
+                            drawPath(
+                                path = Path().apply {
+                                    moveTo(strokeW, strokeW + lineL)
+                                    lineTo(strokeW, strokeW)
+                                    lineTo(strokeW + lineL, strokeW)
+                                },
+                                color = PrimaryGreen,
+                                style = Stroke(width = strokeW)
+                            )
+                            // Top Right Corner
+                            drawPath(
+                                path = Path().apply {
+                                    moveTo(size.width - strokeW, strokeW + lineL)
+                                    lineTo(size.width - strokeW, strokeW)
+                                    lineTo(size.width - strokeW - lineL, strokeW)
+                                },
+                                color = PrimaryGreen,
+                                style = Stroke(width = strokeW)
+                            )
+                            // Bottom Left Corner
+                            drawPath(
+                                path = Path().apply {
+                                    moveTo(strokeW, size.height - strokeW - lineL)
+                                    lineTo(strokeW, size.height - strokeW)
+                                    lineTo(strokeW + lineL, size.height - strokeW)
+                                },
+                                color = PrimaryGreen,
+                                style = Stroke(width = strokeW)
+                            )
+                            // Bottom Right Corner
+                            drawPath(
+                                path = Path().apply {
+                                    moveTo(size.width - strokeW, size.height - strokeW - lineL)
+                                    lineTo(size.width - strokeW, size.height - strokeW)
+                                    lineTo(size.width - strokeW - lineL, size.height - strokeW)
+                                },
+                                color = PrimaryGreen,
+                                style = Stroke(width = strokeW)
+                            )
+
+                            // Laser scanning bar
+                            if (scanStep == "scanning") {
+                                val laserY = size.height * scanLaserOffset
+                                drawLine(
+                                    color = PrimaryGreen,
+                                    start = Offset(0f, laserY),
+                                    end = Offset(size.width, laserY),
+                                    strokeWidth = 3.dp.toPx()
+                                )
+                            }
+                        }
+
+                        // Status messages on scan screen
+                        when (scanStep) {
+                            "scanning" -> {
+                                Text(
+                                    "ANALYSE DE LA PIECE D'IDENTITE...",
+                                    color = PrimaryGreen,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            "ocr_reading" -> {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    CircularProgressIndicator(color = PrimaryGreen, modifier = Modifier.size(28.dp))
+                                    Text(
+                                        "RECONNAISSANCE OPTIQUE (OCR)...",
+                                        color = Color.White,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                            "scanned_success" -> {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(Icons.Rounded.Check, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(36.dp))
+                                    Text(
+                                        "NOM: NGUEMA PIERRE",
+                                        color = Color.White,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        "SCAN OK - INTÉGRITÉ CLÉ VALIDÉE",
+                                        color = PrimaryGreen,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Type: " + selectedIdType.split(" ").first(),
+                            color = Color.White.copy(alpha = 0.4f),
+                            fontSize = 11.sp
+                        )
+
+                        if (scanStep == "scanned_success") {
+                            Button(
+                                onClick = { showScanOverlay = false },
+                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Text("Terminer le scanner", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            }
+                        } else {
+                            Text(
+                                "Veuillez ne pas bouger...",
+                                color = Color.White.copy(alpha = 0.6f),
+                                fontSize = 11.sp,
+                                modifier = Modifier.padding(end = 12.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -2104,6 +2372,50 @@ fun MediationDetailsScreen(
     disputeId: String,
     onBack: () -> Unit
 ) {
+    var chatHistory by remember {
+        mutableStateOf(
+            listOf(
+                Pair("Médiateur", "Bonjour, j'ai bien reçu les photos des rayures du groupe électrogène. Avez-vous une facture d'achat originale ?"),
+                Pair("Moi", "Oui, je viens de l'uploader en pièce jointe. Acheté chez SOGAFRIC en 2024.")
+            )
+        )
+    }
+    var replyText by remember { mutableStateOf("") }
+    var isMediatorWriting by remember { mutableStateOf(false) }
+
+    // Amicable Settlement States
+    var selectedAgreementValue by remember { mutableStateOf(25000f) }
+    var isSettledSuccess by remember { mutableStateOf(false) }
+    var isSettlementProposed by remember { mutableStateOf(false) }
+    var timelineStep3Completed by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    fun sendReply(text: String) {
+        if (text.isBlank()) return
+        chatHistory = chatHistory + Pair("Moi", text)
+        replyText = ""
+        isMediatorWriting = true
+
+        coroutineScope.launch {
+            delay(1500)
+            isMediatorWriting = false
+            
+            val responseText = when {
+                text.contains("facture", ignoreCase = true) || text.contains("prix", ignoreCase = true) -> {
+                    "Merci pour l'envoi de la facture de chez SOGAFRIC. L'expert évalue la dépréciation restante à 35 000 F CFA. Êtes-vous disposé à proposer un règlement à l'amiable via le widget ci-dessous ?"
+                }
+                text.contains("accord", ignoreCase = true) || text.contains("amiable", ignoreCase = true) || text.contains("d'accord", ignoreCase = true) -> {
+                    "Parfait. Veuillez ajuster le curseur de proposition de règlement à l'amiable ci-dessous sur le montant qui vous convient pour clore la médiation."
+                }
+                else -> {
+                    "J'ai pris note de vos remarques. Nous attendons le retour de la partie adverse. En attendant, proposer un règlement amiable reste le moyen le plus rapide de débloquer la caution en séquestre."
+                }
+            }
+            chatHistory = chatHistory + Pair("Médiateur", responseText)
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -2137,10 +2449,13 @@ fun MediationDetailsScreen(
             Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text("État d'avancement de la Médiation", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 
-                // Timeline steps mock
                 TimelineStep(title = "Dossier enregistré", desc = "06 Fév - Preuves reçues", isCompleted = true)
                 TimelineStep(title = "Analyse de la l'assurance", desc = "Conformité du contrat de bail validée", isCompleted = true)
-                TimelineStep(title = "Décision de l'expert en cours", desc = "En attente du rapport technique GabAsur", isCompleted = false)
+                TimelineStep(
+                    title = if (isSettledSuccess) "Médiation résolue à l'amiable !" else "Décision de l'expert en cours",
+                    desc = if (isSettledSuccess) "Accord mutuel enregistré par LocAll" else "En attente du rapport technique GabAsur ou accord",
+                    isCompleted = timelineStep3Completed
+                )
             }
         }
 
@@ -2149,30 +2464,169 @@ fun MediationDetailsScreen(
         // Simulated chat box with LocAll Support Team
         Text("Conversation avec le Médiateur", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
         Card(
-            modifier = Modifier.fillMaxWidth().height(200.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(260.dp),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
         ) {
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.SpaceBetween) {
                 Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        item {
-                            DisputeBubble(sender = "Médiateur", text = "Bonjour, j'ai bien reçu les photos des rayures du groupe électrogène. Avez-vous une facture d'achat originale ?")
-                            DisputeBubble(sender = "Moi", text = "Oui, je viens de l'uploader en pièce jointe. Acheté chez SOGAFRIC en 2024.")
+                    val listState = rememberScrollState()
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(listState)
+                    ) {
+                        chatHistory.forEach { msg ->
+                            DisputeBubble(sender = msg.first, text = msg.second)
+                        }
+                        
+                        if (isMediatorWriting) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            ) {
+                                CircularProgressIndicator(color = PrimaryGreen, modifier = Modifier.size(12.dp), strokeWidth = 2.dp)
+                                Text("L'arbitre analyse...", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
+                            }
                         }
                     }
                 }
-                OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
-                    placeholder = { Text("Écrire au médiateur LocAll...", color = Color.White.copy(alpha = 0.3f), fontSize = 12.sp) },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
-                    shape = RoundedCornerShape(10.dp)
-                )
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = replyText,
+                        onValueChange = { replyText = it },
+                        placeholder = { Text("Écrire au médiateur LocAll...", color = Color.White.copy(alpha = 0.3f), fontSize = 12.sp) },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = PrimaryGreen,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f)
+                        ),
+                        singleLine = true
+                    )
+                    IconButton(
+                        onClick = { sendReply(replyText) },
+                        enabled = replyText.isNotBlank(),
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(
+                                if (replyText.isNotBlank()) PrimaryGreen else Color.White.copy(alpha = 0.05f),
+                                RoundedCornerShape(10.dp)
+                            )
+                    ) {
+                        Icon(
+                            Icons.Rounded.Send,
+                            contentDescription = "Envoyer",
+                            tint = if (replyText.isNotBlank()) BrandNavy else Color.White.copy(alpha = 0.3f),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
             }
         }
-        Spacer(modifier = Modifier.height(30.dp))
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // INTERACTIVE AMICABLE SETTLEMENT PANEL
+        Text("Règlement Amiable d'Arbitrage (Optionnel)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 30.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF0F1A2A)),
+            border = BorderStroke(1.dp, if (isSettledSuccess) PrimaryGreen else Color.White.copy(alpha = 0.08f))
+        ) {
+            Column(
+                modifier = Modifier.padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (isSettledSuccess) {
+                    Icon(Icons.Rounded.Handshake, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(48.dp))
+                    Text(
+                        "ACCORD GAGNANT-GAGNANT CONCLU !",
+                        color = PrimaryGreen,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        "Vous avez convenu d'un dédommagement mutuel de " + formatPriceCfa(selectedAgreementValue.toInt()) + " F CFA. Le reliquat de caution sera débloqué et transféré immédiatement sur vos comptes Airtel Money.",
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 18.sp
+                    )
+                } else {
+                    Text(
+                        "En proposant un accord, vous fixez une somme compensatoire à l'amiable. Si la partie accepte, la caution est reversée au prorata instantanément.",
+                        color = Color.White.copy(alpha = 0.6f),
+                        fontSize = 11.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 16.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        "Votre proposition : " + formatPriceCfa(selectedAgreementValue.toInt()),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+
+                    Slider(
+                        value = selectedAgreementValue,
+                        onValueChange = { if (!isSettlementProposed) selectedAgreementValue = it },
+                        valueRange = 5000f..50000f,
+                        steps = 8,
+                        colors = SliderDefaults.colors(
+                            thumbColor = PrimaryGreen,
+                            activeTrackColor = PrimaryGreen,
+                            inactiveTrackColor = Color.White.copy(alpha = 0.1f)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Button(
+                        onClick = {
+                            isSettlementProposed = true
+                            chatHistory = chatHistory + Pair("Moi", "Je propose de régler le litige à l'amiable pour un montant forfaitaire de " + formatPriceCfa(selectedAgreementValue.toInt()) + ".")
+                            coroutineScope.launch {
+                                delay(2000)
+                                chatHistory = chatHistory + Pair("Médiateur", "La proposition de " + formatPriceCfa(selectedAgreementValue.toInt()) + " a été acceptée par la partie adverse ! Clôture de l'incident.")
+                                delay(1000)
+                                isSettledSuccess = true
+                                timelineStep3Completed = true
+                            }
+                        },
+                        enabled = !isSettlementProposed,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isSettlementProposed) Color.Gray else PrimaryGreen,
+                            contentColor = BrandNavy
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            if (isSettlementProposed) "Attente d'acceptation adverse..." else "Soumettre l'offre amiable",
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -2480,6 +2934,12 @@ fun SecuritySettingsScreen(
     }
 }
 
+data class SupportMessage(
+    val sender: String, // "Bot" or "User"
+    val text: String,
+    val time: String
+)
+
 @Composable
 fun HelpAndSupportScreen(
     onBack: () -> Unit
@@ -2491,11 +2951,67 @@ fun HelpAndSupportScreen(
         Pair("Conditions d'annulation", "L'annulation est gratuite jusqu'à 24h avant le début planifié de la remise des clés. Passé ce délai, des frais de dédommagement de 35% s'appliquent.")
     )
 
+    var showChatbot by remember { mutableStateOf(false) }
+    var chatMessages by remember {
+        mutableStateOf(
+            listOf(
+                SupportMessage(
+                    sender = "Bot",
+                    text = "Bonjour ! Je suis Kassa, votre conseiller virtuel LocAll Gabon 🇬🇦. Comment puis-je vous aider dans vos locations de matériel aujourd'hui ?",
+                    time = "À l'instant"
+                )
+            )
+        )
+    }
+    var chatbotInput by remember { mutableStateOf("") }
+    var isBotTyping by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
+    val quickQuestions = listOf(
+        "Délai versement ?",
+        "Comment marche la caution ?",
+        "Est-ce sécurisé ?",
+        "Parler à un humain"
+    )
+
+    fun handleSend(messageText: String) {
+        if (messageText.isBlank()) return
+        
+        // Add User Message
+        val newMsg = SupportMessage(sender = "User", text = messageText, time = "Maintenant")
+        chatMessages = chatMessages + newMsg
+        chatbotInput = ""
+        isBotTyping = true
+
+        coroutineScope.launch {
+            delay(1500)
+            isBotTyping = false
+            
+            val responseText = when {
+                messageText.contains("versement", ignoreCase = true) || messageText.contains("retrait", ignoreCase = true) || messageText.contains("payout", ignoreCase = true) -> {
+                    "Pour les propriétaires, le transfert vers votre compte Airtel Money ou Moov Money s'effectue sous 2 à 4 heures ouvrées dès la validation de la remise des clés par le locataire."
+                }
+                messageText.contains("caution", ignoreCase = true) || messageText.contains("séquestre", ignoreCase = true) || messageText.contains("garantie", ignoreCase = true) -> {
+                    "Le dépôt de garantie (caution) est bloqué en toute sécurité par LocAll Gabon. Il n'est reversé au propriétaire qu'en cas de dommage avéré constaté dans les 24h suivant le retour."
+                }
+                messageText.contains("sécur", ignoreCase = true) || messageText.contains("fiable", ignoreCase = true) -> {
+                    "Absolument ! Tous nos utilisateurs passent par une vérification biométrique instantanée (CNI et Selfie 3D). De plus, nos baux de location sont conformes au droit OHADA en vigueur au Gabon."
+                }
+                messageText.contains("humain", ignoreCase = true) || messageText.contains("agent", ignoreCase = true) || messageText.contains("téléphone", ignoreCase = true) -> {
+                    "Je viens de notifier un de nos conseillers humains de notre bureau de Libreville (Alibandeng). Un agent va prendre le relais ici. Vous pouvez aussi nous appeler direct au +241 07 12 34 56."
+                }
+                else -> {
+                    "C'est bien noté ! Pour toute question spécifique à une annonce, vous pouvez lancer un chat direct avec le propriétaire depuis les détails de l'annonce d'intérêt."
+                }
+            }
+            chatMessages = chatMessages + SupportMessage(sender = "Bot", text = responseText, time = "Maintenant")
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp)
-            .verticalScroll(rememberScrollState())
     ) {
         Spacer(modifier = Modifier.height(24.dp))
         Row(
@@ -2503,7 +3019,9 @@ fun HelpAndSupportScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
-                onClick = onBack,
+                onClick = {
+                    if (showChatbot) showChatbot = false else onBack()
+                },
                 modifier = Modifier
                     .size(40.dp)
                     .background(Color.White.copy(alpha = 0.08f), CircleShape)
@@ -2511,36 +3029,267 @@ fun HelpAndSupportScreen(
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
             }
             Spacer(modifier = Modifier.width(16.dp))
-            Text("Centre d'Aide & FAQ", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = if (showChatbot) "Discuter avec l'Assistant LocAll" else "Centre d'Aide & FAQ",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        faqs.forEach { f ->
-            var expanded by remember { mutableStateOf(false) }
-            Card(
+        if (!showChatbot) {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp)
-                    .clickable { expanded = !expanded },
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
             ) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(f.first, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.weight(1f))
-                        Icon(
-                            imageVector = if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                            contentDescription = null,
-                            tint = PrimaryGreen
-                        )
+                Text(
+                    "Questions Fréquentes (FAQ)",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                faqs.forEach { f ->
+                    var expanded by remember { mutableStateOf(false) }
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp)
+                            .clickable { expanded = !expanded },
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text(f.first, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                                Icon(
+                                    imageVector = if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                                    contentDescription = null,
+                                    tint = PrimaryGreen
+                                )
+                            }
+                            if (expanded) {
+                                Text(f.second, color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp, lineHeight = 18.sp)
+                            }
+                        }
                     }
-                    if (expanded) {
-                        Text(f.second, color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp, lineHeight = 18.sp)
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0F1A2A)),
+                    border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.2f))
+                ) {
+                    Column(
+                        modifier = Modifier.padding(18.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(54.dp)
+                                .clip(CircleShape)
+                                .background(PrimaryGreen.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Rounded.SupportAgent, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(32.dp))
+                        }
+
+                        Text("Toujours besoin de réponses ?", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text(
+                            "Notre assistant client virtuel répond en direct à toutes vos interrogations techniques ou juridiques.",
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 18.sp
+                        )
+
+                        Button(
+                            onClick = { showChatbot = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Rounded.Forum, contentDescription = null)
+                                Text("Lancer le Chatbot en direct", fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 }
             }
+        } else {
+            // HIGH-FIDELITY INTERACTIVE SUPPORT CHAT WINDOW
+            Column(modifier = Modifier.weight(1f)) {
+                // Chats listing flow
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                ) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        contentPadding = PaddingValues(bottom = 12.dp)
+                    ) {
+                        items(chatMessages) { msg ->
+                            val isBot = msg.sender == "Bot"
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = if (isBot) Arrangement.Start else Arrangement.End
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .widthIn(max = 280.dp)
+                                        .clip(
+                                            RoundedCornerShape(
+                                                topStart = 16.dp,
+                                                topEnd = 16.dp,
+                                                bottomStart = if (isBot) 4.dp else 16.dp,
+                                                bottomEnd = if (isBot) 16.dp else 4.dp
+                                            )
+                                        )
+                                        .background(
+                                            if (isBot) Color(0xFF162133) else PrimaryGreen
+                                        )
+                                        .padding(14.dp)
+                                ) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Text(
+                                            text = msg.text,
+                                            color = if (isBot) Color.White else BrandNavy,
+                                            fontSize = 13.sp,
+                                            lineHeight = 18.sp
+                                        )
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.End
+                                        ) {
+                                            Text(
+                                                text = msg.time,
+                                                color = if (isBot) Color.White.copy(alpha = 0.4f) else BrandNavy.copy(alpha = 0.6f),
+                                                fontSize = 9.sp
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (isBotTyping) {
+                            item {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Start
+                                ) {
+                                    Card(
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                                        modifier = Modifier.padding(start = 4.dp)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(12.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            CircularProgressIndicator(
+                                                color = PrimaryGreen,
+                                                modifier = Modifier.size(14.dp),
+                                                strokeWidth = 2.dp
+                                            )
+                                            Text("Kassa écrit...", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Quick Inquiry Chips
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    items(quickQuestions) { q ->
+                        LocalInquiryChip(text = q, onClick = { handleSend(q) })
+                    }
+                }
+
+                // Chat text input box
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = chatbotInput,
+                        onValueChange = { chatbotInput = it },
+                        placeholder = { Text("Écrire à Kassa...", color = Color.White.copy(alpha = 0.3f), fontSize = 13.sp) },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(52.dp)
+                            .testTag("support_chat_input"),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = PrimaryGreen,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.12f)
+                        ),
+                        singleLine = true
+                    )
+
+                    IconButton(
+                        onClick = { handleSend(chatbotInput) },
+                        enabled = chatbotInput.isNotBlank(),
+                        modifier = Modifier
+                            .size(52.dp)
+                            .background(
+                                if (chatbotInput.isNotBlank()) PrimaryGreen else Color.White.copy(alpha = 0.08f),
+                                RoundedCornerShape(14.dp)
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Send,
+                            contentDescription = "Envoyer",
+                            tint = if (chatbotInput.isNotBlank()) BrandNavy else Color.White.copy(alpha = 0.3f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun LocalInquiryChip(text: String, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        color = Color.White.copy(alpha = 0.06f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.height(34.dp)
+    ) {
+        Box(modifier = Modifier.padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
+            Text(text, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Medium)
         }
     }
 }
