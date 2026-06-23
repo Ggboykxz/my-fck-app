@@ -1,0 +1,6 @@
+{
+  "name": "LocAll",
+  "description": "Localisation de toutes sortes de locations au Gabon (immobilier, véhicules, etc.) avec paiements sécurisés Airtel Money and Moov Money.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
