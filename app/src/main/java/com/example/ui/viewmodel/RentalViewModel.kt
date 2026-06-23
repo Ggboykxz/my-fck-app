@@ -5,11 +5,14 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.BuildConfig
 import com.example.data.local.AppDatabase
 import com.example.data.model.Booking
 import com.example.data.model.ChatMessage
 import com.example.data.model.RentalItem
 import com.example.data.repository.RentalRepository
+import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -25,6 +28,13 @@ data class RentalReview(
 )
 
 class RentalViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val generativeModel = if (BuildConfig.GEMINI_API_KEY.isNotBlank()) {
+        GenerativeModel(
+            modelName = "gemini-1.5-flash",
+            apiKey = BuildConfig.GEMINI_API_KEY
+        )
+    } else null
 
     private val db = AppDatabase.getDatabase(application)
     private val repository = RentalRepository(db.rentalDao())
@@ -194,12 +204,19 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         selectedCity,
         selectedMinPrice,
         selectedMaxPrice
-    ) { items, query, category, city, minPrice, maxPrice ->
+    ) { args: Array<Any> ->
+        val items = args[0] as List<RentalItem>
+        val query = args[1] as String
+        val category = args[2] as String
+        val city = args[3] as String
+        val minPrice = args[4] as Int
+        val maxPrice = args[5] as Int
+
         items.filter { item ->
             val matchesQuery = item.title.contains(query, ignoreCase = true) ||
                     item.description.contains(query, ignoreCase = true) ||
                     item.neighborhood.contains(query, ignoreCase = true)
-            
+
             val matchesCategory = category == "Tous" || item.category.equals(category, ignoreCase = true)
             val matchesCity = city == "Tous" || item.city.equals(city, ignoreCase = true)
             val matchesPrice = item.pricePerDay >= minPrice && (maxPrice == 0 || item.pricePerDay <= maxPrice)
@@ -341,22 +358,41 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
                 )
             )
 
-            // Auto simulated owner response
-            delay(1500)
-            val responseText = when {
-                messageText.contains("disponible", ignoreCase = true) || messageText.contains("dispo", ignoreCase = true) -> {
-                    "Absolument! L'offre est entièrement disponible. Vous pouvez effectuer la réservation directement sur LocAll avec Airtel Money ou Moov Money pour bloquer les dates!"
+            // Auto AI owner response
+            val item = rawRentalItems.value.find { it.id == rentalId }
+            val itemDetails = item?.let {
+                "Item: ${it.title}, Description: ${it.description}, Category: ${it.category}, Price: ${it.pricePerDay} CFA/day, City: ${it.city}, Neighborhood: ${it.neighborhood}, Owner: ${it.ownerName}"
+            } ?: "an unknown rental item"
+
+            val responseText = try {
+                if (generativeModel != null) {
+                    val prompt = "You are $ownerName, an owner of a rental item in Gabon on the LocAll app. " +
+                            "A potential tenant is asking: \"$messageText\". " +
+                            "Details of your rental: $itemDetails. " +
+                            "Respond in French, be professional and encouraging. " +
+                            "Mention that payments are handled via Airtel Money or Moov Money on the app. " +
+                            "Keep it relatively short (max 3 sentences)."
+
+                    val response = generativeModel.generateContent(prompt)
+                    response.text ?: "Désolé, je rencontre un petit problème pour répondre. Pouvons-nous continuer plus tard ?"
+                } else {
+                    // Fallback to basic simulated response if AI is not configured
+                    when {
+                        messageText.contains("disponible", ignoreCase = true) || messageText.contains("dispo", ignoreCase = true) -> {
+                            "Absolument! L'offre est entièrement disponible. Vous pouvez effectuer la réservation directement sur LocAll avec Airtel Money ou Moov Money pour bloquer les dates!"
+                        }
+                        messageText.contains("prix", ignoreCase = true) || messageText.contains("tarif", ignoreCase = true) || messageText.contains("reduction", ignoreCase = true) -> {
+                            "Le tarif est fixé à la journée. Si vous louez pour plus d'une semaine, je peux vous faire un geste commercial. N'hésitez pas à lancer la réservation pour en discuter."
+                        }
+                        else -> {
+                            "Merci pour votre message ! C'est noté. Que souhaitez-vous savoir d'autre sur cette location pour finaliser notre accord ?"
+                        }
+                    }
                 }
-                messageText.contains("prix", ignoreCase = true) || messageText.contains("tarif", ignoreCase = true) || messageText.contains("reduction", ignoreCase = true) -> {
-                    "Le tarif est fixé à la journée. Si vous louez pour plus d'une semaine, je peux vous faire un geste commercial. N'hésitez pas à lancer la réservation pour en discuter."
-                }
-                messageText.contains("visite", ignoreCase = true) || messageText.contains("voir", ignoreCase = true) -> {
-                    "Bien sûr, la visite est tout à fait possible à ${viewModelScope.run { rawRentalItems.value.find { it.id == rentalId }?.neighborhood ?: "Libreville" }}. Dites-moi quand vous seriez disponible !"
-                }
-                else -> {
-                    "Merci pour votre message ! C'est noté. Que souhaitez-vous savoir d'autre sur cette location pour finaliser notre accord ?"
-                }
+            } catch (e: Exception) {
+                "Merci pour votre message ! Je reviens vers vous dès que possible pour discuter de cette location."
             }
+
             repository.insertChatMessage(
                 ChatMessage(
                     rentalItemId = rentalId,
