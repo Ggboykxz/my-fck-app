@@ -84,6 +84,7 @@ fun MainDashboardView(viewModel: RentalViewModel) {
                     "post_listing" -> PostListingScreen(viewModel)
                     "bookmarks" -> BookmarksScreen(viewModel)
                     "messages" -> InboxScreen(viewModel)
+                    "profile" -> ProfileNavigator(viewModel = viewModel)
                     "details" -> selectedItem?.let { item ->
                         ItemDetailsScreen(
                             item = item,
@@ -129,20 +130,6 @@ fun DashboardBottomBar(
         )
 
         NavigationBarItem(
-            selected = currentScreen == "bookings",
-            onClick = { onNavigate("bookings") },
-            icon = { Icon(Icons.Default.List, contentDescription = "Réservations") },
-            label = { Text("Réservations", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = PrimaryGreen,
-                selectedTextColor = PrimaryGreen,
-                unselectedIconColor = Color.White.copy(alpha = 0.45f),
-                unselectedTextColor = Color.White.copy(alpha = 0.45f),
-                indicatorColor = Color.White.copy(alpha = 0.12f)
-            )
-        )
-
-        NavigationBarItem(
             selected = currentScreen == "post_listing",
             onClick = { onNavigate("post_listing") },
             icon = { Icon(Icons.Rounded.AddCircle, contentDescription = "Ajouter", tint = PrimaryGreen, modifier = Modifier.size(28.dp)) },
@@ -175,6 +162,20 @@ fun DashboardBottomBar(
             onClick = { onNavigate("messages") },
             icon = { Icon(Icons.Default.Email, contentDescription = "Messages") },
             label = { Text("Messages", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = PrimaryGreen,
+                selectedTextColor = PrimaryGreen,
+                unselectedIconColor = Color.White.copy(alpha = 0.45f),
+                unselectedTextColor = Color.White.copy(alpha = 0.45f),
+                indicatorColor = Color.White.copy(alpha = 0.12f)
+            )
+        )
+
+        NavigationBarItem(
+            selected = currentScreen == "profile",
+            onClick = { onNavigate("profile") },
+            icon = { Icon(Icons.Rounded.Person, contentDescription = "Profil") },
+            label = { Text("Profil", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = PrimaryGreen,
                 selectedTextColor = PrimaryGreen,

@@ -1,0 +1,2791 @@
+package com.example.ui.screens
+
+import androidx.compose.animation.*
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.ui.viewmodel.RentalViewModel
+import java.text.NumberFormat
+import java.util.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+// Internal data models for high-fidelity UI representation
+data class DisputeItem(
+    val id: String,
+    val date: String,
+    val type: String,
+    val claimAmount: Int,
+    val status: String, // "En cours", "Résolu", "Clos"
+    val description: String,
+    val decision: String? = null
+)
+
+data class EarnerTransaction(
+    val id: String,
+    val date: String,
+    val ref: String,
+    val amount: Int,
+    val channel: String, // "Airtel Money", "Moov Money"
+    val status: String // "Réussi", "Échoué"
+)
+
+data class ReceivedReservation(
+    val id: String,
+    val tenantName: String,
+    val tenantRating: Float,
+    val itemTitle: String,
+    val category: String,
+    val status: String, // "En attente", "Confirmé", "Terminé"
+    val dates: String,
+    val days: Int,
+    val totalPrice: Int,
+    val phone: String
+)
+
+@Composable
+fun ProfileNavigator(viewModel: RentalViewModel) {
+    var subScreen by remember { mutableStateOf("main") } // "main", "dashboard", "earnings", "wallet", "listings", "calendar", "bookings_received", "identity", "disputes", "tenant_bookings", "language", "security", "help", "damage", "review_tenant"
+    
+    // Dispute state helpers
+    var selectedDisputeId by remember { mutableStateOf<String?>(null) }
+    var activeDisputeType by remember { mutableStateOf("Frais additionnels") }
+    var activeDamageSelection by remember { mutableStateOf<ReceivedReservation?>(null) }
+    var activeReviewSelection by remember { mutableStateOf<ReceivedReservation?>(null) }
+
+    val isOwnerMode by viewModel.isOwnerMode.collectAsState()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BrandNavy)
+    ) {
+        AnimatedContent(
+            targetState = subScreen,
+            transitionSpec = {
+                slideInHorizontally { width -> if (targetState == "main") -width else width } + fadeIn() togetherWith
+                        slideOutHorizontally { width -> if (targetState == "main") width else -width } + fadeOut()
+            },
+            label = "ProfileSubscreenTransition"
+        ) { screen ->
+            when (screen) {
+                "main" -> ProfileMainScreen(
+                    viewModel = viewModel,
+                    onNavigate = { dest -> subScreen = dest }
+                )
+                "dashboard" -> OwnerDashboardScreen(
+                    viewModel = viewModel,
+                    onBack = { subScreen = "main" },
+                    onNavigate = { dest -> subScreen = dest }
+                )
+                "earnings" -> EarningsHistoryScreen(
+                    onBack = { subScreen = "dashboard" }
+                )
+                "wallet" -> WalletAndWithdrawalScreen(
+                    viewModel = viewModel,
+                    onBack = { subScreen = "dashboard" }
+                )
+                "listings" -> OwnerListingsScreen(
+                    viewModel = viewModel,
+                    onBack = { subScreen = "dashboard" }
+                )
+                "calendar" -> AvailabilityCalendarScreen(
+                    viewModel = viewModel,
+                    onBack = { subScreen = "dashboard" }
+                )
+                "bookings_received" -> ReceivedBookingsScreen(
+                    viewModel = viewModel,
+                    onBack = { subScreen = "dashboard" },
+                    onReportDamage = { res -> 
+                        activeDamageSelection = res
+                        subScreen = "damage"
+                    },
+                    onReviewTenant = { res ->
+                        activeReviewSelection = res
+                        subScreen = "review_tenant"
+                    }
+                )
+                "identity" -> IdentityVerificationScreen(
+                    viewModel = viewModel,
+                    onBack = { subScreen = "main" }
+                )
+                "disputes" -> DisputesHistoryScreen(
+                    viewModel = viewModel,
+                    onBack = { subScreen = "main" },
+                    onSelectDispute = { id ->
+                        selectedDisputeId = id
+                        subScreen = "mediation"
+                    }
+                )
+                "mediation" -> MediationDetailsScreen(
+                    disputeId = selectedDisputeId ?: "#LIT-8492",
+                    onBack = { subScreen = "disputes" }
+                )
+                "tenant_bookings" -> TenantBookingsScreen(
+                    viewModel = viewModel,
+                    onBack = { subScreen = "main" },
+                    onReportDamage = { res ->
+                        activeDamageSelection = res
+                        subScreen = "damage"
+                    }
+                )
+                "language" -> LanguageSelectionScreen(
+                    viewModel = viewModel,
+                    onBack = { subScreen = "main" }
+                )
+                "security" -> SecuritySettingsScreen(
+                    onBack = { subScreen = "main" }
+                )
+                "help" -> HelpAndSupportScreen(
+                    onBack = { subScreen = "main" }
+                )
+                "damage" -> DamageReportingScreen(
+                    reservation = activeDamageSelection,
+                    onBack = { subScreen = if (isOwnerMode) "bookings_received" else "tenant_bookings" },
+                    onSubmitted = {
+                        subScreen = if (isOwnerMode) "bookings_received" else "tenant_bookings"
+                    }
+                )
+                "review_tenant" -> TenantReviewScreen(
+                    reservation = activeReviewSelection,
+                    onBack = { subScreen = "bookings_received" },
+                    onSubmitted = { subScreen = "bookings_received" }
+                )
+            }
+        }
+    }
+}
+
+// ---------------- PROFILE MAIN SCREEN ----------------
+
+@Composable
+fun ProfileMainScreen(
+    viewModel: RentalViewModel,
+    onNavigate: (String) -> Unit
+) {
+    val isOwnerMode by viewModel.isOwnerMode.collectAsState()
+    val verifStatus by viewModel.identityVerificationStatus.collectAsState()
+    val language by viewModel.profileLanguage.collectAsState()
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        item {
+            Spacer(modifier = Modifier.height(30.dp))
+            
+            // Header Title
+            Text(
+                "Tableau de Bord & Profil",
+                color = Color.White,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            // User Profile Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Profile Photo with badge overlay
+                    Box(modifier = Modifier.size(72.dp)) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data("https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80")
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "User profile picture",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape)
+                                .border(2.dp, PrimaryGreen, CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(PrimaryGreen)
+                                .padding(horizontal = 4.dp, vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = BrandNavy, modifier = Modifier.size(10.dp))
+                        }
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Marie-Claire Nzamba",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "+241 77 12 34 56 (Libreville)",
+                            color = Color.White.copy(alpha = 0.65f),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Surface(
+                            color = PrimaryGreen.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                "Propriétaire Vérifié",
+                                color = PrimaryGreen,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Switch to Owner Mode Mode Box
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = if (isOwnerMode) Color(0xFF0C2417) else Color(0xFF162133)),
+                border = BorderStroke(1.dp, if (isOwnerMode) PrimaryGreen.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.12f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(18.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isOwnerMode) PrimaryGreen.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.05f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = if (isOwnerMode) Icons.Rounded.HomeWork else Icons.Rounded.Person,
+                                contentDescription = null,
+                                tint = if (isOwnerMode) PrimaryGreen else Color.White
+                            )
+                        }
+                        Column {
+                            Text(
+                                "Mode Propriétaire",
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                if (isOwnerMode) "Gérer vos revenus & annonces" else "Activer pour louer vos biens",
+                                color = Color.White.copy(alpha = 0.6f),
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+
+                    Switch(
+                        checked = isOwnerMode,
+                        onCheckedChange = { viewModel.setOwnerMode(it) },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = BrandNavy,
+                            checkedTrackColor = PrimaryGreen,
+                            uncheckedThumbColor = Color.LightGray,
+                            uncheckedTrackColor = Color.White.copy(alpha = 0.15f)
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Sub links Section depending on Mode
+            Text(
+                text = "Services & Gestion".uppercase(),
+                color = Color.White.copy(alpha = 0.45f),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
+            )
+        }
+
+        if (isOwnerMode) {
+            // OWNER MODE MENU ITEMS
+            item {
+                ProfileOptionRow(
+                    icon = Icons.Rounded.Dashboard,
+                    title = "Tableau de Bord Propriétaire",
+                    subtitle = "Revenus, statistiques & gains",
+                    onClick = { onNavigate("dashboard") }
+                )
+                ProfileOptionRow(
+                    icon = Icons.Rounded.HomeWork,
+                    title = "Mes Annonces Actives",
+                    subtitle = "Publications, validations & suspendus",
+                    onClick = { onNavigate("listings") }
+                )
+                ProfileOptionRow(
+                    icon = Icons.Rounded.DateRange,
+                    title = "Calendrier de Disponibilité",
+                    subtitle = "Bloquer ou autoriser des dates",
+                    onClick = { onNavigate("calendar") }
+                )
+                ProfileOptionRow(
+                    icon = Icons.Rounded.MoveToInbox,
+                    title = "Réservations Reçues",
+                    subtitle = "Gérer les remises & retours de biens",
+                    onClick = { onNavigate("bookings_received") }
+                )
+            }
+        } else {
+            // TENANT MODE MENU ITEMS
+            item {
+                ProfileOptionRow(
+                    icon = Icons.Rounded.Task,
+                    title = "Mes Réservations à venir",
+                    subtitle = "Reçus, codes de retraits & dommages",
+                    onClick = { onNavigate("tenant_bookings") }
+                )
+                ProfileOptionRow(
+                    icon = Icons.Rounded.VerifiedUser,
+                    title = "Vérification d'Identité",
+                    subtitle = "Statut actuel: $verifStatus",
+                    onClick = { onNavigate("identity") }
+                )
+                ProfileOptionRow(
+                    icon = Icons.Rounded.Payment,
+                    title = "Moyens de Paiement",
+                    subtitle = "Airtel, Moov & Cartes Bancaires",
+                    onClick = { onNavigate("help") } // redirected dynamically
+                )
+            }
+        }
+
+        // COMMON SYSTEM SETTINGS MENU ITEMS
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Préférences & Aide".uppercase(),
+                color = Color.White.copy(alpha = 0.45f),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
+            )
+
+            ProfileOptionRow(
+                icon = Icons.Rounded.GTranslate,
+                title = "Paramètres de Langue",
+                subtitle = "Sélectionné: $language",
+                onClick = { onNavigate("language") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.Lock,
+                title = "Sécurité & Mot de Passe",
+                subtitle = "Changer le mot de passe confidentiel",
+                onClick = { onNavigate("security") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.Gavel,
+                title = "Historique des Litiges",
+                subtitle = "Suivre une procédure de médiation",
+                onClick = { onNavigate("disputes") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.HelpOutline,
+                title = "Centre d'Aide & Support",
+                subtitle = "FAQs Mobile Money, Assurance & Garanties",
+                onClick = { onNavigate("help") }
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // Logout Simulator Button
+            Button(
+                onClick = { viewModel.setLoggedIn(false) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.15f), contentColor = Color.Red),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .padding(bottom = 12.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Rounded.ExitToApp, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Text("Se déconnecter", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(30.dp))
+        }
+    }
+}
+
+@Composable
+fun ProfileOptionRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color.White.copy(alpha = 0.05f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = Color.LightGray)
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text(subtitle, color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+            }
+
+            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White.copy(alpha = 0.3f))
+        }
+    }
+}
+
+// ---------------- OWNER DASHBOARD SCREEN ----------------
+
+@Composable
+fun OwnerDashboardScreen(
+    viewModel: RentalViewModel,
+    onBack: () -> Unit,
+    onNavigate: (String) -> Unit
+) {
+    val balance by viewModel.withdrawableBalance.collectAsState()
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
+            // Navigation Back Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color.White.copy(alpha = 0.08f), CircleShape)
+                ) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+                }
+
+                Text(
+                    "Tableau Propriétaire",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Box(modifier = Modifier.size(40.dp))
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Wallet balance display card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF0C2417)),
+                border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(22.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        "PORTEFEUILLE DISPONIBLE",
+                        color = PrimaryGreen,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.5.sp
+                    )
+
+                    Text(
+                        formatPriceCfa(balance),
+                        color = Color.White,
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Button(
+                            onClick = { onNavigate("wallet") },
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Rounded.CallMade, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Retirer fds", fontWeight = FontWeight.Bold)
+                        }
+
+                        Button(
+                            onClick = { onNavigate("earnings") },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.1f), contentColor = Color.White),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Rounded.History, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Historique", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Stat columns / grid blocks
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                StatPillCard(
+                    modifier = Modifier.weight(1f),
+                    title = "Locations Actives",
+                    value = "4 loués",
+                    icon = Icons.Rounded.CheckCircle,
+                    color = PrimaryGreen
+                )
+                StatPillCard(
+                    modifier = Modifier.weight(1f),
+                    title = "Annulation",
+                    value = "0 %",
+                    icon = Icons.Rounded.Close,
+                    color = Color.Red
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Beautiful interactive Chart section
+            Text(
+                text = "Évolution des Revenus",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
+            )
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(20.dp)
+                ) {
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val w = size.width
+                        val h = size.height
+                        
+                        // Draw horizontal background lines
+                        for (i in 1..4) {
+                            val y = h * (i / 4f)
+                            drawLine(
+                                color = Color.White.copy(alpha = 0.04f),
+                                start = Offset(0f, y),
+                                end = Offset(w, y),
+                                strokeWidth = 2f
+                            )
+                        }
+
+                        // Coordinates for points representing monthly revenue
+                        val points = listOf(
+                            Offset(w * 0.05f, h * 0.85f), // Sep
+                            Offset(w * 0.23f, h * 0.70f), // Oct
+                            Offset(w * 0.41f, h * 0.75f), // Nov
+                            Offset(w * 0.59f, h * 0.50f), // Dec
+                            Offset(w * 0.77f, h * 0.30f), // Jan
+                            Offset(w * 0.95f, h * 0.15f)  // Feb
+                        )
+
+                        // Draw path under line with gradient fill
+                        val fillPath = Path().apply {
+                            moveTo(points[0].x, h)
+                            for (p in points) {
+                                lineTo(p.x, p.y)
+                            }
+                            lineTo(points.last().x, h)
+                            close()
+                        }
+                        drawPath(
+                            path = fillPath,
+                            brush = Brush.verticalGradient(
+                                colors = listOf(PrimaryGreen.copy(alpha = 0.20f), Color.Transparent),
+                                startY = 0f,
+                                endY = h
+                            )
+                        )
+
+                        // Draw line curve
+                        val linePath = Path().apply {
+                            moveTo(points[0].x, points[0].y)
+                            for (i in 1 until points.size) {
+                                val pPrev = points[i-1]
+                                val pCurr = points[i]
+                                cubicTo(
+                                    (pPrev.x + pCurr.x)/2, pPrev.y,
+                                    (pPrev.x + pCurr.x)/2, pCurr.y,
+                                    pCurr.x, pCurr.y
+                                )
+                            }
+                        }
+                        drawPath(
+                            path = linePath,
+                            color = PrimaryGreen,
+                            style = Stroke(width = 6f)
+                        )
+
+                        // Draw point coordinates
+                        for (p in points) {
+                            drawCircle(
+                                color = BrandNavy,
+                                radius = 10f,
+                                center = p
+                            )
+                            drawCircle(
+                                color = PrimaryGreen,
+                                radius = 6f,
+                                center = p
+                            )
+                        }
+                    }
+
+                    // Floating text overlay representing months
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Sep", fontSize = 10.sp, color = Color.White.copy(alpha = 0.4f))
+                        Text("Oct", fontSize = 10.sp, color = Color.White.copy(alpha = 0.4f))
+                        Text("Nov", fontSize = 10.sp, color = Color.White.copy(alpha = 0.4f))
+                        Text("Dec", fontSize = 10.sp, color = Color.White.copy(alpha = 0.4f))
+                        Text("Jan", fontSize = 10.sp, color = Color.White.copy(alpha = 0.4f))
+                        Text("Feb", fontSize = 10.sp, color = Color.White.copy(alpha = 0.4f))
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Pending Actions Notification Bubble
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigate("bookings_received") },
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF381519)),
+                border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.3f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color.Red),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Rounded.NotificationsActive, contentDescription = null, tint = Color.White)
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("En attente de validation", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("Vous avez 1 demande de location en attente.", color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp)
+                    }
+
+                    Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White.copy(alpha = 0.4f))
+                }
+            }
+            Spacer(modifier = Modifier.height(30.dp))
+        }
+    }
+}
+
+@Composable
+fun StatPillCard(
+    modifier: Modifier = Modifier,
+    title: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(title, color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
+            }
+            Text(value, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+        }
+    }
+}
+
+// ---------------- EARNINGS HISTORY SCREEN ----------------
+
+@Composable
+fun EarningsHistoryScreen(
+    onBack: () -> Unit
+) {
+    val mockTransactions = listOf(
+        EarnerTransaction("T-9041", "12 Fév 2026", "Airtel *150*7# - 1492", 120000, "Airtel Money", "Réussi"),
+        EarnerTransaction("T-8422", "06 Fév 2026", "Moov *555# - 5821", 75000, "Moov Money", "Réussi"),
+        EarnerTransaction("T-7301", "28 Jan 2026", "Airtel *150*7# - 3891", 210000, "Airtel Money", "Réussi"),
+        EarnerTransaction("T-5421", "14 Jan 2026", "Moov *555# - 1052", 45000, "Moov Money", "Réussi")
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Historique des Gains", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+            items(mockTransactions) { tx ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .background(if (tx.channel == "Airtel Money") Color(0xFF381519) else Color(0xFF0E2235)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    if (tx.channel == "Airtel Money") "A" else "M",
+                                    color = if (tx.channel == "Airtel Money") Color.Red else Color.Cyan,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                )
+                            }
+
+                            Column {
+                                Text(tx.channel, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text(tx.date, color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                                Text(tx.ref, color = Color.White.copy(alpha = 0.4f), fontSize = 10.sp, maxLines = 1)
+                            }
+                        }
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text("+ ${formatPriceCfa(tx.amount)}", color = PrimaryGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Surface(
+                                color = Color(0xFF0C2417),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    tx.status,
+                                    color = PrimaryGreen,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---------------- WALLET & WITHDRAWAL SCREEN ----------------
+
+@Composable
+fun WalletAndWithdrawalScreen(
+    viewModel: RentalViewModel,
+    onBack: () -> Unit
+) {
+    val balance by viewModel.withdrawableBalance.collectAsState()
+    var withdrawAmount by remember { mutableStateOf("") }
+    var selectedChannel by remember { mutableStateOf("Airtel Money") }
+    var numberInput by remember { mutableStateOf("") }
+    var withdrawSuccess by remember { mutableStateOf(false) }
+    var isLoadingWithdraw by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    if (withdrawSuccess) {
+        Dialog(onDismissRequest = { withdrawSuccess = false }) {
+            Card(
+                shape = RoundedCornerShape(26.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(26.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(72.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFE9F5EC)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Rounded.CloudDone, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(36.dp))
+                    }
+
+                    Text(
+                        "Retrait Réussi !",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = BrandNavy,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Text(
+                        "Votre demande de transfert de fonds a été exécutée avec succès vers votre portefeuille Mobile Money.",
+                        fontSize = 13.sp,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Button(
+                        onClick = { 
+                            withdrawSuccess = false
+                            onBack()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = BrandNavy),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Fermer", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Retirer des Fonds", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Balance reminder
+        Text("Solde Retirable", color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Text(formatPriceCfa(balance), color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.ExtraBold)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Form Fields
+        Text("Montant du Retrait (F CFA)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        OutlinedTextField(
+            value = withdrawAmount,
+            onValueChange = { withdrawAmount = it },
+            placeholder = { Text("Ex: 50000", color = Color.White.copy(alpha = 0.35f)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = PrimaryGreen,
+                unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
+            )
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Choose Phone operators
+        Text("Canal de Réception", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Card(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { selectedChannel = "Airtel Money" },
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (selectedChannel == "Airtel Money") Color(0xFF381519) else Color(0xFF162133)
+                ),
+                border = BorderStroke(
+                    width = 2.dp,
+                    color = if (selectedChannel == "Airtel Money") Color.Red else Color.Transparent
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Box(modifier = Modifier.size(16.dp).clip(CircleShape).background(Color.Red))
+                    Text("AirtelMoney", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            Card(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { selectedChannel = "Moov Money" },
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (selectedChannel == "Moov Money") Color(0xFF0E2235) else Color(0xFF162133)
+                ),
+                border = BorderStroke(
+                    width = 2.dp,
+                    color = if (selectedChannel == "Moov Money") Color.Cyan else Color.Transparent
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Box(modifier = Modifier.size(16.dp).clip(CircleShape).background(Color.Cyan))
+                    Text("MoovMoney", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Phone Input
+        Text("Numéro de Téléphone Gabonais", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        OutlinedTextField(
+            value = numberInput,
+            onValueChange = { numberInput = it },
+            placeholder = { Text("Ex: 077 12 34 56", color = Color.White.copy(alpha = 0.35f)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = PrimaryGreen,
+                unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
+            )
+        )
+
+        Spacer(modifier = Modifier.height(30.dp))
+
+        val blockWithdraw = withdrawAmount.isBlank() || numberInput.isBlank() || isLoadingWithdraw
+        Button(
+            onClick = {
+                val amtInt = withdrawAmount.toIntOrNull() ?: 0
+                if (amtInt > balance) return@Button
+                
+                isLoadingWithdraw = true
+                coroutineScope.launch {
+                    delay(2000)
+                    viewModel.withdrawFunds(amtInt)
+                    isLoadingWithdraw = false
+                    withdrawSuccess = true
+                }
+            },
+            enabled = !blockWithdraw,
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy, disabledContainerColor = Color.White.copy(alpha = 0.08f)),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+        ) {
+            if (isLoadingWithdraw) {
+                CircularProgressIndicator(color = BrandNavy, modifier = Modifier.size(24.dp))
+            } else {
+                Text("Lancer la demande de retrait", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(40.dp))
+    }
+}
+
+// ---------------- OWNER LISTINGS SCREEN ----------------
+
+@Composable
+fun OwnerListingsScreen(
+    viewModel: RentalViewModel,
+    onBack: () -> Unit
+) {
+    val listings by viewModel.rawRentalItems.collectAsState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Mes Annonces", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Separators Tab views (Active, En attente, Inactive)
+        var selectedItemIndex by remember { mutableStateOf(0) }
+        TabRow(
+            selectedTabIndex = selectedItemIndex,
+            containerColor = Color.Transparent,
+            contentColor = PrimaryGreen,
+            divider = {}
+        ) {
+            Tab(selected = selectedItemIndex == 0, onClick = { selectedItemIndex = 0 }, text = { Text("Actives (5)", fontWeight = FontWeight.Bold) })
+            Tab(selected = selectedItemIndex == 1, onClick = { selectedItemIndex == 1 }, text = { Text("En révision (1)", fontWeight = FontWeight.Bold) })
+            Tab(selected = selectedItemIndex == 2, onClick = { selectedItemIndex == 2 }, text = { Text("Suspendues (0)", fontWeight = FontWeight.Bold) })
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Display listings
+        if (selectedItemIndex == 0) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.weight(1f)) {
+                items(listings.take(5)) { item ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(item.imageUrl)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(76.dp)
+                                    .clip(RoundedCornerShape(10.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(item.title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text("${item.neighborhood}, ${item.city}", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(formatPriceCfa(item.pricePerDay) + " / jour", color = PrimaryGreen, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                            }
+
+                            Column(horizontalAlignment = Alignment.End) {
+                                Surface(color = Color(0xFF0C2417), shape = RoundedCornerShape(6.dp)) {
+                                    Text("Actif", color = PrimaryGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else if (selectedItemIndex == 1) {
+            // Seeding review listing mock exactly
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+            ) {
+                Row(modifier = Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data("https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=350&q=80")
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(76.dp)
+                            .clip(RoundedCornerShape(10.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Mitsubishi L200 Pick-Up Double Cabine", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("Akanda, Gabon", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("45 000 F / jour", color = PrimaryGreen, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Surface(color = Color(0xFF4A3515), shape = RoundedCornerShape(6.dp)) {
+                        Text("Examen H24", color = Color(0xFFFFB300), fontSize = 9.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                    }
+                }
+            }
+        } else {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Aucune annonce inactive.", color = Color.White.copy(alpha = 0.4f), fontSize = 13.sp)
+            }
+        }
+    }
+}
+
+// ---------------- AVAILABILITY CALENDAR SCREEN ----------------
+
+@Composable
+fun AvailabilityCalendarScreen(
+    viewModel: RentalViewModel,
+    onBack: () -> Unit
+) {
+    var selectedDaysList by remember { mutableStateOf(setOf(4, 9, 10, 11, 19, 21)) } // dates toggled / blocked by Owner
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Calendrier Disponibilité", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text("Février 2026", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Text("Touchez un jour pour basculer son statut (Vert: Libre, Rouge: Bloqué / Reservé)", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp, modifier = Modifier.padding(bottom = 16.dp))
+
+        // Week Headers Row
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            val weekDays = listOf("Lu", "Ma", "Me", "Je", "Ve", "Sa", "Di")
+            for (day in weekDays) {
+                Text(
+                    text = day,
+                    color = Color.White.copy(alpha = 0.45f),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Month Grid days simulation
+        val daysInMonth = 28
+        val startOffset = 6 // Feb 2026 starts on Sunday
+        
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(7),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+            // empty slots for padding
+            items(startOffset) {
+                Box(modifier = Modifier.aspectRatio(1f))
+            }
+
+            items(daysInMonth) { index ->
+                val day = index + 1
+                val isBlocked = selectedDaysList.contains(day)
+                Box(
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (isBlocked) Color(0xFF381519) else Color(0xFF0C2417))
+                        .border(
+                            width = 1.dp,
+                            color = if (isBlocked) Color.Red.copy(alpha = 0.5f) else PrimaryGreen.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .clickable {
+                            selectedDaysList = if (isBlocked) {
+                                selectedDaysList - day
+                            } else {
+                                selectedDaysList + day
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "$day",
+                        color = if (isBlocked) Color.Red else PrimaryGreen,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ---------------- RECEIVED BOOKINGS SCREEN (OWNER) ----------------
+
+@Composable
+fun ReceivedBookingsScreen(
+    viewModel: RentalViewModel,
+    onBack: () -> Unit,
+    onReportDamage: (ReceivedReservation) -> Unit,
+    onReviewTenant: (ReceivedReservation) -> Unit
+) {
+    var tabIndex by remember { mutableStateOf(0) }
+    var mockReservations by remember { mutableStateOf(listOf(
+        ReceivedReservation("R-9421", "Moussa Diakité", 4.9f, "Studio Cosy Près de l'Aéroport", "Immobilier", "En attente", "15 Fév - 17 Fév 2026", 2, 70000, "074581295"),
+        ReceivedReservation("R-8410", "Sarah Bongo", 4.8f, "Toyota Prado VXR V6 2023", "Véhicule", "Confirmé", "10 Fév - 13 Fév 2026", 3, 450000, "066459123"),
+        ReceivedReservation("R-7390", "Jean-Marc Mba", 4.5f, "Appartement Chic Vue Mer", "Immobilier", "Terminé", "01 Fév - 04 Fév 2026", 3, 225000, "077123490")
+    )) }
+
+    // Handover check modals
+    var activeHandoverCheck by remember { mutableStateOf<ReceivedReservation?>(null) }
+    var isHandoverConfirmed by remember { mutableStateOf(false) }
+
+    if (activeHandoverCheck != null) {
+        Dialog(onDismissRequest = { activeHandoverCheck = null }) {
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(Icons.Rounded.Handshake, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(48.dp))
+                    
+                    Text("Gestion de la Remise", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                    Text("Vous êtes sur le point de confirmer la remise du bien clé en main avec le locataire ${activeHandoverCheck?.tenantName}.", fontSize = 13.sp, color = Color.Gray, textAlign = TextAlign.Center)
+
+                    Button(
+                        onClick = {
+                            val target = activeHandoverCheck
+                            if (target != null) {
+                                mockReservations = mockReservations.map {
+                                    if (it.id == target.id) it.copy(status = "Confirmé") else it
+                                }
+                            }
+                            activeHandoverCheck = null
+                            isHandoverConfirmed = true
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = BrandNavy),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Confirmer la remise des clés", color = Color.White)
+                    }
+                }
+            }
+        }
+    }
+
+    if (isHandoverConfirmed) {
+        Dialog(onDismissRequest = { isHandoverConfirmed = false }) {
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(Icons.Rounded.CloudDone, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(48.dp))
+                    Text("Remise Validée !", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                    Text("Le statut de la réservation est désormais 'En Cours'. L'assurance LocAll couvre désormais les transactions.", fontSize = 13.sp, color = Color.Gray, textAlign = TextAlign.Center)
+                    Button(onClick = { isHandoverConfirmed = false }, colors = ButtonDefaults.buttonColors(containerColor = BrandNavy)) {
+                        Text("Super", color = Color.White)
+                    }
+                }
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Réservations Reçues", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TabRow(
+            selectedTabIndex = tabIndex,
+            containerColor = Color.Transparent,
+            contentColor = PrimaryGreen,
+            divider = {}
+        ) {
+            Tab(selected = tabIndex == 0, onClick = { tabIndex = 0 }, text = { Text("En attente", fontWeight = FontWeight.Bold) })
+            Tab(selected = tabIndex == 1, onClick = { tabIndex = 1 }, text = { Text("Confirmées", fontWeight = FontWeight.Bold) })
+            Tab(selected = tabIndex == 2, onClick = { tabIndex = 2 }, text = { Text("Terminées", fontWeight = FontWeight.Bold) })
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Display reservations matching tab
+        val statusFilter = when (tabIndex) {
+            0 -> "En attente"
+            1 -> "Confirmé"
+            else -> "Terminé"
+        }
+
+        val filtered = mockReservations.filter { it.status == statusFilter }
+
+        if (filtered.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Aucune réservation dans cette catégorie.", color = Color.White.copy(alpha = 0.4f), fontSize = 13.sp)
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                items(filtered) { res ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Icon(Icons.Rounded.Person, contentDescription = null, tint = PrimaryGreen)
+                                    Column {
+                                        Text(res.tenantName, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Icons.Rounded.Star, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(11.dp))
+                                            Text("${res.tenantRating}/5", color = Color.LightGray, fontSize = 10.sp)
+                                        }
+                                    }
+                                }
+
+                                Surface(
+                                    color = if (res.status == "En attente") Color(0xFF4A3515) else Color(0xFF0C2417),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text(
+                                        res.status,
+                                        color = if (res.status == "En attente") Color(0xFFFFB300) else PrimaryGreen,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                    )
+                                }
+                            }
+
+                            Divider(color = Color.White.copy(alpha = 0.08f))
+
+                            Text(res.itemTitle, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Text(res.dates, color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Durée", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                                Text("${res.days} Jours", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Total à recevoir", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                                Text(formatPriceCfa(res.totalPrice), color = PrimaryGreen, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+                            }
+
+                            // Interactive Operations depending on state
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            if (res.status == "En attente") {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Button(
+                                        onClick = {
+                                            mockReservations = mockReservations.map {
+                                                if (it.id == res.id) it.copy(status = "Confirmé") else it
+                                            }
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+                                        shape = RoundedCornerShape(10.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Accepter", fontWeight = FontWeight.Bold)
+                                    }
+
+                                    Button(
+                                        onClick = {
+                                            mockReservations = mockReservations.filter { it.id != res.id }
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.15f), contentColor = Color.Red),
+                                        shape = RoundedCornerShape(10.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Refuser", fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            } else if (res.status == "Confirmé") {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Button(
+                                        onClick = { activeHandoverCheck = res },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.15f), contentColor = Color.White),
+                                        shape = RoundedCornerShape(10.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Gérer remise", fontWeight = FontWeight.Bold)
+                                    }
+
+                                    Button(
+                                        onClick = {
+                                            mockReservations = mockReservations.map {
+                                                if (it.id == res.id) it.copy(status = "Terminé") else it
+                                            }
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+                                        shape = RoundedCornerShape(10.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Clôturer", fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            } else {
+                                // Completed actions
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Button(
+                                        onClick = { onReviewTenant(res) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.1f), contentColor = Color.White),
+                                        shape = RoundedCornerShape(10.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Évaluer locataire", fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                    }
+
+                                    Button(
+                                        onClick = { onReportDamage(res) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.15f), contentColor = Color.Red),
+                                        shape = RoundedCornerShape(10.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Signaler dommage", fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---------------- IDENTITY VERIFICATION SCREEN (TENANT) ----------------
+
+@Composable
+fun IdentityVerificationScreen(
+    viewModel: RentalViewModel,
+    onBack: () -> Unit
+) {
+    val currentStatus by viewModel.identityVerificationStatus.collectAsState()
+    var selectedIdType by remember { mutableStateOf("CNI (Carte Nationale d'Identité)") }
+    var inputDocNumber by remember { mutableStateOf("") }
+    var isUploading by remember { mutableStateOf(false) }
+    var isSelfieTaking by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Vérification d'Identité", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        if (currentStatus == "Non vérifié") {
+            Text("Configurez vos documents officiels pour gagner en confiance auprès des annonceurs LocAll.", color = Color.White.copy(alpha = 0.65f), fontSize = 13.sp, modifier = Modifier.fillMaxWidth())
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text("Type de document", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
+            var isDocDropdownEx by remember { mutableStateOf(false) }
+            Box(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { isDocDropdownEx = !isDocDropdownEx },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))
+                ) {
+                    Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(selectedIdType, color = Color.White, fontSize = 14.sp)
+                        Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, tint = Color.White)
+                    }
+                }
+            }
+
+            Text("Numéro du document", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(
+                value = inputDocNumber,
+                onValueChange = { inputDocNumber = it },
+                placeholder = { Text("Ex: 104278429", color = Color.White.copy(alpha = 0.35f)) },
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PrimaryGreen,
+                    unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
+                )
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Front Card Box photo Simulation container
+            Text("Photo Recto du document", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .padding(vertical = 8.dp)
+                    .clickable {
+                        isUploading = true
+                        coroutineScope.launch {
+                            delay(1500)
+                            isUploading = false
+                        }
+                    },
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f))
+            ) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    if (isUploading) {
+                        CircularProgressIndicator(color = PrimaryGreen)
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(Icons.Rounded.AddAPhoto, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(32.dp))
+                            Text("Prendre une photo du document", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = { 
+                    viewModel.setIdentityVerificationStatus("Documents soumis") 
+                },
+                enabled = inputDocNumber.isNotBlank(),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) {
+                Text("Valider l'étape du document", fontWeight = FontWeight.Bold)
+            }
+        } else if (currentStatus == "Documents soumis") {
+            // STEP 2: Selfie Validation live capture simulated view
+            Text("Vérification Faciale Selfie", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("Cadrez votre visage à l'intérieur du cercle vert ci-dessous pour confirmer votre identité face à la fraude.", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(bottom = 20.dp))
+
+            Box(
+                modifier = Modifier
+                    .size(240.dp)
+                    .clip(CircleShape)
+                    .border(4.dp, PrimaryGreen, CircleShape)
+                    .background(Color.DarkGray)
+            ) {
+                // Show face outline / target circle mockup
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    drawCircle(Color.White.copy(alpha = 0.1f), radius = size.minDimension * 0.45f)
+                    drawCircle(PrimaryGreen.copy(alpha = 0.15f), radius = size.minDimension * 0.4f)
+                }
+
+                if (isSelfieTaking) {
+                    CircularProgressIndicator(
+                        color = PrimaryGreen,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                } else {
+                    Icon(
+                        Icons.Rounded.Face,
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.3f),
+                        modifier = Modifier
+                            .size(120.dp)
+                            .align(Alignment.Center)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Button(
+                onClick = {
+                    isSelfieTaking = true
+                    coroutineScope.launch {
+                        delay(2500)
+                        isSelfieTaking = false
+                        viewModel.setIdentityVerificationStatus("En révision")
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) {
+                Text("Prendre le Selfie Photo", fontWeight = FontWeight.Bold)
+            }
+        } else if (currentStatus == "En révision") {
+            // Step 3: Pending review status screen
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 40.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF4A3515)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Rounded.Shield, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(40.dp))
+                    }
+
+                    Text("Dossier en cours d'examen", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Vos documents et votre selfie ont été soumis avec succès. Les modérateurs LocAll Gabon examinent actuellement votre demande. Temps de validation moyen : 12-24 heures.",
+                        color = Color.White.copy(alpha = 0.65f),
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 20.sp
+                    )
+                    
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Button(
+                        onClick = onBack,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.08f), contentColor = Color.White)
+                    ) {
+                        Text("Découvrir l'application")
+                    }
+                }
+            }
+        } else {
+            // VERIFIED GREEN SCREEN
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 40.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(Icons.Rounded.Verified, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(80.dp))
+                    Text("Compte Entièrement Vérifié !", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text("Vous avez validé toutes les étapes d'identité de haut niveau.", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp, textAlign = TextAlign.Center)
+                    Button(onClick = onBack, colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy)) {
+                        Text("Retour", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(30.dp))
+    }
+}
+
+// ---------------- DISPUTES & MEDIATION GRAPHICS ----------------
+
+@Composable
+fun DisputesHistoryScreen(
+    viewModel: RentalViewModel,
+    onBack: () -> Unit,
+    onSelectDispute: (String) -> Unit
+) {
+    var disputeFormEx by remember { mutableStateOf(false) }
+    var inputDesc by remember { mutableStateOf("") }
+    var trackingCodeSubmit by remember { mutableStateOf<String?>(null) }
+
+    val mockDisputes = listOf(
+        DisputeItem("#LIT-8492", "06 Fév 2026", "Dommages aux biens", 120000, "En cours", "Climatiseur rendu défectueux après location"),
+        DisputeItem("#LIT-9221", "22 Jan 2026", "Nettoyage insatisfaisant", 15000, "Résolu", "Véhicule rendu très sale à l'intérieur", "Remboursement de 15,000 F CFA effectué sous Airtel Money.")
+    )
+
+    if (disputeFormEx) {
+        Dialog(onDismissRequest = { disputeFormEx = false }) {
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp).verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Text("Ouvrir un Litige", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+
+                    Text("Raison du litige", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                    var selectedReason by remember { mutableStateOf("Bien endommagé") }
+                    val reasons = listOf("Bien endommagé", "Clés non remises", "Nettoyage insuffisant", "Autre")
+                    reasons.forEach { rs ->
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { selectedReason = rs }) {
+                            RadioButton(selected = selectedReason == rs, onClick = { selectedReason = rs })
+                            Text(rs, color = Color.DarkGray)
+                        }
+                    }
+
+                    Text("Description détaillée", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                    OutlinedTextField(
+                        value = inputDesc,
+                        onValueChange = { inputDesc = it },
+                        placeholder = { Text("Décrivez précisément le litige...") },
+                        modifier = Modifier.fillMaxWidth().height(100.dp),
+                        colors = OutlinedTextFieldDefaults.colors()
+                    )
+
+                    Button(
+                        onClick = {
+                            disputeFormEx = false
+                            trackingCodeSubmit = "#LIT-" + (1000..9999).random()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = BrandNavy),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Soumettre le dossier", color = Color.White)
+                    }
+                }
+            }
+        }
+    }
+
+    if (trackingCodeSubmit != null) {
+        Dialog(onDismissRequest = { trackingCodeSubmit = null }) {
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.padding(20.dp)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(52.dp))
+                    Text("Litige Soumis !", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                    Text("Votre dossier a été enregistré sous le numéro de suivi ${trackingCodeSubmit}. Un médiateur LocAll va se mettre en relation avec vous sous 4 heures.", fontSize = 13.sp, color = Color.Gray, textAlign = TextAlign.Center)
+                    Button(onClick = { trackingCodeSubmit = null }, colors = ButtonDefaults.buttonColors(containerColor = BrandNavy)) {
+                        Text("Entendu", color = Color.White)
+                    }
+                }
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+
+            Text("Mes Litiges", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+
+            IconButton(
+                onClick = { disputeFormEx = true },
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(PrimaryGreen.copy(alpha = 0.15f), CircleShape)
+            ) {
+                Icon(Icons.Rounded.Add, contentDescription = "Créer litige", tint = PrimaryGreen)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+            items(mockDisputes) { disp ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelectDispute(disp.id) },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text(disp.id, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Surface(
+                                color = if (disp.status == "En cours") Color(0xFF4A3515) else Color(0xFF0C2417),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    disp.status,
+                                    color = if (disp.status == "En cours") Color(0xFFFFB300) else PrimaryGreen,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
+
+                        Divider(color = Color.White.copy(alpha = 0.05f))
+
+                        Text(disp.type, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text(disp.description, color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp)
+
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Indemnité réclamée", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                            Text(formatPriceCfa(disp.claimAmount), color = PrimaryGreen, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---------------- MEDIATION RECIPIENTS TIMELINES ----------------
+
+@Composable
+fun MediationDetailsScreen(
+    disputeId: String,
+    onBack: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Dossier $disputeId", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))
+        ) {
+            Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("État d'avancement de la Médiation", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                
+                // Timeline steps mock
+                TimelineStep(title = "Dossier enregistré", desc = "06 Fév - Preuves reçues", isCompleted = true)
+                TimelineStep(title = "Analyse de la l'assurance", desc = "Conformité du contrat de bail validée", isCompleted = true)
+                TimelineStep(title = "Décision de l'expert en cours", desc = "En attente du rapport technique GabAsur", isCompleted = false)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Simulated chat box with LocAll Support Team
+        Text("Conversation avec le Médiateur", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth().height(200.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+        ) {
+            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.SpaceBetween) {
+                Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        item {
+                            DisputeBubble(sender = "Médiateur", text = "Bonjour, j'ai bien reçu les photos des rayures du groupe électrogène. Avez-vous une facture d'achat originale ?")
+                            DisputeBubble(sender = "Moi", text = "Oui, je viens de l'uploader en pièce jointe. Acheté chez SOGAFRIC en 2024.")
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = "",
+                    onValueChange = {},
+                    placeholder = { Text("Écrire au médiateur LocAll...", color = Color.White.copy(alpha = 0.3f), fontSize = 12.sp) },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(10.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(30.dp))
+    }
+}
+
+@Composable
+fun DisputeBubble(sender: String, text: String) {
+    Column(modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth()) {
+        Text(sender, fontSize = 10.sp, color = PrimaryGreen, fontWeight = FontWeight.Bold)
+        Surface(color = Color.White.copy(alpha = 0.05f), shape = RoundedCornerShape(8.dp)) {
+            Text(text, color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(8.dp))
+        }
+    }
+}
+
+@Composable
+fun TimelineStep(title: String, desc: String, isCompleted: Boolean) {
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Box(
+            modifier = Modifier
+                .size(16.dp)
+                .clip(CircleShape)
+                .background(if (isCompleted) PrimaryGreen else Color.Gray)
+        )
+        Column {
+            Text(title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text(desc, color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+    }
+}
+
+// ---------------- TENANT BOOKINGS SCREEN ----------------
+
+@Composable
+fun TenantBookingsScreen(
+    viewModel: RentalViewModel,
+    onBack: () -> Unit,
+    onReportDamage: (ReceivedReservation) -> Unit
+) {
+    val bookings by viewModel.bookings.collectAsState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Mes Réservations", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        if (bookings.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(imageVector = Icons.Rounded.Task, contentDescription = null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
+                    Text("Aucune réservation à venir pour l'instant.", color = Color.White.copy(alpha = 0.4f), fontSize = 13.sp)
+                }
+            }
+        } else {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.weight(1f)) {
+                items(bookings) { b ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("#RES-${b.id}", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Surface(color = Color(0xFF0C2417), shape = RoundedCornerShape(8.dp)) {
+                                    Text(b.status, color = PrimaryGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
+                                }
+                            }
+
+                            Divider(color = Color.White.copy(alpha = 0.05f))
+
+                            Text(b.rentalItemTitle, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("Durée: ${b.days} Jours", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                            
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Column {
+                                    Text("Montant Payé", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                                    Text(formatPriceCfa(b.totalPrice), color = PrimaryGreen, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+                                }
+
+                                Button(
+                                    onClick = {
+                                        onReportDamage(
+                                            ReceivedReservation(
+                                                id = "#RES-${b.id}",
+                                                tenantName = "Moi",
+                                                tenantRating = 5f,
+                                                itemTitle = b.rentalItemTitle,
+                                                category = b.rentalItemCategory,
+                                                status = b.status,
+                                                dates = "Aujourd'hui",
+                                                days = b.days,
+                                                totalPrice = b.totalPrice,
+                                                phone = b.paymentPhone
+                                            )
+                                        )
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.15f), contentColor = Color.Red),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text("Signaler un problème", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---------------- MOYENS DE PAIEMENT & SECURITY & OTHER FORMS ----------------
+
+@Composable
+fun LanguageSelectionScreen(
+    viewModel: RentalViewModel,
+    onBack: () -> Unit
+) {
+    val languages = listOf("Français", "English", "Fang (Gabon)", "Yipunu (Gabon)")
+    val currentLang by viewModel.profileLanguage.collectAsState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Sélection de la Langue", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        languages.forEach { lng ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp)
+                    .clickable { viewModel.setProfileLanguage(lng) },
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                border = BorderStroke(1.dp, if (currentLang == lng) PrimaryGreen.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.05f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(18.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(lng, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    if (currentLang == lng) {
+                        Icon(Icons.Rounded.Check, contentDescription = null, tint = PrimaryGreen)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SecuritySettingsScreen(
+    onBack: () -> Unit
+) {
+    var oldPass by remember { mutableStateOf("") }
+    var newPass by remember { mutableStateOf("") }
+    var confirmPass by remember { mutableStateOf("") }
+    var isSuccess by remember { mutableStateOf(false) }
+
+    if (isSuccess) {
+        Dialog(onDismissRequest = { isSuccess = false }) {
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.padding(20.dp)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Icon(Icons.Rounded.CloudDone, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(48.dp))
+                    Text("Mot de passe mis à jour !", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                    Text("Votre mot de passe de connexion confidentiel a été mis à jour avec succès.", fontSize = 13.sp, color = Color.Gray, textAlign = TextAlign.Center)
+                    Button(onClick = { isSuccess = false; onBack() }, colors = ButtonDefaults.buttonColors(containerColor = BrandNavy)) {
+                        Text("Super", color = Color.White)
+                    }
+                }
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Sécurité du Compte", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text("Changer le mot de passe confidentiel", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
+        Spacer(modifier = Modifier.height(10.dp))
+
+        OutlinedTextField(
+            value = oldPass,
+            onValueChange = { oldPass = it },
+            visualTransformation = PasswordVisualTransformation(),
+            placeholder = { Text("Ancien mot de passe", color = Color.White.copy(alpha = 0.35f)) },
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = PrimaryGreen, unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                focusedTextColor = Color.White, unfocusedTextColor = Color.White
+            )
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+
+        OutlinedTextField(
+            value = newPass,
+            onValueChange = { newPass = it },
+            visualTransformation = PasswordVisualTransformation(),
+            placeholder = { Text("Nouveau mot de passe", color = Color.White.copy(alpha = 0.35f)) },
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = PrimaryGreen, unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                focusedTextColor = Color.White, unfocusedTextColor = Color.White
+            )
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+
+        OutlinedTextField(
+            value = confirmPass,
+            onValueChange = { confirmPass = it },
+            visualTransformation = PasswordVisualTransformation(),
+            placeholder = { Text("Confirmer le nouveau mot de passe", color = Color.White.copy(alpha = 0.35f)) },
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = PrimaryGreen, unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                focusedTextColor = Color.White, unfocusedTextColor = Color.White
+            )
+        )
+
+        Spacer(modifier = Modifier.height(30.dp))
+
+        Button(
+            onClick = { isSuccess = true },
+            enabled = oldPass.isNotBlank() && newPass.isNotBlank() && newPass == confirmPass,
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+        ) {
+            Text("Changer mon mot de passe", fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun HelpAndSupportScreen(
+    onBack: () -> Unit
+) {
+    val faqs = listOf(
+        Pair("Comment signaler un problème ?", "Si vous rencontrez un dysfonctionnement avec la location, un bouton 'Signaler' vous permet d'ouvrir un litige avec des preuves photos sous 24h."),
+        Pair("Fonctionnement de Mobile Money", "Les paiements s'effectuent par validation USSD (sms de push direct de Airtel Money ou Moov Money). Les fonds restent sous séquestre jusqu'à la remise du bien."),
+        Pair("Garantie de Protection LocAll", "LocAll Gabon couvre les sinistres et dégradations matérielles jusqu'à hauteur de 5,000,000 F CFA grâce à nos partenaires de réassurance basés à Libreville."),
+        Pair("Conditions d'annulation", "L'annulation est gratuite jusqu'à 24h avant le début planifié de la remise des clés. Passé ce délai, des frais de dédommagement de 35% s'appliquent.")
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Centre d'Aide & FAQ", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        faqs.forEach { f ->
+            var expanded by remember { mutableStateOf(false) }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp)
+                    .clickable { expanded = !expanded },
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(f.first, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.weight(1f))
+                        Icon(
+                            imageVector = if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                            contentDescription = null,
+                            tint = PrimaryGreen
+                        )
+                    }
+                    if (expanded) {
+                        Text(f.second, color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp, lineHeight = 18.sp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---------------- DAMAGE REPORTING FORM ----------------
+
+@Composable
+fun DamageReportingScreen(
+    reservation: ReceivedReservation?,
+    onBack: () -> Unit,
+    onSubmitted: () -> Unit
+) {
+    var detailsInput by remember { mutableStateOf("") }
+    var compensValue by remember { mutableStateOf("") }
+    var photoTaken by remember { mutableStateOf(false) }
+    var isSubmittedSuccess by remember { mutableStateOf(false) }
+
+    if (isSubmittedSuccess) {
+        Dialog(onDismissRequest = { isSubmittedSuccess = false }) {
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.padding(20.dp)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Icon(Icons.Rounded.CloudDone, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(52.dp))
+                    Text("Problème Soumis !", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                    Text("Votre rapport de dommage a été transmis au département de médiation de LocAll Gabon. Nous étudierons les preuves fournies.", fontSize = 13.sp, color = Color.Gray, textAlign = TextAlign.Center)
+                    Button(onClick = { isSubmittedSuccess = false; onSubmitted() }, colors = ButtonDefaults.buttonColors(containerColor = BrandNavy)) {
+                        Text("Entendu", color = Color.White)
+                    }
+                }
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Signaler un Problème", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text("Référence Réservation: ${reservation?.id ?: "#RES-XXXX"}", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
+        Text(reservation?.itemTitle ?: "Bien loué", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp, modifier = Modifier.fillMaxWidth())
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("Description des anomalies contractées", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(
+            value = detailsInput,
+            onValueChange = { detailsInput = it },
+            placeholder = { Text("Détaillez précisément les rayures, pannes, ou bris rencontrés...", color = Color.White.copy(alpha = 0.3f)) },
+            modifier = Modifier.fillMaxWidth().height(120.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = PrimaryGreen, unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                focusedTextColor = Color.White, unfocusedTextColor = Color.White
+            )
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Text("Demande d'Indemnisation Souhaitée (F CFA)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(
+            value = compensValue,
+            onValueChange = { compensValue = it },
+            placeholder = { Text("Ex: 50000", color = Color.White.copy(alpha = 0.3f)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = PrimaryGreen, unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                focusedTextColor = Color.White, unfocusedTextColor = Color.White
+            )
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Text("Preuves Photo", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(130.dp)
+                .padding(vertical = 10.dp)
+                .clickable { photoTaken = true },
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f))
+        ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                if (photoTaken) {
+                    Icon(Icons.Rounded.LinkedCamera, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(36.dp))
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Rounded.AddAPhoto, contentDescription = null, tint = PrimaryGreen)
+                        Text("Prendre une photo du sinistre", color = Color.White.copy(alpha = 0.4f), fontSize = 12.sp)
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = { isSubmittedSuccess = true },
+            enabled = detailsInput.isNotBlank() && compensValue.isNotBlank(),
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+        ) {
+            Text("Soumettre le litige à LocAll", fontWeight = FontWeight.Bold)
+        }
+        Spacer(modifier = Modifier.height(30.dp))
+    }
+}
+
+// ---------------- TENANT EVALUATION SCREEN ----------------
+
+@Composable
+fun TenantReviewScreen(
+    reservation: ReceivedReservation?,
+    onBack: () -> Unit,
+    onSubmitted: () -> Unit
+) {
+    var noteStars by remember { mutableStateOf(5) }
+    var reviewTextInput by remember { mutableStateOf("") }
+    var isSubmittedSuccess by remember { mutableStateOf(false) }
+
+    if (isSubmittedSuccess) {
+        Dialog(onDismissRequest = { isSubmittedSuccess = false }) {
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.padding(20.dp)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Icon(Icons.Rounded.SentimentSatisfiedAlt, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(52.dp))
+                    Text("Avis publié !", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                    Text("Votre recommandation a été enregistrée sur le profil de ${reservation?.tenantName}.", fontSize = 13.sp, color = Color.Gray, textAlign = TextAlign.Center)
+                    Button(onClick = { isSubmittedSuccess = false; onSubmitted() }, colors = ButtonDefaults.buttonColors(containerColor = BrandNavy)) {
+                        Text("Terminer", color = Color.White)
+                    }
+                }
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Évaluer le Locataire", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(30.dp))
+
+        // Tenant description
+        Text("Évaluer l'expérience avec ${reservation?.tenantName}", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text("Sélectionnez votre note générale", color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp, modifier = Modifier.padding(bottom = 16.dp))
+
+        // Interactive Stars
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            for (i in 1..5) {
+                Icon(
+                    imageVector = Icons.Rounded.Star,
+                    contentDescription = null,
+                    tint = if (i <= noteStars) Color(0xFFFFB300) else Color.White.copy(alpha = 0.2f),
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clickable { noteStars = i }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text("Laissez un commentaire sur la ponctualité & le respect du bien", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(
+            value = reviewTextInput,
+            onValueChange = { reviewTextInput = it },
+            placeholder = { Text("Ex: Locataire très ponctuel et arrangeant, bien restitué dans un état impeccable. Je recommande vivement !", color = Color.White.copy(alpha = 0.3f)) },
+            modifier = Modifier.fillMaxWidth().height(120.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = PrimaryGreen, unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                focusedTextColor = Color.White, unfocusedTextColor = Color.White
+            )
+        )
+
+        Spacer(modifier = Modifier.height(30.dp))
+
+        Button(
+            onClick = { isSubmittedSuccess = true },
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+        ) {
+            Text("Publier l'évaluation", fontWeight = FontWeight.Bold)
+        }
+        Spacer(modifier = Modifier.height(30.dp))
+    }
+}

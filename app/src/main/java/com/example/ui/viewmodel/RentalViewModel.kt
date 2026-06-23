@@ -53,6 +53,36 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     private val _profilePhotoEnabled = MutableStateFlow(true) // Simulating dynamic uploads
     val profilePhotoEnabled: StateFlow<Boolean> = _profilePhotoEnabled.asStateFlow()
 
+    private val _isOwnerMode = MutableStateFlow(false)
+    val isOwnerMode: StateFlow<Boolean> = _isOwnerMode.asStateFlow()
+
+    private val _profileLanguage = MutableStateFlow("Français")
+    val profileLanguage: StateFlow<String> = _profileLanguage.asStateFlow()
+
+    private val _identityVerificationStatus = MutableStateFlow("Non vérifié") // "Non vérifié", "Documents soumis", "Selfie soumis", "En révision", "Vérifié"
+    val identityVerificationStatus: StateFlow<String> = _identityVerificationStatus.asStateFlow()
+
+    private val _withdrawableBalance = MutableStateFlow(850000)
+    val withdrawableBalance: StateFlow<Int> = _withdrawableBalance.asStateFlow()
+
+    fun setOwnerMode(enabled: Boolean) {
+        _isOwnerMode.value = enabled
+    }
+
+    fun setProfileLanguage(lang: String) {
+        _profileLanguage.value = lang
+    }
+
+    fun setIdentityVerificationStatus(status: String) {
+        _identityVerificationStatus.value = status
+    }
+
+    fun withdrawFunds(amount: Int) {
+        if (_withdrawableBalance.value >= amount) {
+            _withdrawableBalance.value -= amount
+        }
+    }
+
     fun updateProfile(dob: String, gender: String, profession: String, city: String) {
         _profileDob.value = dob
         _profileGender.value = gender
