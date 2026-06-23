@@ -47,6 +47,19 @@ fun AuthNavigator(viewModel: RentalViewModel) {
             .fillMaxSize()
             .background(Color(0xFF0B1526)) // Sophisticated Dark Brand Navy
     ) {
+        Surface(
+            color = Color.Yellow,
+            modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter)
+        ) {
+            Text(
+                text = "VERSION DÉMO - AUCUN PAIEMENT RÉEL",
+                color = Color.Black,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(vertical = 2.dp)
+            )
+        }
         // Upper background glow blob
         Box(
             modifier = Modifier

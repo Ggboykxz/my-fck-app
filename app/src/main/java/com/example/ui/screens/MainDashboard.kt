@@ -59,6 +59,21 @@ fun MainDashboardView(viewModel: RentalViewModel) {
 
     // Main Layout Scaffold with M3 Bottom Navigation
     Scaffold(
+        topBar = {
+            Surface(
+                color = Color.Yellow,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "VERSION DÉMO - AUCUN PAIEMENT RÉEL",
+                    color = Color.Black,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(vertical = 2.dp)
+                )
+            }
+        },
         bottomBar = {
             if (currentScreen != "details" && currentScreen != "chat") {
                 DashboardBottomBar(
