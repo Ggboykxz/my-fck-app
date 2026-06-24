@@ -95,19 +95,29 @@ fun MainDashboardView(viewModel: RentalViewModel) {
                     is Screen.Bookmarks -> BookmarksScreen(viewModel)
                     is Screen.Messages -> InboxScreen(viewModel)
                     is Screen.Profile -> ProfileNavigator(viewModel = viewModel)
-                    is Screen.Details -> selectedItem?.let { item ->
-                        ItemDetailsScreen(
-                            item = item,
-                            viewModel = viewModel,
-                            onBack = { viewModel.navigateTo("home") }
-                        )
+                    is Screen.Details -> {
+                        val item = selectedItem
+                        if (item != null) {
+                            ItemDetailsScreen(
+                                item = item,
+                                viewModel = viewModel,
+                                onBack = { viewModel.navigateTo("home") }
+                            )
+                        } else {
+                            ExploreScreen(viewModel)
+                        }
                     }
-                    is Screen.Chat -> selectedItem?.let { item ->
-                        ChatRoomScreen(
-                            item = item,
-                            viewModel = viewModel,
-                            onBack = { viewModel.navigateTo("details") }
-                        )
+                    is Screen.Chat -> {
+                        val item = selectedItem
+                        if (item != null) {
+                            ChatRoomScreen(
+                                item = item,
+                                viewModel = viewModel,
+                                onBack = { viewModel.navigateTo("details") }
+                            )
+                        } else {
+                            ExploreScreen(viewModel)
+                        }
                     }
                 }
             }
@@ -1359,14 +1369,14 @@ fun ItemDetailsScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(BrandNavy)
     ) {
         // Picture header with absolute overlay controls
         item {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(280.dp)
+                    .height(300.dp)
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
@@ -1454,7 +1464,7 @@ fun ItemDetailsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Surface(
-                        color = Color(0xFFF1FAF3),
+                        color = PrimaryGreen.copy(alpha = 0.15f),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
@@ -1468,7 +1478,7 @@ fun ItemDetailsScreen(
 
                     if (item.isVerified) {
                         Surface(
-                            color = Color(0xFFEEEEEE),
+                            color = Color.White.copy(alpha = 0.08f),
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Row(
@@ -1477,7 +1487,7 @@ fun ItemDetailsScreen(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(12.dp))
-                                Text("Vérifié", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                                Text("Vérifié", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.White)
                             }
                         }
                     }
@@ -1488,7 +1498,7 @@ fun ItemDetailsScreen(
                     text = item.title,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = BrandNavy,
+                    color = Color.White,
                     lineHeight = 28.sp
                 )
 
@@ -1497,11 +1507,11 @@ fun ItemDetailsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Icon(Icons.Rounded.LocationOn, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Rounded.LocationOn, contentDescription = null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                     Text(
                         text = "${item.neighborhood}, ${item.city} — Gabon",
                         fontSize = 14.sp,
-                        color = Color.Gray,
+                        color = Color.White.copy(alpha = 0.6f),
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -1509,8 +1519,8 @@ fun ItemDetailsScreen(
                 // Daily Price Box
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFBFBFB)),
-                    border = BorderStroke(1.dp, Color(0xFFEDEDED)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -1521,17 +1531,17 @@ fun ItemDetailsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text("Prix par jour", fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
-                            Text(formatPriceCfa(item.pricePerDay), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = BrandNavy)
+                            Text("Prix par jour", fontSize = 12.sp, color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Medium)
+                            Text(formatPriceCfa(item.pricePerDay), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = PrimaryGreen)
                         }
 
                         Surface(
-                            color = PrimaryGreen.copy(alpha = 0.2f),
+                            color = PrimaryGreen.copy(alpha = 0.15f),
                             shape = RoundedCornerShape(10.dp)
                         ) {
                             Text(
                                 "Dispo Immédiatement",
-                                color = BrandNavy,
+                                color = PrimaryGreen,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -1545,7 +1555,7 @@ fun ItemDetailsScreen(
                 Text(
                     text = item.description,
                     fontSize = 14.sp,
-                    color = Color.DarkGray,
+                    color = Color.White.copy(alpha = 0.75f),
                     lineHeight = 22.sp,
                     textAlign = TextAlign.Justify
                 )
@@ -1555,8 +1565,8 @@ fun ItemDetailsScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, Color(0xFFEEEEEE))
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
                 ) {
                     Row(
                         modifier = Modifier.padding(14.dp),
@@ -1573,36 +1583,38 @@ fun ItemDetailsScreen(
                                 contentDescription = "Landlord avatar photo",
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .clip(CircleShape),
+                                    .clip(CircleShape)
+                                    .border(2.dp, PrimaryGreen.copy(alpha = 0.3f), CircleShape),
                                 contentScale = ContentScale.Crop
                             )
                         }
 
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(item.ownerName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                            Text(item.ownerName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 Icon(Icons.Rounded.Star, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(13.dp))
-                                Text("4.9/5", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.DarkGray)
-                                Box(modifier = Modifier.size(3.dp).background(Color.Gray, CircleShape))
-                                Text("Gabonais", fontSize = 11.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
+                                Text("4.9/5", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.8f))
+                                Box(modifier = Modifier.size(3.dp).background(Color.White.copy(alpha = 0.3f), CircleShape))
+                                Text("Gabonais", fontSize = 11.sp, color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Medium)
                             }
                         }
 
                         // Message Owner direct trigger click
                         IconButton(
                             onClick = {
+                                viewModel.selectItem(item)
                                 viewModel.openChatFor(item)
                                 viewModel.navigateTo("chat")
                             },
                             modifier = Modifier
                                 .size(44.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFFF0F0F0))
+                                .background(PrimaryGreen.copy(alpha = 0.15f))
                         ) {
-                            Icon(Icons.Default.Email, contentDescription = "Contacter par message", tint = BrandNavy)
+                            Icon(Icons.Default.Email, contentDescription = "Contacter par message", tint = PrimaryGreen)
                         }
                     }
                 }
@@ -1613,22 +1625,20 @@ fun ItemDetailsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(130.dp),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
-                        // Display simple colored grid mockup map representing Libreville/Akanda
                         Canvas(modifier = Modifier.fillMaxSize()) {
-                            drawRect(color = Color(0xFFE9F5EC))
-                            // Draw grid lines
+                            drawRect(color = Color(0xFF0C2417))
                             val gridW = size.width / 5
                             val gridH = size.height / 3
                             for (i in 1..4) {
-                                drawLine(Color.White, start = androidx.compose.ui.geometry.Offset(i * gridW, 0f), end = androidx.compose.ui.geometry.Offset(i * gridW, size.height), strokeWidth = 5f)
+                                drawLine(Color.White.copy(alpha = 0.06f), start = androidx.compose.ui.geometry.Offset(i * gridW, 0f), end = androidx.compose.ui.geometry.Offset(i * gridW, size.height), strokeWidth = 2f)
                             }
                             for (i in 1..2) {
-                                drawLine(Color.White, start = androidx.compose.ui.geometry.Offset(0f, i * gridH), end = androidx.compose.ui.geometry.Offset(size.width, i * gridH), strokeWidth = 5f)
+                                drawLine(Color.White.copy(alpha = 0.06f), start = androidx.compose.ui.geometry.Offset(0f, i * gridH), end = androidx.compose.ui.geometry.Offset(size.width, i * gridH), strokeWidth = 2f)
                             }
-                            // draw Libreville river/beach line blue bounds
                             val river = Path().apply {
                                 moveTo(0f, size.height * 0.8f)
                                 quadraticTo(size.width / 2, size.height * 0.7f, size.width, size.height * 0.9f)
@@ -1636,7 +1646,7 @@ fun ItemDetailsScreen(
                                 lineTo(0f, size.height)
                                 close()
                             }
-                            drawPath(river, color = Color(0xFFCCE4FF))
+                            drawPath(river, color = Color(0xFF1A3354))
                         }
 
                         // Floating map tag
@@ -2621,9 +2631,9 @@ fun ChatRoomScreen(
     ) {
         // App header containing landlord profiles
         Surface(
-            color = Color.White,
-            tonalElevation = 4.dp,
-            border = BorderStroke(1.dp, Color(0xFFEEEEEE))
+            color = Color(0xFF0F1A2E),
+            tonalElevation = 8.dp,
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
         ) {
             Row(
                 modifier = Modifier
@@ -2634,10 +2644,10 @@ fun ChatRoomScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Rounded.ArrowBack, contentDescription = "Retour", tint = BrandNavy)
+                    Icon(Icons.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
                 }
 
-                Box(modifier = Modifier.size(38.dp)) {
+                Box(modifier = Modifier.size(40.dp)) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80")
@@ -2647,17 +2657,18 @@ fun ChatRoomScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(CircleShape)
+                            .border(2.dp, PrimaryGreen.copy(alpha = 0.3f), CircleShape)
                     )
                 }
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(item.ownerName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                    Text(item.ownerName, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Box(modifier = Modifier.size(6.dp).background(PrimaryGreen, CircleShape))
-                        Text("Propriétaire Vérifié", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
+                        Text("En ligne", fontSize = 10.sp, color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Medium)
                     }
                 }
             }
@@ -2679,31 +2690,45 @@ fun ChatRoomScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = if (isMe) Alignment.End else Alignment.Start
                 ) {
+                    if (!isMe) {
+                        Text(
+                            text = item.ownerName,
+                            fontSize = 10.sp,
+                            color = Color.White.copy(alpha = 0.4f),
+                            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                        )
+                    }
                     Box(
                         modifier = Modifier
                             .widthIn(max = 280.dp)
                             .clip(
                                 RoundedCornerShape(
-                                    topStart = 16.dp,
-                                    topEnd = 16.dp,
-                                    bottomStart = if (isMe) 16.dp else 2.dp,
-                                    bottomEnd = if (isMe) 2.dp else 16.dp
+                                    topStart = 18.dp,
+                                    topEnd = 18.dp,
+                                    bottomStart = if (isMe) 18.dp else 4.dp,
+                                    bottomEnd = if (isMe) 4.dp else 18.dp
                                 )
                             )
-                            .background(if (isMe) BrandNavy else Color.White)
+                            .background(if (isMe) PrimaryGreen.copy(alpha = 0.15f) else Color(0xFF1E2D45))
+                            .border(
+                                1.dp,
+                                if (isMe) PrimaryGreen.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.06f),
+                                RoundedCornerShape(18.dp)
+                            )
                             .padding(14.dp)
                     ) {
                         Text(
                             text = message.messageText,
                             fontSize = 14.sp,
-                            color = if (isMe) Color.White else Color.Black
+                            color = if (isMe) Color.White else Color.White.copy(alpha = 0.9f),
+                            lineHeight = 20.sp
                         )
                     }
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = if (isMe) "Vous" else item.ownerName,
+                        text = if (isMe) "Vous • maintenant" else "${item.ownerName} • maintenant",
                         fontSize = 10.sp,
-                        color = Color.LightGray,
+                        color = Color.White.copy(alpha = 0.3f),
                         modifier = Modifier.padding(horizontal = 4.dp)
                     )
                 }
@@ -2734,8 +2759,9 @@ fun ChatRoomScreen(
 
         // Write messaging bar bottom
         Surface(
-            color = Color.White,
+            color = Color(0xFF0F1A2E),
             tonalElevation = 8.dp,
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
             modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
         ) {
             Row(
@@ -2748,16 +2774,18 @@ fun ChatRoomScreen(
                 OutlinedTextField(
                     value = userMessageText,
                     onValueChange = { userMessageText = it },
-                    placeholder = { Text("Écrire un message sécurisé...", color = Color.Gray, fontSize = 14.sp) },
+                    placeholder = { Text("Écrire un message...", color = Color.White.copy(alpha = 0.3f), fontSize = 14.sp) },
                     modifier = Modifier
                         .weight(1f)
                         .testTag("chat_message_input"),
                     shape = RoundedCornerShape(24.dp),
                     colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
                         focusedBorderColor = PrimaryGreen,
-                        unfocusedBorderColor = Color(0xFFECECEC),
-                        focusedContainerColor = Color(0xFFFBFBFB),
-                        unfocusedContainerColor = Color(0xFFFBFBFB)
+                        unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                        focusedContainerColor = Color(0xFF162133),
+                        unfocusedContainerColor = Color(0xFF162133)
                     ),
                     maxLines = 3,
                     singleLine = false
@@ -2774,10 +2802,10 @@ fun ChatRoomScreen(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(PrimaryGreen)
+                        .background(if (userMessageText.isNotBlank()) PrimaryGreen else Color.White.copy(alpha = 0.1f))
                         .testTag("send_chat_message_button")
                 ) {
-                    Icon(Icons.Rounded.Send, contentDescription = "Envoyer", tint = BrandNavy)
+                    Icon(Icons.Rounded.Send, contentDescription = "Envoyer", tint = if (userMessageText.isNotBlank()) BrandNavy else Color.White.copy(alpha = 0.3f))
                 }
             }
         }
@@ -2788,7 +2816,6 @@ fun ChatRoomScreen(
 
 @Composable
 fun PostListingScreen(viewModel: RentalViewModel) {
-    // Form fields
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("Immobilier") }
@@ -2798,279 +2825,362 @@ fun PostListingScreen(viewModel: RentalViewModel) {
     var ownerName by remember { mutableStateOf("") }
     var ownerPhone by remember { mutableStateOf("") }
     var imageUrl by remember { mutableStateOf("") }
-
     var isSuccessPost by remember { mutableStateOf(false) }
     var showErrorField by remember { mutableStateOf(false) }
+
+    val categoryIcons = mapOf(
+        "Immobilier" to Icons.Rounded.Home,
+        "Véhicules" to Icons.Rounded.DirectionsCar,
+        "Équipements" to Icons.Rounded.Build
+    )
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         item {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                "Publier une annonce",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = BrandNavy
-            )
-            Text(
-                "Mettez en location vos appartements, voitures ou matériels au Gabon.",
-                fontSize = 13.sp,
-                color = Color.Gray
-            )
-            HorizontalDivider(color = Color(0xFFF1F1F1))
+            Spacer(modifier = Modifier.height(20.dp))
+            Text("Publier une annonce", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Mettez en location vos biens au Gabon.", fontSize = 14.sp, color = Color.White.copy(alpha = 0.5f))
         }
 
         if (isSuccessPost) {
             item {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE5FCEF)),
-                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.1f)),
+                    shape = RoundedCornerShape(20.dp),
+                    border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
-                        modifier = Modifier.padding(20.dp),
+                        modifier = Modifier.padding(28.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = Color(0xFF107C41), modifier = Modifier.size(48.dp))
-                        Text("Annonce créée avec succès !", fontWeight = FontWeight.Bold, color = BrandNavy, fontSize = 16.sp)
+                        Box(modifier = Modifier.size(64.dp).clip(CircleShape).background(PrimaryGreen.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(36.dp))
+                        }
+                        Text("Annonce publiée !", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 20.sp)
                         Text(
-                            "Votre annonce a été enregistrée localement dans la base de données Room. Elle apparaît désormais en tête de la liste d'exploration !",
-                            color = Color.DarkGray,
-                            fontSize = 13.sp,
+                            "Votre annonce est maintenant visible dans l'exploration.",
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontSize = 14.sp,
                             textAlign = TextAlign.Center
                         )
-
                         Button(
-                            onClick = {
-                                isSuccessPost = false
-                                viewModel.navigateTo("home")
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = BrandNavy),
-                            shape = RoundedCornerShape(10.dp)
+                            onClick = { isSuccessPost = false; viewModel.navigateTo("home") },
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier.fillMaxWidth().height(50.dp)
                         ) {
-                            Text("Retour à l'exploration")
+                            Text("Voir dans l'exploration", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                         }
                     }
                 }
             }
         } else {
-            // TITLE
+            // Image Preview
             item {
-                Text("Titre de l'annonce", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    placeholder = { Text("Ex: Villa F5 à vendre ou louer...", fontSize = 13.sp, color = Color.Gray) },
-                    modifier = Modifier.fillMaxWidth().testTag("post_title_input"),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-            }
-
-            // CATEGORY SELECTOR
-            item {
-                Text("Catégorie", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    val cats = listOf("Immobilier", "Véhicules", "Équipements")
-                    cats.forEach { cat ->
-                        val isSelected = category == cat
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(if (isSelected) PrimaryGreen else Color(0xFFEBEBEB).copy(alpha = 0.5f))
-                                .clickable { category = cat }
-                                .padding(vertical = 12.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(cat, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                if (imageUrl.isNotBlank()) {
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth().height(180.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))
+                    ) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current).data(imageUrl).crossfade(true).build(),
+                            contentDescription = "Aperçu",
+                            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                } else {
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth().height(140.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                        border = BorderStroke(2.dp, Color.White.copy(alpha = 0.08f))
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Icon(Icons.Rounded.AddAPhoto, contentDescription = null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(40.dp))
+                                Text("Ajouter une image (URL)", color = Color.White.copy(alpha = 0.4f), fontSize = 13.sp)
+                            }
                         }
                     }
                 }
             }
 
-            // PRICE
+            // Title
             item {
-                Text("Prix de location par jour (en F CFA)", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
-                OutlinedTextField(
-                    value = priceStr,
-                    onValueChange = { priceStr = it },
-                    placeholder = { Text("Ex: 15000", fontSize = 13.sp, color = Color.Gray) },
-                    modifier = Modifier.fillMaxWidth().testTag("post_price_input"),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("TITRE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it; showErrorField = false },
+                        placeholder = { Text("Ex: Villa F5, Toyota Hilux...", color = Color.White.copy(alpha = 0.3f)) },
+                        modifier = Modifier.fillMaxWidth().testTag("post_title_input"),
+                        shape = RoundedCornerShape(14.dp),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = PrimaryGreen,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                            focusedContainerColor = Color(0xFF162133),
+                            unfocusedContainerColor = Color(0xFF162133)
+                        )
+                    )
+                }
             }
 
-            // LOCATION: City Picker & neighborhood
+            // Category
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Ville", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
-                        // Simple city box select
-                        var expanded by remember { mutableStateOf(false) }
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp)
-                                .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
-                                .clickable { expanded = !expanded }
-                                .padding(horizontal = 14.dp, vertical = 14.dp),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            Text(city, fontSize = 14.sp, color = BrandNavy, fontWeight = FontWeight.Medium)
-                            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                                val cities = listOf("Libreville", "Port-Gentil", "Franceville", "Oyem", "Akanda")
-                                cities.forEach { c ->
-                                    DropdownMenuItem(
-                                        text = { Text(c) },
-                                        onClick = {
-                                            city = c
-                                            expanded = false
-                                        }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("CATÉGORIE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        listOf("Immobilier", "Véhicules", "Équipements").forEach { cat ->
+                            val isSelected = category == cat
+                            Card(
+                                modifier = Modifier.weight(1f).clickable { category = cat },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (isSelected) PrimaryGreen.copy(alpha = 0.15f) else Color(0xFF162133)
+                                ),
+                                border = BorderStroke(1.dp, if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.08f))
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(vertical = 14.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = categoryIcons[cat] ?: Icons.Rounded.Category,
+                                        contentDescription = null,
+                                        tint = if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.4f),
+                                        modifier = Modifier.size(22.dp)
                                     )
+                                    Text(cat, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.6f))
                                 }
                             }
                         }
                     }
+                }
+            }
 
-                    Column(modifier = Modifier.weight(1.2f)) {
-                        Text("Quartier", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
-                        OutlinedTextField(
-                            value = neighborhood,
-                            onValueChange = { neighborhood = it },
-                            placeholder = { Text("Ex: Sablière...", fontSize = 13.sp, color = Color.Gray) },
-                            modifier = Modifier.fillMaxWidth().testTag("post_neighborhood_input"),
-                            shape = RoundedCornerShape(12.dp),
-                            singleLine = true
+            // Price
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("PRIX PAR JOUR (F CFA)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+                    OutlinedTextField(
+                        value = priceStr,
+                        onValueChange = { priceStr = it; showErrorField = false },
+                        placeholder = { Text("Ex: 15000", color = Color.White.copy(alpha = 0.3f)) },
+                        modifier = Modifier.fillMaxWidth().testTag("post_price_input"),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        shape = RoundedCornerShape(14.dp),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = PrimaryGreen,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                            focusedContainerColor = Color(0xFF162133),
+                            unfocusedContainerColor = Color(0xFF162133)
                         )
+                    )
+                }
+            }
+
+            // Location
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("LOCALISATION", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Ville", fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Medium)
+                            var expanded by remember { mutableStateOf(false) }
+                            Card(
+                                modifier = Modifier.fillMaxWidth().clickable { expanded = true },
+                                shape = RoundedCornerShape(14.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(city, fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Medium)
+                                    Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, tint = Color.White.copy(alpha = 0.5f))
+                                }
+                            }
+                            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.background(Color(0xFF162133))) {
+                                listOf("Libreville", "Port-Gentil", "Franceville", "Oyem", "Akanda").forEach { c ->
+                                    DropdownMenuItem(
+                                        text = { Text(c, color = if (c == city) PrimaryGreen else Color.White) },
+                                        onClick = { city = c; expanded = false }
+                                    )
+                                }
+                            }
+                        }
+                        Column(modifier = Modifier.weight(1.2f)) {
+                            Text("Quartier", fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Medium)
+                            OutlinedTextField(
+                                value = neighborhood,
+                                onValueChange = { neighborhood = it; showErrorField = false },
+                                placeholder = { Text("Ex: Sablière...", color = Color.White.copy(alpha = 0.3f)) },
+                                modifier = Modifier.fillMaxWidth().testTag("post_neighborhood_input"),
+                                shape = RoundedCornerShape(14.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedBorderColor = PrimaryGreen,
+                                    unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                                    focusedContainerColor = Color(0xFF162133),
+                                    unfocusedContainerColor = Color(0xFF162133)
+                                )
+                            )
+                        }
                     }
                 }
             }
 
-            // DESCRIPTION
+            // Description
             item {
-                Text("Description complète", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    placeholder = { Text("Spécifiez les commodités, Wi-Fi, climatisation...", fontSize = 13.sp, color = Color.Gray) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(110.dp)
-                        .testTag("post_description_input"),
-                    shape = RoundedCornerShape(12.dp),
-                    maxLines = 5,
-                    singleLine = false
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("DESCRIPTION", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it; showErrorField = false },
+                        placeholder = { Text("Commodités, état, superficie...", color = Color.White.copy(alpha = 0.3f)) },
+                        modifier = Modifier.fillMaxWidth().height(120.dp).testTag("post_description_input"),
+                        shape = RoundedCornerShape(14.dp),
+                        maxLines = 5,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = PrimaryGreen,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                            focusedContainerColor = Color(0xFF162133),
+                            unfocusedContainerColor = Color(0xFF162133)
+                        )
+                    )
+                }
             }
 
-            // CONTACTS: Owner name & phone input to simulate verifiability
+            // Contact
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Votre Nom", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
-                        OutlinedTextField(
-                            value = ownerName,
-                            onValueChange = { ownerName = it },
-                            placeholder = { Text("Ex: Marc", fontSize = 13.sp, color = Color.Gray) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            singleLine = true
-                        )
-                    }
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("N° Téléphone", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
-                        OutlinedTextField(
-                            value = ownerPhone,
-                            onValueChange = { ownerPhone = it },
-                            placeholder = { Text("077...", fontSize = 13.sp, color = Color.Gray) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            singleLine = true
-                        )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("CONTACT", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Votre nom", fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Medium)
+                            OutlinedTextField(
+                                value = ownerName,
+                                onValueChange = { ownerName = it },
+                                placeholder = { Text("Marc", color = Color.White.copy(alpha = 0.3f)) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedBorderColor = PrimaryGreen,
+                                    unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                                    focusedContainerColor = Color(0xFF162133),
+                                    unfocusedContainerColor = Color(0xFF162133)
+                                )
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Téléphone", fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f), fontWeight = FontWeight.Medium)
+                            OutlinedTextField(
+                                value = ownerPhone,
+                                onValueChange = { ownerPhone = it },
+                                placeholder = { Text("077...", color = Color.White.copy(alpha = 0.3f)) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedBorderColor = PrimaryGreen,
+                                    unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                                    focusedContainerColor = Color(0xFF162133),
+                                    unfocusedContainerColor = Color(0xFF162133)
+                                )
+                            )
+                        }
                     }
                 }
             }
 
-            // OPTIONAL IMAGE URL PATH
+            // Image URL
             item {
-                Text("Lien Image (Optionnel)", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
-                OutlinedTextField(
-                    value = imageUrl,
-                    onValueChange = { imageUrl = it },
-                    placeholder = { Text("Saisissez une URL d'image libre...", fontSize = 13.sp, color = Color.Gray) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("IMAGE (OPTIONNEL)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+                    OutlinedTextField(
+                        value = imageUrl,
+                        onValueChange = { imageUrl = it },
+                        placeholder = { Text("URL de l'image...", color = Color.White.copy(alpha = 0.3f)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = PrimaryGreen,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                            focusedContainerColor = Color(0xFF162133),
+                            unfocusedContainerColor = Color(0xFF162133)
+                        )
+                    )
+                }
             }
 
             if (showErrorField) {
                 item {
-                    Text("Veuillez remplir les informations obligatoires (Titre, Prix, Quartier, Description).", color = Color.Red, fontSize = 12.sp)
+                    Card(colors = CardDefaults.cardColors(containerColor = Color.Red.copy(alpha = 0.1f)), shape = RoundedCornerShape(12.dp)) {
+                        Row(modifier = Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Rounded.Warning, contentDescription = null, tint = Color.Red, modifier = Modifier.size(18.dp))
+                            Text("Remplissez les champs obligatoires (Titre, Prix, Quartier, Description).", color = Color.Red, fontSize = 12.sp)
+                        }
+                    }
                 }
             }
 
-            // Form Submit CTA button
+            // Submit
             item {
                 Button(
                     onClick = {
                         val price = priceStr.toIntOrNull()
                         if (title.isNotBlank() && price != null && neighborhood.isNotBlank() && description.isNotBlank()) {
                             viewModel.postNewListing(
-                                title = title,
-                                description = description,
-                                category = category,
-                                price = price,
-                                city = city,
-                                neighborhood = neighborhood,
-                                ownerName = if (ownerName.isBlank()) "Anonyme Locall" else ownerName,
+                                title = title, description = description, category = category,
+                                price = price, city = city, neighborhood = neighborhood,
+                                ownerName = if (ownerName.isBlank()) "Anonyme" else ownerName,
                                 ownerPhone = if (ownerPhone.isBlank()) "077000000" else ownerPhone,
                                 imageUrl = imageUrl
                             )
-                            isSuccessPost = true
-                            showErrorField = false
-                            // Reset input
-                            title = ""
-                            description = ""
-                            priceStr = ""
-                            neighborhood = ""
-                            imageUrl = ""
-                        } else {
-                            showErrorField = true
-                        }
+                            isSuccessPost = true; showErrorField = false
+                            title = ""; description = ""; priceStr = ""; neighborhood = ""; imageUrl = ""
+                        } else { showErrorField = true }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandNavy),
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp)
-                        .testTag("submit_post_button")
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp).testTag("submit_post_button")
                 ) {
-                    Text("Publier l'annonce", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Icon(Icons.Rounded.Send, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Publier l'annonce", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
 
-        item {
-            Spacer(modifier = Modifier.height(48.dp))
-        }
+        item { Spacer(modifier = Modifier.height(48.dp)) }
     }
 }
