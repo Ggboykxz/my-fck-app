@@ -18,6 +18,26 @@ LocAll est une application Android de marketplace de location (véhicules, équi
 - Coil pour le chargement d'images
 - Coroutines + Flow
 
+## Captures d'écran
+
+### Authentification
+| Connexion | Inscription | Mot de passe oublié |
+|:---------:|:-----------:|:-------------------:|
+| ![Login](docs/screenshots/01_auth_login.png) | ![Register](docs/screenshots/02_auth_register.png) | ![Forgot](docs/screenshots/03_auth_forgot_password.png) |
+
+| OTP | Nouveau mot de passe |
+|:---:|:--------------------:|
+| ![OTP](docs/screenshots/04_auth_otp.png) | ![New Password](docs/screenshots/05_auth_new_password.png) |
+
+### Application principale
+| Exploration | Favoris | Réservations |
+|:-----------:|:-------:|:------------:|
+| ![Explore](docs/screenshots/06_main_explore.png) | ![Bookmarks](docs/screenshots/07_bookmarks.png) | ![Bookings](docs/screenshots/08_bookings.png) |
+
+| Messages | Publier une annonce | Profil |
+|:--------:|:-------------------:|:------:|
+| ![Messages](docs/screenshots/09_messages.png) | ![Post](docs/screenshots/10_post_listing.png) | ![Profile](docs/screenshots/11_profile.png) |
+
 ## Fonctionnalités
 
 ### Authentification
