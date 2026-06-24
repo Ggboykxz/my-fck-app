@@ -416,6 +416,8 @@ fun ProfileMainScreen(
                 icon = Icons.Rounded.Person,
                 title = "Informations Personnelles",
                 subtitle = "Modifier votre nom & téléphone",
+                containerColor = PrimaryGreen.copy(alpha = 0.12f),
+                iconTint = PrimaryGreen,
                 onClick = onEditProfile
             )
 
@@ -439,24 +441,32 @@ fun ProfileMainScreen(
                     icon = Icons.Rounded.Dashboard,
                     title = "Tableau de Bord Propriétaire",
                     subtitle = "Revenus, statistiques & gains",
+                    containerColor = PrimaryGreen.copy(alpha = 0.12f),
+                    iconTint = PrimaryGreen,
                     onClick = { onNavigate("dashboard") }
                 )
                 ProfileOptionRow(
                     icon = Icons.Rounded.HomeWork,
                     title = "Mes Annonces Actives",
                     subtitle = "Publications, validations & suspendus",
+                    containerColor = Color(0xFF4FC3F7).copy(alpha = 0.12f),
+                    iconTint = Color(0xFF4FC3F7),
                     onClick = { onNavigate("listings") }
                 )
                 ProfileOptionRow(
                     icon = Icons.Rounded.DateRange,
                     title = "Calendrier de Disponibilité",
                     subtitle = "Bloquer ou autoriser des dates",
+                    containerColor = Color(0xFFFF9800).copy(alpha = 0.12f),
+                    iconTint = Color(0xFFFF9800),
                     onClick = { onNavigate("calendar") }
                 )
                 ProfileOptionRow(
                     icon = Icons.Rounded.MoveToInbox,
                     title = "Réservations Reçues",
                     subtitle = "Gérer les remises & retours de biens",
+                    containerColor = Color(0xFFAB47BC).copy(alpha = 0.12f),
+                    iconTint = Color(0xFFAB47BC),
                     onClick = { onNavigate("bookings_received") }
                 )
             }
@@ -467,18 +477,24 @@ fun ProfileMainScreen(
                     icon = Icons.Rounded.Task,
                     title = "Mes Réservations à venir",
                     subtitle = "Reçus, codes de retraits & dommages",
+                    containerColor = PrimaryGreen.copy(alpha = 0.12f),
+                    iconTint = PrimaryGreen,
                     onClick = { onNavigate("tenant_bookings") }
                 )
                 ProfileOptionRow(
                     icon = Icons.Rounded.VerifiedUser,
                     title = "Vérification d'Identité",
                     subtitle = "Statut actuel: $verifStatus",
+                    containerColor = Color(0xFF4FC3F7).copy(alpha = 0.12f),
+                    iconTint = Color(0xFF4FC3F7),
                     onClick = { onNavigate("identity") }
                 )
                 ProfileOptionRow(
                     icon = Icons.Rounded.Payment,
                     title = "Moyens de Paiement",
                     subtitle = "Airtel, Moov & Cartes Bancaires",
+                    containerColor = Color(0xFFFF9800).copy(alpha = 0.12f),
+                    iconTint = Color(0xFFFF9800),
                     onClick = { onNavigate("payment_methods") }
                 )
             }
@@ -502,36 +518,48 @@ fun ProfileMainScreen(
                 icon = Icons.Rounded.GTranslate,
                 title = "Paramètres de Langue",
                 subtitle = "Sélectionné: $language",
+                containerColor = Color(0xFF4FC3F7).copy(alpha = 0.12f),
+                iconTint = Color(0xFF4FC3F7),
                 onClick = { onNavigate("language") }
             )
             ProfileOptionRow(
                 icon = Icons.Rounded.Notifications,
                 title = "Notifications",
                 subtitle = "Gérer vos alertes et préférences",
+                containerColor = Color(0xFFFFB300).copy(alpha = 0.12f),
+                iconTint = Color(0xFFFFB300),
                 onClick = { onNavigate("notifications") }
             )
             ProfileOptionRow(
                 icon = Icons.Rounded.Lock,
                 title = "Sécurité & Mot de Passe",
                 subtitle = "Changer le mot de passe confidentiel",
+                containerColor = Color(0xFFEF5350).copy(alpha = 0.12f),
+                iconTint = Color(0xFFEF5350),
                 onClick = { onNavigate("security") }
             )
             ProfileOptionRow(
                 icon = Icons.Rounded.Gavel,
                 title = "Historique des Litiges",
                 subtitle = "Suivre une procédure de médiation",
+                containerColor = Color(0xFFFF9800).copy(alpha = 0.12f),
+                iconTint = Color(0xFFFF9800),
                 onClick = { onNavigate("disputes") }
             )
             ProfileOptionRow(
                 icon = Icons.Rounded.HelpOutline,
                 title = "Centre d'Aide & Support",
                 subtitle = "FAQs Mobile Money, Assurance & Garanties",
+                containerColor = PrimaryGreen.copy(alpha = 0.12f),
+                iconTint = PrimaryGreen,
                 onClick = { onNavigate("help") }
             )
             ProfileOptionRow(
                 icon = Icons.Rounded.Info,
                 title = "À propos",
                 subtitle = "LocAll v1.0.0 (Prototype)",
+                containerColor = Color(0xFF4FC3F7).copy(alpha = 0.12f),
+                iconTint = Color(0xFF4FC3F7),
                 onClick = { onNavigate("about") }
             )
 
@@ -576,6 +604,8 @@ fun ProfileOptionRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     subtitle: String,
+    containerColor: Color = Color.White.copy(alpha = 0.05f),
+    iconTint: Color = Color.LightGray,
     onClick: () -> Unit
 ) {
     Card(
@@ -592,15 +622,14 @@ fun ProfileOptionRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Color.White.copy(alpha = 0.05f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(icon, contentDescription = null, tint = Color.LightGray)
-            }
+            SmoothIcon(
+                icon = icon,
+                backgroundColor = containerColor,
+                tint = iconTint,
+                size = 40.dp,
+                iconSize = 20.dp,
+                cornerRadius = 10.dp
+            )
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)

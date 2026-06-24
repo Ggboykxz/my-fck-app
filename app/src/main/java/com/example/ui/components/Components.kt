@@ -652,6 +652,97 @@ fun AnimatedEmptyState(
     }
 }
 
+// ==================== SMOOTH ICON ====================
+@Composable
+fun SmoothIcon(
+    imageVector: ImageVector,
+    contentDescription: String?,
+    tint: Color,
+    backgroundColor: Color = Color.Transparent,
+    modifier: Modifier = Modifier,
+    iconSize: Dp = 20.dp
+) {
+    Box(
+        modifier = modifier
+            .clip(CircleShape)
+            .background(backgroundColor),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(imageVector = imageVector, contentDescription = contentDescription, tint = tint, modifier = Modifier.size(iconSize))
+    }
+}
+
+// ==================== SMOOTH ICON BUTTON ====================
+@Composable
+fun SmoothIconButton(
+    imageVector: ImageVector,
+    contentDescription: String?,
+    onClick: () -> Unit,
+    tint: Color = Color.White,
+    backgroundColor: Color = PrimaryGreen,
+    modifier: Modifier = Modifier,
+    iconSize: Dp = 20.dp
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier.clip(CircleShape).background(backgroundColor)
+    ) {
+        Icon(imageVector = imageVector, contentDescription = contentDescription, tint = tint, modifier = Modifier.size(iconSize))
+    }
+}
+
+// ==================== CATEGORY ICON ====================
+@Composable
+fun CategoryIcon(
+    icon: ImageVector,
+    label: String,
+    count: Int,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) PrimaryGreen.copy(alpha = 0.9f) else Color.White.copy(alpha = 0.06f)
+        ),
+        border = BorderStroke(1.dp, if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.12f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = "Catégorie $label",
+                tint = if (isSelected) BrandNavy else PrimaryGreen,
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                text = label,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isSelected) BrandNavy else Color.White
+            )
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(if (isSelected) BrandNavy.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.08f))
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = count.toString(),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isSelected) BrandNavy else Color.White.copy(alpha = 0.7f)
+                )
+            }
+        }
+    }
+}
+
 // ==================== REWARD/POINT CHIP ====================
 @Composable
 fun PointsChip(
@@ -670,6 +761,227 @@ fun PointsChip(
         ) {
             Icon(Icons.Rounded.Star, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(14.dp))
             Text("$points pts", color = Color(0xFFFFB300), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+// ==================== SMOOTH ICON CONTAINER ====================
+@Composable
+fun SmoothIcon(
+    icon: ImageVector,
+    tint: Color = PrimaryGreen,
+    backgroundColor: Color = PrimaryGreen.copy(alpha = 0.12f),
+    size: Dp = 44.dp,
+    iconSize: Dp = 22.dp,
+    cornerRadius: Dp = 14.dp,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(RoundedCornerShape(cornerRadius))
+            .background(backgroundColor),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(iconSize)
+        )
+    }
+}
+
+// ==================== SMOOTH ICON BUTTON ====================
+@Composable
+fun SmoothIconButton(
+    icon: ImageVector,
+    onClick: () -> Unit,
+    tint: Color = Color.White,
+    backgroundColor: Color = Color.White.copy(alpha = 0.08f),
+    size: Dp = 44.dp,
+    iconSize: Dp = 20.dp,
+    borderColor: Color = Color.White.copy(alpha = 0.1f),
+    modifier: Modifier = Modifier
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier
+            .size(size)
+            .clip(RoundedCornerShape(14.dp))
+            .background(backgroundColor)
+            .border(1.dp, borderColor, RoundedCornerShape(14.dp))
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(iconSize)
+        )
+    }
+}
+
+// ==================== CATEGORY ICON STYLE ====================
+@Composable
+fun CategoryIcon(
+    icon: ImageVector,
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val bgColor = if (isSelected) PrimaryGreen.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.05f)
+    val iconColor = if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.45f)
+    val textColor = if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.6f)
+    val borderColor = if (isSelected) PrimaryGreen.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.08f)
+
+    Card(
+        modifier = modifier.clickable { onClick() },
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = bgColor),
+        border = BorderStroke(1.dp, borderColor)
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(iconColor.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(20.dp))
+            }
+            Text(label, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = textColor)
+        }
+    }
+}
+
+// ==================== SECTION ICON HEADER ====================
+@Composable
+fun SectionIconHeader(
+    icon: ImageVector,
+    title: String,
+    iconColor: Color = PrimaryGreen,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(iconColor.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(18.dp))
+        }
+        Text(title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+// ==================== FLOATING ACTION ICON ====================
+@Composable
+fun FloatingActionIcon(
+    icon: ImageVector,
+    onClick: () -> Unit,
+    backgroundColor: Color = PrimaryGreen,
+    iconColor: Color = BrandNavy,
+    size: Dp = 56.dp,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.size(size),
+        shape = CircleShape,
+        color = backgroundColor,
+        shadowElevation = 8.dp
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(26.dp))
+        }
+    }
+}
+
+// ==================== MENU ICON WITH BADGE ====================
+@Composable
+fun MenuIconWithBadge(
+    icon: ImageVector,
+    badgeCount: Int = 0,
+    iconColor: Color = Color.White,
+    backgroundColor: Color = Color(0xFF162133),
+    size: Dp = 48.dp,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier = modifier.size(size)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(14.dp))
+                .background(backgroundColor)
+                .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(14.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(22.dp))
+        }
+        if (badgeCount > 0) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = 4.dp, y = (-4).dp)
+                    .size(18.dp)
+                    .clip(CircleShape)
+                    .background(Color.Red),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (badgeCount > 9) "9+" else "$badgeCount",
+                    color = Color.White,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+// ==================== SOCIAL ICON BUTTON ====================
+@Composable
+fun SocialIconButton(
+    icon: ImageVector,
+    label: String,
+    color: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        color = Color(0xFF162133),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(color.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
+            }
+            Text(label, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
         }
     }
 }

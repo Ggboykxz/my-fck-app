@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.icons.filled.List
@@ -140,7 +141,10 @@ fun DashboardBottomBar(
         NavigationBarItem(
             selected = currentScreen is Screen.Home || currentScreen is Screen.Explore || currentScreen is Screen.Details,
             onClick = { onNavigate("home") },
-            icon = { Icon(Icons.Rounded.Search, contentDescription = "Explorer") },
+            icon = {
+                val isSel = currentScreen is Screen.Home || currentScreen is Screen.Explore || currentScreen is Screen.Details
+                SmoothIcon(Icons.Rounded.Search, contentDescription = "Explorer", tint = if (isSel) BrandNavy else Color.White.copy(alpha = 0.45f), backgroundColor = if (isSel) PrimaryGreen else Color.White.copy(alpha = 0.08f), modifier = Modifier.size(32.dp), iconSize = 18.dp)
+            },
             label = { Text("Explorer", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = PrimaryGreen,
@@ -154,7 +158,10 @@ fun DashboardBottomBar(
         NavigationBarItem(
             selected = currentScreen is Screen.PostListing,
             onClick = { onNavigate("post_listing") },
-            icon = { Icon(Icons.Rounded.AddCircle, contentDescription = "Ajouter", tint = PrimaryGreen, modifier = Modifier.size(28.dp)) },
+            icon = {
+                val isSel = currentScreen is Screen.PostListing
+                SmoothIcon(Icons.Rounded.AddCircle, contentDescription = "Ajouter", tint = if (isSel) BrandNavy else Color.White.copy(alpha = 0.45f), backgroundColor = if (isSel) PrimaryGreen else Color.White.copy(alpha = 0.08f), modifier = Modifier.size(32.dp), iconSize = 18.dp)
+            },
             label = { Text("Publier", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryGreen) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = PrimaryGreen,
@@ -168,7 +175,10 @@ fun DashboardBottomBar(
         NavigationBarItem(
             selected = currentScreen is Screen.Bookmarks,
             onClick = { onNavigate("bookmarks") },
-            icon = { Icon(Icons.Rounded.FavoriteBorder, contentDescription = "Favoris") },
+            icon = {
+                val isSel = currentScreen is Screen.Bookmarks
+                SmoothIcon(Icons.Rounded.FavoriteBorder, contentDescription = "Favoris", tint = if (isSel) BrandNavy else Color.White.copy(alpha = 0.45f), backgroundColor = if (isSel) PrimaryGreen else Color.White.copy(alpha = 0.08f), modifier = Modifier.size(32.dp), iconSize = 18.dp)
+            },
             label = { Text("Favoris", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = PrimaryGreen,
@@ -183,6 +193,7 @@ fun DashboardBottomBar(
             selected = currentScreen is Screen.Messages,
             onClick = { onNavigate("messages") },
             icon = {
+                val isSel = currentScreen is Screen.Messages
                 BadgedBox(
                     badge = {
                         if (unreadCount > 0) {
@@ -195,7 +206,7 @@ fun DashboardBottomBar(
                         }
                     }
                 ) {
-                    Icon(Icons.Default.Email, contentDescription = "Messages")
+                    SmoothIcon(Icons.Default.Email, contentDescription = "Messages", tint = if (isSel) BrandNavy else Color.White.copy(alpha = 0.45f), backgroundColor = if (isSel) PrimaryGreen else Color.White.copy(alpha = 0.08f), modifier = Modifier.size(32.dp), iconSize = 18.dp)
                 }
             },
             label = { Text("Messages", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
@@ -211,7 +222,10 @@ fun DashboardBottomBar(
         NavigationBarItem(
             selected = currentScreen is Screen.Profile,
             onClick = { onNavigate("profile") },
-            icon = { Icon(Icons.Rounded.Person, contentDescription = "Profil") },
+            icon = {
+                val isSel = currentScreen is Screen.Profile
+                SmoothIcon(Icons.Rounded.Person, contentDescription = "Profil", tint = if (isSel) BrandNavy else Color.White.copy(alpha = 0.45f), backgroundColor = if (isSel) PrimaryGreen else Color.White.copy(alpha = 0.08f), modifier = Modifier.size(32.dp), iconSize = 18.dp)
+            },
             label = { Text("Profil", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = PrimaryGreen,
@@ -320,7 +334,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     value = searchQuery,
                     onValueChange = { viewModel.setSearchQuery(it) },
                     placeholder = { Text("Quartier, villa, SUV...", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp) },
-                    leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = "Rechercher", tint = Color.White.copy(alpha = 0.5f)) },
+                    leadingIcon = { SmoothIcon(Icons.Rounded.Search, contentDescription = "Rechercher", tint = Color.White.copy(alpha = 0.5f), backgroundColor = Color.White.copy(alpha = 0.08f), modifier = Modifier.size(32.dp), iconSize = 18.dp) },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
                             IconButton(onClick = { viewModel.setSearchQuery("") }) {
@@ -345,15 +359,15 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     singleLine = true
                 )
 
-                Button(
+                SmoothIconButton(
+                    imageVector = Icons.Rounded.Settings,
+                    contentDescription = "Filtres de prix",
                     onClick = { showPriceFilterDialog = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
-                    shape = RoundedCornerShape(14.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    modifier = Modifier.size(54.dp).testTag("price_filter_button")
-                ) {
-                    Icon(Icons.Rounded.Settings, contentDescription = "Filtres de prix", tint = BrandNavy)
-                }
+                    tint = BrandNavy,
+                    backgroundColor = PrimaryGreen,
+                    modifier = Modifier.size(54.dp).testTag("price_filter_button"),
+                    iconSize = 22.dp
+                )
 
                 SortDropdown(
                     selected = sortOption,
@@ -677,54 +691,14 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                             rawItems.count { it.category.equals(catName, ignoreCase = true) }
                         }
                         
-                        Card(
-                            modifier = Modifier
-                                .testTag("category_filter_$catName")
-                                .clickable { viewModel.setSelectedCategory(catName) },
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (isSelected) PrimaryGreen.copy(alpha = 0.9f) else Color.White.copy(alpha = 0.06f)
-                            ),
-                            border = BorderStroke(
-                                1.dp,
-                                if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.12f)
-                            )
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = icon,
-                                    contentDescription = "Catégorie $label",
-                                    tint = if (isSelected) BrandNavy else PrimaryGreen,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Text(
-                                    text = label,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isSelected) BrandNavy else Color.White
-                                )
-                                Box(
-                                    modifier = Modifier
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (isSelected) BrandNavy.copy(alpha = 0.15f) 
-                                            else Color.White.copy(alpha = 0.08f)
-                                        )
-                                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                                ) {
-                                    Text(
-                                        text = count.toString(),
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (isSelected) BrandNavy else Color.White.copy(alpha = 0.7f)
-                                    )
-                                }
-                            }
-                        }
+                        CategoryIcon(
+                            icon = icon,
+                            label = label,
+                            count = count,
+                            isSelected = isSelected,
+                            onClick = { viewModel.setSelectedCategory(catName) },
+                            modifier = Modifier.testTag("category_filter_$catName")
+                        )
                     }
                 }
             }
@@ -1528,22 +1502,17 @@ fun ItemDetailsScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(
+                    SmoothIconButton(
+                        icon = Icons.AutoMirrored.Rounded.ArrowBack,
                         onClick = onBack,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(Color.White.copy(alpha = 0.9f), CircleShape)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.ArrowBack,
-                            contentDescription = "Retour",
-                            tint = BrandNavy,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                        tint = BrandNavy,
+                        backgroundColor = Color.White.copy(alpha = 0.9f),
+                        borderColor = Color.Transparent
+                    )
 
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        IconButton(
+                        SmoothIconButton(
+                            icon = Icons.Rounded.Share,
                             onClick = {
                                 val shareText = shareListing(item.title, formatPriceCfa(item.pricePerDay))
                                 val sendIntent = Intent().apply {
@@ -1553,17 +1522,10 @@ fun ItemDetailsScreen(
                                 }
                                 context.startActivity(Intent.createChooser(sendIntent, "Partager l'annonce"))
                             },
-                            modifier = Modifier
-                                .size(40.dp)
-                                .background(PrimaryGreen, CircleShape)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Share,
-                                contentDescription = "Partager",
-                                tint = BrandNavy,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                            tint = BrandNavy,
+                            backgroundColor = PrimaryGreen,
+                            borderColor = PrimaryGreen
+                        )
 
                         AnimatedHeartButton(
                             isFavorite = item.isBookmarked,
@@ -1632,7 +1594,7 @@ fun ItemDetailsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Icon(Icons.Rounded.LocationOn, contentDescription = null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
+                    SmoothIcon(icon = Icons.Rounded.LocationOn, tint = Color.White, backgroundColor = PrimaryGreen, size = 28.dp, iconSize = 16.dp, cornerRadius = 8.dp)
                     Text(
                         text = "${item.neighborhood}, ${item.city} — Gabon",
                         fontSize = 14.sp,
@@ -1785,7 +1747,7 @@ fun ItemDetailsScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                Icon(Icons.Rounded.LocationOn, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
+                                SmoothIcon(icon = Icons.Rounded.LocationOn, tint = Color.White, backgroundColor = PrimaryGreen, size = 24.dp, iconSize = 14.dp, cornerRadius = 6.dp)
                                 Text("${item.neighborhood}", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -2842,9 +2804,11 @@ fun ChatRoomScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
-                }
+                SmoothIconButton(
+                    icon = Icons.AutoMirrored.Rounded.ArrowBack,
+                    onClick = onBack,
+                    tint = Color.White
+                )
 
                 Box(modifier = Modifier.size(40.dp)) {
                     AsyncImage(
@@ -3172,7 +3136,7 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                     ) {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Icon(Icons.Rounded.AddAPhoto, contentDescription = null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(40.dp))
+                                SmoothIcon(icon = Icons.Rounded.AddAPhoto, tint = Color.White.copy(alpha = 0.3f), backgroundColor = Color.White.copy(alpha = 0.06f), size = 56.dp, iconSize = 40.dp)
                                 Text("Ajouter une image (URL)", color = Color.White.copy(alpha = 0.4f), fontSize = 13.sp)
                             }
                         }
@@ -3223,11 +3187,12 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
-                                    Icon(
-                                        imageVector = categoryIcons[cat] ?: Icons.Rounded.Category,
-                                        contentDescription = null,
-                                        tint = if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.4f),
-                                        modifier = Modifier.size(22.dp)
+                                    SmoothIcon(
+                                        icon = categoryIcons[cat] ?: Icons.Rounded.Category,
+                                        tint = if (isSelected) BrandNavy else PrimaryGreen,
+                                        backgroundColor = if (isSelected) PrimaryGreen else PrimaryGreen.copy(alpha = 0.12f),
+                                        size = 36.dp,
+                                        iconSize = 18.dp
                                     )
                                     Text(cat, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.6f))
                                 }
@@ -3441,7 +3406,7 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth().height(56.dp).testTag("submit_post_button")
                 ) {
-                    Icon(Icons.Rounded.Send, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Rounded.Publish, contentDescription = null, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Publier l'annonce", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
