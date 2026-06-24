@@ -2,7 +2,7 @@
 <img width="1200" height="475" alt="LocAll Banner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
 <h1>LocAll</h1>
 <p><strong>Louez tout, partout au Gabon</strong></p>
-<p>Application mobile de location entre particuliers — prototype fonctionnel</p>
+<p>Application mobile de location entre particuliers — prototype fonctionnel (45 écrans)</p>
 </div>
 
 ---
@@ -18,25 +18,97 @@ LocAll est une application Android de marketplace de location (véhicules, équi
 - Coil pour le chargement d'images
 - Coroutines + Flow
 
-## Captures d'écran
+---
 
-### Authentification
-| Connexion | Inscription | Mot de passe oublié |
-|:---------:|:-----------:|:-------------------:|
-| ![Login](docs/screenshots/01_auth_login.png) | ![Register](docs/screenshots/02_auth_register.png) | ![Forgot](docs/screenshots/03_auth_forgot_password.png) |
+## Captures d'écran — 45 écrans
 
-| OTP | Nouveau mot de passe |
-|:---:|:--------------------:|
-| ![OTP](docs/screenshots/04_auth_otp.png) | ![New Password](docs/screenshots/05_auth_new_password.png) |
+### 1. Onboarding (4 écrans)
 
-### Application principale
-| Exploration | Favoris | Réservations |
-|:-----------:|:-------:|:------------:|
-| ![Explore](docs/screenshots/06_main_explore.png) | ![Bookmarks](docs/screenshots/07_bookmarks.png) | ![Bookings](docs/screenshots/08_bookings.png) |
+| 01 — Splash | 02 — Bienvenue | 03 — Paiements | 04 — Confiance |
+|:-----------:|:--------------:|:--------------:|:--------------:|
+| ![Splash](docs/screenshots/01_splash.png) | ![Welcome](docs/screenshots/02_welcome.png) | ![Payments](docs/screenshots/03_payments_onboarding.png) | ![Trust](docs/screenshots/04_trust_onboarding.png) |
 
-| Messages | Publier une annonce | Profil |
-|:--------:|:-------------------:|:------:|
-| ![Messages](docs/screenshots/09_messages.png) | ![Post](docs/screenshots/10_post_listing.png) | ![Profile](docs/screenshots/11_profile.png) |
+---
+
+### 2. Authentification (12 écrans)
+
+| 05 — Connexion | 06 — Inscription | 07 — Mot de passe oublié |
+|:--------------:|:----------------:|:------------------------:|
+| ![Login](docs/screenshots/05_login.png) | ![Register](docs/screenshots/06_register.png) | ![Forgot](docs/screenshots/07_forgot_password.png) |
+
+| 08 — Code OTP | 09 — Nouveau mot de passe | 10 — Chargement connexion |
+|:-------------:|:------------------------:|:-------------------------:|
+| ![OTP](docs/screenshots/08_otp.png) | ![New Password](docs/screenshots/09_new_password.png) | ![Loading Login](docs/screenshots/10_loading_login.png) |
+
+| 11 — Succès connexion | 12 — Chargement inscription | 13 — Succès inscription |
+|:---------------------:|:---------------------------:|:-----------------------:|
+| ![Login Success](docs/screenshots/11_login_success.png) | ![Loading Register](docs/screenshots/12_loading_register.png) | ![Register Success](docs/screenshots/13_register_success.png) |
+
+| 14 — Compléter profil | 15 — Succès profil | 16 — Mot de passe réinitialisé |
+|:---------------------:|:------------------:|:-----------------------------:|
+| ![Complete Profile](docs/screenshots/14_complete_profile.png) | ![Profile Success](docs/screenshots/15_profile_success.png) | ![Password Reset](docs/screenshots/16_password_reset_success.png) |
+
+---
+
+### 3. Application principale (7 écrans)
+
+| 17 — Exploration | 18 — Détail annonce | 19 — Favoris |
+|:----------------:|:-------------------:|:------------:|
+| ![Explore](docs/screenshots/17_explore.png) | ![Details](docs/screenshots/18_item_details.png) | ![Bookmarks](docs/screenshots/19_bookmarks.png) |
+
+| 20 — Réservations | 21 — Messages | 22 — Publier annonce |
+|:-----------------:|:-------------:|:--------------------:|
+| ![Bookings](docs/screenshots/20_bookings.png) | ![Messages](docs/screenshots/21_messages.png) | ![Post Listing](docs/screenshots/22_post_listing.png) |
+
+| 23 — Chat |
+|:---------:|
+| ![Chat](docs/screenshots/23_chat.png) |
+
+---
+
+### 4. Profil & Paramètres (14 écrans)
+
+| 24 — Profil | 25 — Éditer profil | 26 — Vérification identité |
+|:-----------:|:------------------:|:--------------------------:|
+| ![Profile](docs/screenshots/24_profile.png) | ![Edit Profile](docs/screenshots/25_edit_profile.png) | ![Identity](docs/screenshots/26_identity_verification.png) |
+
+| 27 — Langue | 28 — Sécurité | 29 — Notifications |
+|:-----------:|:-------------:|:------------------:|
+| ![Language](docs/screenshots/27_language.png) | ![Security](docs/screenshots/28_security.png) | ![Notifications](docs/screenshots/29_notifications.png) |
+
+| 30 — Aide & Support | 31 — Moyens de paiement | 32 — Litiges |
+|:-------------------:|:-----------------------:|:------------:|
+| ![Help](docs/screenshots/30_help.png) | ![Payment Methods](docs/screenshots/31_payment_methods.png) | ![Disputes](docs/screenshots/32_disputes.png) |
+
+| 33 — Médiation | 34 — Réservations locataire | 35 — Signaler dommage |
+|:--------------:|:---------------------------:|:---------------------:|
+| ![Mediation](docs/screenshots/33_mediation.png) | ![Tenant Bookings](docs/screenshots/34_tenant_bookings.png) | ![Damage Report](docs/screenshots/35_damage_report.png) |
+
+| 36 — Avis locataire | 37 — À propos |
+|:--------------------:|:-------------:|
+| ![Tenant Review](docs/screenshots/36_tenant_review.png) | ![About](docs/screenshots/37_about.png) |
+
+---
+
+### 5. Espace propriétaire (6 écrans)
+
+| 38 — Tableau de bord | 39 — Historique revenus | 40 — Portefeuille |
+|:--------------------:|:----------------------:|:-----------------:|
+| ![Owner Dashboard](docs/screenshots/38_owner_dashboard.png) | ![Earnings](docs/screenshots/39_earnings.png) | ![Wallet](docs/screenshots/40_wallet.png) |
+
+| 41 — Mes annonces | 42 — Calendrier | 43 — Réservations reçues |
+|:-----------------:|:---------------:|:------------------------:|
+| ![Owner Listings](docs/screenshots/41_owner_listings.png) | ![Calendar](docs/screenshots/42_calendar.png) | ![Received Bookings](docs/screenshots/43_received_bookings.png) |
+
+---
+
+### 6. États spéciaux (2 écrans)
+
+| 44 — Paiement en cours | 45 — Skeleton loading |
+|:----------------------:|:---------------------:|
+| ![Payment Processing](docs/screenshots/44_payment_processing.png) | ![Skeleton](docs/screenshots/45_skeleton_loading.png) |
+
+---
 
 ## Fonctionnalités
 
@@ -78,10 +150,15 @@ LocAll est une application Android de marketplace de location (véhicules, équi
 
 ### Profil utilisateur
 - Édition du profil (nom, téléphone)
+- Vérification d'identité
 - Historique des réservations
--中心 d'aide & support
+- Litiges & médiation
+- Notifications
+- Portefeuille & retraits
+- Aide & support
+- Moyens de paiement (Airtel Money / Moov Money)
 - Sécurité & langue
-- Affichage de la version (v1.0.0 Prototype)
+- À propos
 
 ### Espace propriétaire
 - Tableau de bord (annonces, revenus, portefeuille)
@@ -89,8 +166,8 @@ LocAll est une application Android de marketplace de location (véhicules, équi
 - Édition / Suppression d'annonces
 - Calendrier de disponibilités
 - Réservations reçues (accepter / refuser avec confirmation)
-- Vérification d'identité
-- Gestion des litiges
+- Signalement de dommages
+- Avis locataire
 
 ### Design & UX
 - Thème dark/light
@@ -100,6 +177,8 @@ LocAll est une application Android de marketplace de location (véhicules, équi
 - ConfirmDialog pour actions destructives
 - Badges de notification
 - Accessibilité (contentDescription)
+
+---
 
 ## Installation
 
@@ -118,18 +197,14 @@ cd my-fck-app
 
 2. Ouvrir le projet dans Android Studio
 
-3. Créer un fichier `.env` à la racine avec votre clé API Gemini :
-```
-GEMINI_API_KEY=votre_cle_ici
-```
-Voir `.env.example` pour un exemple.
-
-4. Compiler et installer sur un émulateur ou device physique :
+3. Compiler et installer sur un émulateur ou device physique :
 ```bash
 ./gradlew assembleDebug
 ```
 
 L'APK sera généré dans `app/build/outputs/apk/debug/`.
+
+---
 
 ## Structure du projet
 
@@ -147,22 +222,19 @@ app/src/main/java/com/example/
 └── MainActivity.kt
 ```
 
+---
+
 ## État du projet
 
 > **Prototype fonctionnel** — toutes les données sont simulées (Room DB locale, pas de backend).
 
-### Améliorations récentes
-- Validation complète des formulaires
-- Skeleton loading & pull-to-refresh
-- Tri & filtres avancés
-- Annonces similaires
-- Annulation de réservation
-- Édition de profil
-- CRUD propriétaire (modifier/supprimer)
-- Confirmation sur actions destructives
-- Badge de notifications
-- Numéros de téléphone masqués
-- Composants réutilisables (22+)
+### 45 écrans implémentés
+- 4 écrans d'onboarding
+- 12 écrans d'authentification
+- 7 écrans du dashboard principal
+- 14 écrans de profil & paramètres
+- 6 écrans d'espace propriétaire
+- 2 états spéciaux (paiement, skeleton)
 
 ## Licence
 
