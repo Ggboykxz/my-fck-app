@@ -51,6 +51,23 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 // Internal data models for high-fidelity UI representation
+data class NotificationItem(
+    val id: Int,
+    val type: String,
+    val title: String,
+    val description: String,
+    val timestamp: String,
+    val isRead: Boolean
+)
+
+val mockNotifications = listOf(
+    NotificationItem(1, "reservation", "Réservation confirmée", "Votre réservation Toyota Hilux a été confirmée", "Il y a 2h", false),
+    NotificationItem(2, "message", "Nouveau message", "Jean a envoyé un message concernant la Mitsubishi L200", "Il y a 4h", false),
+    NotificationItem(3, "payment", "Paiement reçu", "45 000 F CFA reçus pour la location Toyota Hilux", "Il y a 1 jour", true),
+    NotificationItem(4, "system", "Mise à jour", "LocAll v1.0.1 est maintenant disponible", "Il y a 2 jours", true),
+    NotificationItem(5, "reservation", "Réservation annulée", "La réservation de Paul a été annulée", "Il y a 3 jours", true)
+)
+
 data class DisputeItem(
     val id: String,
     val date: String,
@@ -85,7 +102,7 @@ data class ReceivedReservation(
 
 @Composable
 fun ProfileNavigator(viewModel: RentalViewModel) {
-    var subScreen by remember { mutableStateOf("main") } // "main", "dashboard", "earnings", "wallet", "listings", "calendar", "bookings_received", "identity", "disputes", "tenant_bookings", "language", "security", "help", "damage", "review_tenant", "edit_profile"
+    var subScreen by remember { mutableStateOf("main") } // "main", "dashboard", "earnings", "wallet", "listings", "calendar", "bookings_received", "identity", "disputes", "tenant_bookings", "language", "security", "notifications", "help", "payment_methods", "damage", "review_tenant", "edit_profile"
     
     // Dispute state helpers
     var selectedDisputeId by remember { mutableStateOf<String?>(null) }
@@ -182,7 +199,13 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
                 "security" -> SecuritySettingsScreen(
                     onBack = { subScreen = "main" }
                 )
+                "notifications" -> NotificationsScreen(
+                    onBack = { subScreen = "main" }
+                )
                 "help" -> HelpAndSupportScreen(
+                    onBack = { subScreen = "main" }
+                )
+                "payment_methods" -> PaymentMethodsScreen(
                     onBack = { subScreen = "main" }
                 )
                 "damage" -> DamageReportingScreen(
@@ -196,6 +219,9 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
                     reservation = activeReviewSelection,
                     onBack = { subScreen = "bookings_received" },
                     onSubmitted = { subScreen = "bookings_received" }
+                )
+                "about" -> AboutScreen(
+                    onBack = { subScreen = "main" }
                 )
             }
         }
@@ -430,7 +456,7 @@ fun ProfileMainScreen(
                     icon = Icons.Rounded.Payment,
                     title = "Moyens de Paiement",
                     subtitle = "Airtel, Moov & Cartes Bancaires",
-                    onClick = { onNavigate("help") } // redirected dynamically
+                    onClick = { onNavigate("payment_methods") }
                 )
             }
         }
@@ -456,6 +482,12 @@ fun ProfileMainScreen(
                 onClick = { onNavigate("language") }
             )
             ProfileOptionRow(
+                icon = Icons.Rounded.Notifications,
+                title = "Notifications",
+                subtitle = "Gérer vos alertes et préférences",
+                onClick = { onNavigate("notifications") }
+            )
+            ProfileOptionRow(
                 icon = Icons.Rounded.Lock,
                 title = "Sécurité & Mot de Passe",
                 subtitle = "Changer le mot de passe confidentiel",
@@ -473,15 +505,11 @@ fun ProfileMainScreen(
                 subtitle = "FAQs Mobile Money, Assurance & Garanties",
                 onClick = { onNavigate("help") }
             )
-
-            Text(
-                text = "LocAll v1.0.0 (Prototype)",
-                color = Color.White.copy(alpha = 0.3f),
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp)
+            ProfileOptionRow(
+                icon = Icons.Rounded.Info,
+                title = "À propos",
+                subtitle = "LocAll v1.0.0 (Prototype)",
+                onClick = { onNavigate("about") }
             )
 
             Button(
@@ -2899,6 +2927,219 @@ fun LanguageSelectionScreen(
     }
 }
 
+// ---------------- NOTIFICATIONS SCREEN ----------------
+
+@Composable
+fun NotificationsScreen(
+    onBack: () -> Unit
+) {
+    var notifications by remember { mutableStateOf(mockNotifications) }
+    val unreadCount = notifications.count { !it.isRead }
+
+    fun markAsRead(id: Int) {
+        notifications = notifications.map { if (it.id == id) it.copy(isRead = true) else it }
+    }
+
+    fun markAllAsRead() {
+        notifications = notifications.map { it.copy(isRead = true) }
+    }
+
+    fun notificationIcon(type: String) = when (type) {
+        "reservation" -> Icons.Rounded.EventAvailable
+        "message" -> Icons.Rounded.Mail
+        "payment" -> Icons.Rounded.Payments
+        "system" -> Icons.Rounded.Info
+        else -> Icons.Rounded.Notifications
+    }
+
+    fun notificationColor(type: String) = when (type) {
+        "reservation" -> PrimaryGreen
+        "message" -> Color(0xFF4FC3F7)
+        "payment" -> Color(0xFFFFB300)
+        "system" -> Color(0xFFCE93D8)
+        else -> Color.White
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Notifications", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (notifications.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.25f),
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Text(
+                        "Aucune notification",
+                        color = Color.White.copy(alpha = 0.5f),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Vous serez notifié des nouvelles activités",
+                        color = Color.White.copy(alpha = 0.35f),
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        } else {
+            if (unreadCount > 0) {
+                Surface(
+                    onClick = { markAllAsRead() },
+                    color = PrimaryGreen.copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.25f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Icon(Icons.Rounded.DoneAll, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+                        Text(
+                            "Tout marquer comme lu",
+                            color = PrimaryGreen,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Surface(
+                            color = PrimaryGreen,
+                            shape = RoundedCornerShape(20.dp)
+                        ) {
+                            Text(
+                                "$unreadCount",
+                                color = BrandNavy,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                items(notifications) { notif ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { markAsRead(notif.id) },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (notif.isRead) Color(0xFF162133) else Color(0xFF1A2740)
+                        ),
+                        border = BorderStroke(
+                            1.dp,
+                            if (notif.isRead) Color.White.copy(alpha = 0.05f) else notificationColor(notif.type).copy(alpha = 0.25f)
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.Top,
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(
+                                        if (notif.isRead) Color.White.copy(alpha = 0.05f)
+                                        else notificationColor(notif.type).copy(alpha = 0.15f)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = notificationIcon(notif.type),
+                                    contentDescription = null,
+                                    tint = if (notif.isRead) Color.White.copy(alpha = 0.4f) else notificationColor(notif.type),
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        notif.title,
+                                        color = if (notif.isRead) Color.White.copy(alpha = 0.7f) else Color.White,
+                                        fontSize = 14.sp,
+                                        fontWeight = if (notif.isRead) FontWeight.Medium else FontWeight.Bold
+                                    )
+                                    if (!notif.isRead) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(8.dp)
+                                                .clip(CircleShape)
+                                                .background(PrimaryGreen)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    notif.description,
+                                    color = if (notif.isRead) Color.White.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.65f),
+                                    fontSize = 12.sp,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    notif.timestamp,
+                                    color = if (notif.isRead) Color.White.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.4f),
+                                    fontSize = 11.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(30.dp))
+    }
+}
+
 @Composable
 fun SecuritySettingsScreen(
     onBack: () -> Unit
@@ -3699,5 +3940,661 @@ fun EditProfileScreen(
         ) {
             Text("Enregistrer", fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
+    }
+}
+
+// ---------------- ABOUT SCREEN ----------------
+
+@Composable
+fun AboutScreen(
+    onBack: () -> Unit
+) {
+    var showCguDialog by remember { mutableStateOf(false) }
+    var showPrivacyDialog by remember { mutableStateOf(false) }
+    var showLicensesDialog by remember { mutableStateOf(false) }
+
+    if (showCguDialog) {
+        Dialog(onDismissRequest = { showCguDialog = false }) {
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Text("Conditions Générales d'Utilisation", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                    Text("Dernière mise à jour : Février 2026", fontSize = 11.sp, color = Color.Gray)
+                    Text(
+                        "Les présentes Conditions Générales d'Utilisation (CGU) régissent l'accès et l'utilisation de l'application LocAll, éditée par LocAll Gabon SARL, dont le siège social est situé à Libreville, Gabon.\n\n" +
+                        "En utilisant LocAll, vous acceptez sans réserve les dispositions des présentes CGU. LocAll met en relation des particuliers pour la location de biens entre eux sur le territoire gabonais.\n\n" +
+                        "1. Objet : LocAll est une plateforme de mise en relation entre locataires et propriétaires. LocAll n'est pas partie au contrat de location conclu entre les utilisateurs.\n\n" +
+                        "2. Inscription : L'inscription est ouverte à toute personne physique majeure résidant au Gabon. L'identification par CNI et selfie biométrique est obligatoire.\n\n" +
+                        "3. Obligations : Les utilisateurs s'engagent à fournir des informations exactes et à respecter les biens loués. Tout manquement pourra entraîner la suspension du compte.\n\n" +
+                        "4. Paiements : Les transactions s'effectuent via Mobile Money (Airtel Money, Moov Money) sous séquestre sécurisé LocAll.",
+                        color = Color.DarkGray,
+                        fontSize = 13.sp,
+                        lineHeight = 20.sp
+                    )
+                    Button(onClick = { showCguDialog = false }, colors = ButtonDefaults.buttonColors(containerColor = BrandNavy), modifier = Modifier.fillMaxWidth()) {
+                        Text("Fermer", color = Color.White)
+                    }
+                }
+            }
+        }
+    }
+
+    if (showPrivacyDialog) {
+        Dialog(onDismissRequest = { showPrivacyDialog = false }) {
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Text("Politique de Confidentialité", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                    Text("Dernière mise à jour : Février 2026", fontSize = 11.sp, color = Color.Gray)
+                    Text(
+                        "LocAll Gabon SARL attache une importance particulière à la protection de vos données personnelles. Cette politique de confidentialité décrit comment nous collectons, utilisons et protégeons vos informations.\n\n" +
+                        "1. Données collectées : Nom, numéro de téléphone, photographie de profil, pièce d'identité (CNI/Passeport), selfie biométrique, données de géolocalisation, historique de transactions.\n\n" +
+                        "2. Finalités : Vérification d'identité, mise en relation entre utilisateurs, traitement des paiements, prévention de la fraude, amélioration du service.\n\n" +
+                        "3. Partage : Vos données ne sont jamais vendues à des tiers. Elles peuvent être partagées avec nos partenaires de paiement (Airtel Money, Moov Money) et d'assurance (GabAsur) uniquement dans le cadre des transactions.\n\n" +
+                        "4. Sécurité : Toutes les données sont chiffrées (AES-256) et stockées sur des serveurs sécurisés conformes aux normes ISO 27001.\n\n" +
+                        "5. Droits : Conformément à la loi gabonaise sur la protection des données, vous disposez d'un droit d'accès, de rectification et de suppression de vos données.",
+                        color = Color.DarkGray,
+                        fontSize = 13.sp,
+                        lineHeight = 20.sp
+                    )
+                    Button(onClick = { showPrivacyDialog = false }, colors = ButtonDefaults.buttonColors(containerColor = BrandNavy), modifier = Modifier.fillMaxWidth()) {
+                        Text("Fermer", color = Color.White)
+                    }
+                }
+            }
+        }
+    }
+
+    if (showLicensesDialog) {
+        Dialog(onDismissRequest = { showLicensesDialog = false }) {
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("Licences Open-Source", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                    Text("LocAll utilise les bibliothèques open-source suivantes :", fontSize = 12.sp, color = Color.Gray)
+
+                    val licenses = listOf(
+                        Triple("Jetpack Compose", "Apache License 2.0", "Google"),
+                        Triple("Kotlin", "Apache License 2.0", "JetBrains"),
+                        Triple("Room Database", "Apache License 2.0", "Google"),
+                        Triple("Coil", "Apache License 2.0", "Coil Contributors"),
+                        Triple("Material Icons Extended", "Apache License 2.0", "Google"),
+                        Triple("Navigation Compose", "Apache License 2.0", "Google"),
+                        Triple("ViewModel Compose", "Apache License 2.0", "Google"),
+                        Triple("Coroutines", "Apache License 2.0", "JetBrains")
+                    )
+
+                    licenses.forEach { (name, license, author) ->
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text(name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                                Text("$license · $author", fontSize = 11.sp, color = Color.Gray)
+                            }
+                        }
+                    }
+
+                    Button(onClick = { showLicensesDialog = false }, colors = ButtonDefaults.buttonColors(containerColor = BrandNavy), modifier = Modifier.fillMaxWidth()) {
+                        Text("Fermer", color = Color.White)
+                    }
+                }
+            }
+        }
+    }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color.White.copy(alpha = 0.08f), CircleShape)
+                ) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Text("À propos", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // App Logo Section
+            Box(
+                modifier = Modifier
+                    .size(88.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(PrimaryGreen.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "LocAll Logo",
+                    tint = PrimaryGreen,
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Text(
+                "LocAll",
+                color = PrimaryGreen,
+                fontSize = 26.sp,
+                fontWeight = FontWeight.ExtraBold
+            )
+            Text(
+                "v1.0.0 (Prototype)",
+                color = Color.White.copy(alpha = 0.4f),
+                fontSize = 13.sp
+            )
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            // Description
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Text("Description", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "LocAll est une application de location entre particuliers conçue pour le marché gabonais. Louez tout, partout au Gabon.",
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 13.sp,
+                        lineHeight = 20.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Credits
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("Crédits", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Développé avec ❤️ au Gabon",
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 13.sp
+                    )
+                    Text(
+                        "Technologies: Kotlin, Jetpack Compose, Room DB",
+                        color = Color.White.copy(alpha = 0.5f),
+                        fontSize = 12.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Legal Links
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+            ) {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showCguDialog = true }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(Icons.Rounded.Gavel, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+                            Text("Conditions Générales d'Utilisation", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White.copy(alpha = 0.3f))
+                    }
+
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.05f))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showPrivacyDialog = true }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(Icons.Rounded.Shield, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+                            Text("Politique de Confidentialité", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White.copy(alpha = 0.3f))
+                    }
+
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.05f))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showLicensesDialog = true }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(Icons.Rounded.Code, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+                            Text("Licences open-source", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White.copy(alpha = 0.3f))
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Social / Contact
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("Suivez-nous", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        // Instagram
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .background(Color(0xFF1A1A2E).copy(alpha = 0.8f))
+                                    .clickable { },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Rounded.CameraAlt, contentDescription = "Instagram", tint = Color(0xFFE1306C), modifier = Modifier.size(22.dp))
+                            }
+                            Text("Instagram", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
+                        }
+
+                        // Twitter / X
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .background(Color(0xFF1A1A2E).copy(alpha = 0.8f))
+                                    .clickable { },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Rounded.Tag, contentDescription = "Twitter", tint = Color(0xFF1DA1F2), modifier = Modifier.size(22.dp))
+                            }
+                            Text("Twitter", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
+                        }
+
+                        // Facebook
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .background(Color(0xFF1A1A2E).copy(alpha = 0.8f))
+                                    .clickable { },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Rounded.Public, contentDescription = "Facebook", tint = Color(0xFF1877F2), modifier = Modifier.size(22.dp))
+                            }
+                            Text("Facebook", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            // Copyright
+            Text(
+                "© 2026 LocAll. Tous droits réservés.",
+                color = Color.White.copy(alpha = 0.3f),
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 30.dp)
+            )
+        }
+    }
+}
+
+// ---------------- PAYMENT METHODS SCREEN ----------------
+
+@Composable
+fun PaymentMethodsScreen(
+    onBack: () -> Unit
+) {
+    var airtelIsDefault by remember { mutableStateOf(true) }
+    var moovIsDefault by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Header
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Moyens de Paiement", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Airtel Money Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+            border = BorderStroke(
+                width = 2.dp,
+                color = if (airtelIsDefault) BrandAirtel.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.05f)
+            )
+        ) {
+            Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFF381519)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Phone, contentDescription = null, tint = BrandAirtel, modifier = Modifier.size(22.dp))
+                        }
+
+                        Column {
+                            Text("Airtel Money", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Text(maskPhoneNumber("+241 07 45 81 29 5"), color = Color.White.copy(alpha = 0.55f), fontSize = 12.sp)
+                        }
+                    }
+
+                    Surface(
+                        color = if (airtelIsDefault) Color(0xFF0C2417) else Color(0xFF4A3515),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = if (airtelIsDefault) "Principal" else "Secondaire",
+                            color = if (airtelIsDefault) PrimaryGreen else Color(0xFFFFB300),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+
+                HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (!airtelIsDefault) {
+                        Surface(
+                            onClick = {
+                                airtelIsDefault = true
+                                moovIsDefault = false
+                            },
+                            color = PrimaryGreen.copy(alpha = 0.12f),
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(Icons.Rounded.Star, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
+                                Text("Définir par défaut", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(16.dp))
+                            Text("Par défaut", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Moov Money Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+            border = BorderStroke(
+                width = 2.dp,
+                color = if (moovIsDefault) BrandMoov.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.05f)
+            )
+        ) {
+            Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFF0E2235)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Phone, contentDescription = null, tint = BrandMoov, modifier = Modifier.size(22.dp))
+                        }
+
+                        Column {
+                            Text("Moov Money", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Text(maskPhoneNumber("+241 06 64 59 12 3"), color = Color.White.copy(alpha = 0.55f), fontSize = 12.sp)
+                        }
+                    }
+
+                    Surface(
+                        color = if (moovIsDefault) Color(0xFF0C2417) else Color(0xFF4A3515),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = if (moovIsDefault) "Principal" else "Secondaire",
+                            color = if (moovIsDefault) PrimaryGreen else Color(0xFFFFB300),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+
+                HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (!moovIsDefault) {
+                        Surface(
+                            onClick = {
+                                moovIsDefault = true
+                                airtelIsDefault = false
+                            },
+                            color = PrimaryGreen.copy(alpha = 0.12f),
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(Icons.Rounded.Star, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
+                                Text("Définir par défaut", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(16.dp))
+                            Text("Par défaut", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Add payment method button
+        Button(
+            onClick = { },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.White.copy(alpha = 0.08f),
+                contentColor = Color.White
+            ),
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+        ) {
+            Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Ajouter un moyen de paiement", fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Fees info card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF0F1A2A)),
+            border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.2f))
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(Icons.Rounded.Info, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+                Column {
+                    Text("Frais de transaction", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text("2.5%", color = PrimaryGreen, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("Appliqué sur chaque transaction via Mobile Money", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(30.dp))
     }
 }
