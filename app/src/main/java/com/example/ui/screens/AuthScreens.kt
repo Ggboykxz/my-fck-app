@@ -35,6 +35,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.components.*
+import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
 import kotlinx.coroutines.delay
 
@@ -157,6 +159,14 @@ fun LoginScreenView(
     var emailOrPhone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+
+    fun validateLogin(): Boolean {
+        emailError = if (emailOrPhone.isBlank()) "Ce champ est requis" else null
+        passwordError = if (password.isBlank()) "Ce champ est requis" else null
+        return emailError == null && passwordError == null
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -221,7 +231,7 @@ fun LoginScreenView(
 
                 OutlinedTextField(
                     value = emailOrPhone,
-                    onValueChange = { emailOrPhone = it },
+                    onValueChange = { emailOrPhone = it; emailError = null },
                     placeholder = { Text("Ex: jean.dupont@email.com", color = Color.White.copy(alpha = 0.4f)) },
                     leadingIcon = {
                         Icon(
@@ -239,11 +249,19 @@ fun LoginScreenView(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
                         focusedBorderColor = Color(0xFF13EC5B),
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                        unfocusedBorderColor = if (emailError != null) Color.Red else Color.White.copy(alpha = 0.12f),
                         focusedContainerColor = Color(0xFF162133),
                         unfocusedContainerColor = Color(0xFF162133)
                     )
                 )
+                if (emailError != null) {
+                    Text(
+                        text = emailError!!,
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -263,7 +281,7 @@ fun LoginScreenView(
 
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = { password = it; passwordError = null },
                     placeholder = { Text("••••••••", color = Color.White.copy(alpha = 0.4f)) },
                     leadingIcon = {
                         Icon(
@@ -291,11 +309,19 @@ fun LoginScreenView(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
                         focusedBorderColor = Color(0xFF13EC5B),
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                        unfocusedBorderColor = if (passwordError != null) Color.Red else Color.White.copy(alpha = 0.12f),
                         focusedContainerColor = Color(0xFF162133),
                         unfocusedContainerColor = Color(0xFF162133)
                     )
                 )
+                if (passwordError != null) {
+                    Text(
+                        text = passwordError!!,
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
 
                 // Forgot password trigger
                 Box(
@@ -320,7 +346,7 @@ fun LoginScreenView(
 
             // Se connecter Button
             Button(
-                onClick = onLoginSuccess,
+                onClick = { if (validateLogin()) onLoginSuccess() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp)
@@ -345,7 +371,7 @@ fun LoginScreenView(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Divider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
                 Text(
                     text = "OU CONTINUER AVEC",
                     fontSize = 10.sp,
@@ -354,7 +380,7 @@ fun LoginScreenView(
                     modifier = Modifier.padding(horizontal = 14.dp),
                     letterSpacing = 1.sp
                 )
-                Divider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -466,6 +492,29 @@ fun RegisterScreenView(
     var password by remember { mutableStateOf("") }
     var termsChecked by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
+    var nameError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var phoneError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var termsError by remember { mutableStateOf<String?>(null) }
+    val passwordStrength = PasswordStrength.evaluate(password)
+
+    fun validateRegister(): Boolean {
+        nameError = if (fullName.isBlank()) "Le nom est requis" else null
+        emailError = when {
+            email.isBlank() -> "L'email est requis"
+            !email.contains("@") -> "Email invalide"
+            else -> null
+        }
+        phoneError = if (phone.isBlank()) "Le téléphone est requis" else null
+        passwordError = when {
+            password.isBlank() -> "Le mot de passe est requis"
+            password.length < 6 -> "Minimum 6 caractères"
+            else -> null
+        }
+        termsError = if (!termsChecked) "Vous devez accepter les conditions" else null
+        return nameError == null && emailError == null && phoneError == null && passwordError == null && termsError == null
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -529,7 +578,7 @@ fun RegisterScreenView(
 
                 OutlinedTextField(
                     value = fullName,
-                    onValueChange = { fullName = it },
+                    onValueChange = { fullName = it; nameError = null },
                     placeholder = { Text("Ex: Jean Dupont", color = Color.White.copy(alpha = 0.4f)) },
                     leadingIcon = {
                         Icon(
@@ -546,12 +595,20 @@ fun RegisterScreenView(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF13EC5B),
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                        focusedBorderColor = if (nameError != null) Color.Red else Color(0xFF13EC5B),
+                        unfocusedBorderColor = if (nameError != null) Color.Red else Color.White.copy(alpha = 0.12f),
                         focusedContainerColor = Color(0xFF162133),
                         unfocusedContainerColor = Color(0xFF162133)
                     )
                 )
+                if (nameError != null) {
+                    Text(
+                        text = nameError!!,
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -571,7 +628,7 @@ fun RegisterScreenView(
 
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = { email = it; emailError = null },
                     placeholder = { Text("Ex: jean.dupont@email.com", color = Color.White.copy(alpha = 0.4f)) },
                     leadingIcon = {
                         Icon(
@@ -588,12 +645,20 @@ fun RegisterScreenView(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF13EC5B),
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                        focusedBorderColor = if (emailError != null) Color.Red else Color(0xFF13EC5B),
+                        unfocusedBorderColor = if (emailError != null) Color.Red else Color.White.copy(alpha = 0.12f),
                         focusedContainerColor = Color(0xFF162133),
                         unfocusedContainerColor = Color(0xFF162133)
                     )
                 )
+                if (emailError != null) {
+                    Text(
+                        text = emailError!!,
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -613,7 +678,7 @@ fun RegisterScreenView(
 
                 OutlinedTextField(
                     value = phone,
-                    onValueChange = { phone = it },
+                    onValueChange = { phone = it; phoneError = null },
                     placeholder = { Text("Ex: +241 07 00 00 00", color = Color.White.copy(alpha = 0.4f)) },
                     leadingIcon = {
                         Icon(
@@ -630,12 +695,20 @@ fun RegisterScreenView(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF13EC5B),
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                        focusedBorderColor = if (phoneError != null) Color.Red else Color(0xFF13EC5B),
+                        unfocusedBorderColor = if (phoneError != null) Color.Red else Color.White.copy(alpha = 0.12f),
                         focusedContainerColor = Color(0xFF162133),
                         unfocusedContainerColor = Color(0xFF162133)
                     )
                 )
+                if (phoneError != null) {
+                    Text(
+                        text = phoneError!!,
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -655,7 +728,7 @@ fun RegisterScreenView(
 
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = { password = it; passwordError = null },
                     placeholder = { Text("••••••••", color = Color.White.copy(alpha = 0.4f)) },
                     leadingIcon = {
                         Icon(
@@ -682,12 +755,55 @@ fun RegisterScreenView(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF13EC5B),
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                        focusedBorderColor = if (passwordError != null) Color.Red else Color(0xFF13EC5B),
+                        unfocusedBorderColor = if (passwordError != null) Color.Red else Color.White.copy(alpha = 0.12f),
                         focusedContainerColor = Color(0xFF162133),
                         unfocusedContainerColor = Color(0xFF162133)
                     )
                 )
+                if (passwordError != null) {
+                    Text(
+                        text = passwordError!!,
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
+                if (password.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(Color.White.copy(alpha = 0.1f))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(
+                                        when (passwordStrength) {
+                                            PasswordStrength.WEAK -> 0.33f
+                                            PasswordStrength.MEDIUM -> 0.66f
+                                            PasswordStrength.STRONG -> 1f
+                                        }
+                                    )
+                                    .fillMaxHeight()
+                                    .clip(RoundedCornerShape(2.dp))
+                                    .background(passwordStrength.color)
+                            )
+                        }
+                        Text(
+                            text = passwordStrength.label,
+                            color = passwordStrength.color,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -702,7 +818,7 @@ fun RegisterScreenView(
             ) {
                 Checkbox(
                     checked = termsChecked,
-                    onCheckedChange = { termsChecked = it },
+                    onCheckedChange = { termsChecked = it; termsError = null },
                     colors = CheckboxDefaults.colors(
                         checkedColor = Color(0xFF13EC5B),
                         uncheckedColor = Color.White.copy(alpha = 0.4f),
@@ -719,12 +835,20 @@ fun RegisterScreenView(
                         .padding(start = 4.dp)
                 )
             }
+            if (termsError != null) {
+                Text(
+                    text = termsError!!,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Registration Submit Button
             Button(
-                onClick = onRegisterSuccess,
+                onClick = { if (validateRegister()) onRegisterSuccess() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp)
@@ -749,7 +873,7 @@ fun RegisterScreenView(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Divider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
                 Text(
                     text = "OU S'INSCRIRE AVEC",
                     fontSize = 10.sp,
@@ -758,7 +882,7 @@ fun RegisterScreenView(
                     modifier = Modifier.padding(horizontal = 14.dp),
                     letterSpacing = 1.sp
                 )
-                Divider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
             }
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -1130,35 +1254,33 @@ fun OtpScreenView(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.clickable { /* Resend action */ }
-            ) {
+            if (timerSeconds > 0) {
+                val min = timerSeconds / 60
+                val sec = timerSeconds % 60
+                val timerStr = String.format("%02d:%02d", min, sec)
+                Text(
+                    text = "Renvoyer le code dans $timerStr",
+                    fontSize = 13.sp,
+                    color = Color.White.copy(alpha = 0.5f)
+                )
+            } else {
                 Text(
                     text = "Vous n'avez pas reçu le code ?",
                     fontSize = 13.sp,
                     color = Color.White.copy(alpha = 0.6f)
                 )
-                Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "Renvoyer le code",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF13EC5B)
+                    color = Color(0xFF13EC5B),
+                    modifier = Modifier.clickable {
+                        timerSeconds = 119
+                        // Clear OTP fields
+                        for (i in 0 until 5) otpValues[i] = ""
+                    }
                 )
             }
-
-            val min = timerSeconds / 60
-            val sec = timerSeconds % 60
-            val timerStr = String.format("%02d:%02d", min, sec)
-
-            Text(
-                text = "Attendez $timerStr",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.White.copy(alpha = 0.45f)
-            )
         }
 
         Spacer(modifier = Modifier.height(28.dp))
@@ -1211,6 +1333,9 @@ fun NewPasswordScreenView(
     var confirmPassword by remember { mutableStateOf("") }
     var isVisibleNew by remember { mutableStateOf(false) }
     var isVisibleConfirm by remember { mutableStateOf(false) }
+    var newPasswordError by remember { mutableStateOf<String?>(null) }
+    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
+    val passwordStrength = PasswordStrength.evaluate(newPassword)
 
     Column(
         modifier = Modifier
@@ -1292,7 +1417,7 @@ fun NewPasswordScreenView(
 
             OutlinedTextField(
                 value = newPassword,
-                onValueChange = { newPassword = it },
+                onValueChange = { newPassword = it; newPasswordError = null },
                 placeholder = { Text("••••••••", color = Color.White.copy(alpha = 0.4f)) },
                 leadingIcon = {
                     Icon(
@@ -1319,12 +1444,55 @@ fun NewPasswordScreenView(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
-                    focusedBorderColor = Color(0xFF13EC5B),
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                    focusedBorderColor = if (newPasswordError != null) Color.Red else Color(0xFF13EC5B),
+                    unfocusedBorderColor = if (newPasswordError != null) Color.Red else Color.White.copy(alpha = 0.12f),
                     focusedContainerColor = Color(0xFF162133),
                     unfocusedContainerColor = Color(0xFF162133)
                 )
             )
+            if (newPasswordError != null) {
+                Text(
+                    text = newPasswordError!!,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+            }
+            if (newPassword.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(4.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(Color.White.copy(alpha = 0.1f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(
+                                    when (passwordStrength) {
+                                        PasswordStrength.WEAK -> 0.33f
+                                        PasswordStrength.MEDIUM -> 0.66f
+                                        PasswordStrength.STRONG -> 1f
+                                    }
+                                )
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(passwordStrength.color)
+                        )
+                    }
+                    Text(
+                        text = passwordStrength.label,
+                        color = passwordStrength.color,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -1344,7 +1512,7 @@ fun NewPasswordScreenView(
 
             OutlinedTextField(
                 value = confirmPassword,
-                onValueChange = { confirmPassword = it },
+                onValueChange = { confirmPassword = it; confirmPasswordError = null },
                 placeholder = { Text("••••••••", color = Color.White.copy(alpha = 0.4f)) },
                 leadingIcon = {
                     Icon(
@@ -1371,12 +1539,20 @@ fun NewPasswordScreenView(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
-                    focusedBorderColor = Color(0xFF13EC5B),
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                    focusedBorderColor = if (confirmPasswordError != null) Color.Red else Color(0xFF13EC5B),
+                    unfocusedBorderColor = if (confirmPasswordError != null) Color.Red else Color.White.copy(alpha = 0.12f),
                     focusedContainerColor = Color(0xFF162133),
                     unfocusedContainerColor = Color(0xFF162133)
                 )
             )
+            if (confirmPasswordError != null) {
+                Text(
+                    text = confirmPasswordError!!,
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -1481,7 +1657,21 @@ fun NewPasswordScreenView(
 
         // Trigger Button
         Button(
-            onClick = onResetSuccess,
+            onClick = {
+                newPasswordError = when {
+                    newPassword.isBlank() -> "Le mot de passe est requis"
+                    newPassword.length < 6 -> "Minimum 6 caractères"
+                    else -> null
+                }
+                confirmPasswordError = when {
+                    confirmPassword.isBlank() -> "Confirmez le mot de passe"
+                    confirmPassword != newPassword -> "Les mots de passe ne correspondent pas"
+                    else -> null
+                }
+                if (newPasswordError == null && confirmPasswordError == null) {
+                    onResetSuccess()
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(54.dp)

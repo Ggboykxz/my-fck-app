@@ -6,10 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.data.local.AppDatabase
-import com.example.data.model.Booking
-import com.example.data.model.ChatMessage
-import com.example.data.model.RentalItem
+import com.example.data.model.*
 import com.example.data.repository.RentalRepository
+import com.example.ui.components.SortOption
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -24,28 +23,51 @@ data class RentalReview(
     val date: String
 )
 
+sealed interface PaymentState {
+    object Idle : PaymentState
+    data class Processing(val status: String) : PaymentState
+    data class AwaitingPin(
+        val rentalItem: RentalItem,
+        val days: Int,
+        val paymentMethod: String,
+        val phoneInput: String
+    ) : PaymentState
+    data class Success(val booking: Booking) : PaymentState
+}
+
+sealed interface Screen {
+    data object Home : Screen
+    data object Explore : Screen
+    data object Details : Screen
+    data object Bookmarks : Screen
+    data object Bookings : Screen
+    data object Messages : Screen
+    data object Chat : Screen
+    data object PostListing : Screen
+    data object Profile : Screen
+}
+
 class RentalViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = AppDatabase.getDatabase(application)
     private val repository = RentalRepository(db.rentalDao())
 
-    // Reviews State Flow
+    // Reviews State
     private val _reviews = MutableStateFlow<Map<Int, List<RentalReview>>>(emptyMap())
     val reviews: StateFlow<Map<Int, List<RentalReview>>> = _reviews.asStateFlow()
 
-    // Onboarding navigation state:
-    // 0: Splash, 1: Onboarding Welcome, 2: Onboarding Payments, 3: Onboarding Trust, 4: Main App Dashboard
+    // Onboarding
     private val _onboardingStep = MutableStateFlow(0)
     val onboardingStep: StateFlow<Int> = _onboardingStep.asStateFlow()
 
-    // Authentication States
+    // Authentication
     private val _isLoggedIn = MutableStateFlow(false)
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
 
-    private val _authState = MutableStateFlow("login") // "login", "register", "forgot_password", "otp", "new_password"
+    private val _authState = MutableStateFlow("login")
     val authState: StateFlow<String> = _authState.asStateFlow()
 
-    // Profile States (Gabon Rental Profile)
+    // Profile (encapsulated via functions)
     private val _profileDob = MutableStateFlow("")
     val profileDob: StateFlow<String> = _profileDob.asStateFlow()
 
@@ -64,7 +86,7 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     private val _isSocialLinked = MutableStateFlow(false)
     val isSocialLinked: StateFlow<Boolean> = _isSocialLinked.asStateFlow()
 
-    private val _profilePhotoEnabled = MutableStateFlow(true) // Simulating dynamic uploads
+    private val _profilePhotoEnabled = MutableStateFlow(true)
     val profilePhotoEnabled: StateFlow<Boolean> = _profilePhotoEnabled.asStateFlow()
 
     private val _isOwnerMode = MutableStateFlow(false)
@@ -73,75 +95,49 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     private val _profileLanguage = MutableStateFlow("Français")
     val profileLanguage: StateFlow<String> = _profileLanguage.asStateFlow()
 
-    private val _identityVerificationStatus = MutableStateFlow("Non vérifié") // "Non vérifié", "Documents soumis", "Selfie soumis", "En révision", "Vérifié"
+    private val _identityVerificationStatus = MutableStateFlow("Non vérifié")
     val identityVerificationStatus: StateFlow<String> = _identityVerificationStatus.asStateFlow()
 
     private val _withdrawableBalance = MutableStateFlow(850000)
     val withdrawableBalance: StateFlow<Int> = _withdrawableBalance.asStateFlow()
 
-    fun setOwnerMode(enabled: Boolean) {
-        _isOwnerMode.value = enabled
-    }
+    // Navigation (typed)
+    private val _currentScreen = MutableStateFlow<Screen>(Screen.Home)
+    val currentScreen: StateFlow<Screen> = _currentScreen.asStateFlow()
 
-    fun setProfileLanguage(lang: String) {
-        _profileLanguage.value = lang
-    }
+    // Filters (encapsulated)
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    fun setIdentityVerificationStatus(status: String) {
-        _identityVerificationStatus.value = status
-    }
+    private val _selectedCategory = MutableStateFlow("Tous")
+    val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
 
-    fun withdrawFunds(amount: Int) {
-        if (_withdrawableBalance.value >= amount) {
-            _withdrawableBalance.value -= amount
-        }
-    }
+    private val _selectedCity = MutableStateFlow("Tous")
+    val selectedCity: StateFlow<String> = _selectedCity.asStateFlow()
 
-    fun updateProfile(dob: String, gender: String, profession: String, city: String) {
-        _profileDob.value = dob
-        _profileGender.value = gender
-        _profileProfession.value = profession
-        _profileCity.value = city
-    }
+    private val _selectedMaxPrice = MutableStateFlow(0)
+    val selectedMaxPrice: StateFlow<Int> = _selectedMaxPrice.asStateFlow()
 
-    fun setPhoneVerified(verified: Boolean) {
-        _isPhoneVerified.value = verified
-    }
+    private val _sortOption = MutableStateFlow(SortOption.RECENT)
+    val sortOption: StateFlow<SortOption> = _sortOption.asStateFlow()
 
-    fun setSocialLinked(linked: Boolean) {
-        _isSocialLinked.value = linked
-    }
-
-    fun setAuthState(state: String) {
-        _authState.value = state
-    }
-
-    fun setLoggedIn(loggedIn: Boolean) {
-        _isLoggedIn.value = loggedIn
-    }
-
-    // Navigation and screen state inside the dashboard
-    // Screen names: "home", "explore", "details", "bookings", "chat", "post_listing"
-    private val _currentScreen = MutableStateFlow("home")
-    val currentScreen: StateFlow<String> = _currentScreen.asStateFlow()
-
-    // Filters and Search
-    val searchQuery = MutableStateFlow("")
-    val selectedCategory = MutableStateFlow("Tous")
-    val selectedCity = MutableStateFlow("Tous")
-    val selectedMinPrice = MutableStateFlow(0)
-    val selectedMaxPrice = MutableStateFlow(0) // 0 means no limit
-
-    // Selected item for details/booking/chat
+    // Selected item
     private val _selectedItem = MutableStateFlow<RentalItem?>(null)
     val selectedItem: StateFlow<RentalItem?> = _selectedItem.asStateFlow()
 
-    // Payment/Booking state
+    // Payment
     private val _paymentState = MutableStateFlow<PaymentState>(PaymentState.Idle)
     val paymentState: StateFlow<PaymentState> = _paymentState.asStateFlow()
 
+    // Unread messages count
+    private val _unreadMessageCount = MutableStateFlow(3)
+    val unreadMessageCount: StateFlow<Int> = _unreadMessageCount.asStateFlow()
+
+    // Snackbar
+    private val _snackbarMessage = MutableStateFlow<String?>(null)
+    val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()
+
     init {
-        // Preseed reviews
         val initialReviews = mapOf(
             1 to listOf(
                 RentalReview(1, 5, "Superbe villa, très propre et spacieuse. Quartier résidentiel très sécurisé !", "Stéphane Koumba", "20/06/2026"),
@@ -160,103 +156,170 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         )
         _reviews.value = initialReviews
 
-        // Seed database immediately on launch
         viewModelScope.launch {
             repository.seedDatabase()
         }
     }
 
-    fun addReview(rentalItemId: Int, rating: Int, comment: String) {
-        val current = _reviews.value.toMutableMap()
-        val list = current[rentalItemId]?.toMutableList() ?: mutableListOf()
-        val authorName = "Visiteur Gabonais"
-        val currentDate = SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE).format(Date())
-        list.add(0, RentalReview(rentalItemId, rating, comment, authorName, currentDate))
-        current[rentalItemId] = list
-        _reviews.value = current
-    }
-
-    // Exposing Reactive Flows
-    val rawRentalItems: StateFlow<List<RentalItem>> = repository.allRentalItems
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    val bookmarkedItems: StateFlow<List<RentalItem>> = repository.bookmarkedItems
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    val bookings: StateFlow<List<Booking>> = repository.allBookings
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    // Filtered lists of rentals for search and categories
-    val filteredRentalItems: StateFlow<List<RentalItem>> = combine(
-        rawRentalItems,
-        searchQuery,
-        selectedCategory,
-        selectedCity,
-        selectedMinPrice,
-        selectedMaxPrice
-    ) { items, query, category, city, minPrice, maxPrice ->
-        items.filter { item ->
-            val matchesQuery = item.title.contains(query, ignoreCase = true) ||
-                    item.description.contains(query, ignoreCase = true) ||
-                    item.neighborhood.contains(query, ignoreCase = true)
-            
-            val matchesCategory = category == "Tous" || item.category.equals(category, ignoreCase = true)
-            val matchesCity = city == "Tous" || item.city.equals(city, ignoreCase = true)
-            val matchesPrice = item.pricePerDay >= minPrice && (maxPrice == 0 || item.pricePerDay <= maxPrice)
-
-            matchesQuery && matchesCategory && matchesCity && matchesPrice
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    // Chat streams
-    private val _activeChatRentalId = MutableStateFlow<Int?>(null)
-    val activeChatMessages: StateFlow<List<ChatMessage>> = _activeChatRentalId
-        .flatMapLatest { id ->
-            if (id != null) {
-                repository.getChatMessagesForRental(id)
-            } else {
-                flowOf(emptyList())
+    // ==================== FILTER ACTIONS (encapsulated) ====================
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+        if (query.isNotBlank()) {
+            viewModelScope.launch {
+                repository.insertSearchHistory(SearchHistoryEntry(query = query))
             }
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    // Actions
-    fun nextOnboarding() {
-        val current = _onboardingStep.value
-        if (current < 3) {
-            _onboardingStep.value = current + 1
-        } else {
-            _onboardingStep.value = 4 // Completed, enter dashboard
         }
     }
 
-    fun skipOnboarding() {
-        _onboardingStep.value = 4 // Direct to dashboard
+    fun setSelectedCategory(category: String) {
+        _selectedCategory.value = category
     }
 
-    fun restartOnboarding() {
-        _onboardingStep.value = 0
-        _currentScreen.value = "home"
+    fun setSelectedCity(city: String) {
+        _selectedCity.value = city
+    }
+
+    fun setSelectedMaxPrice(maxPrice: Int) {
+        _selectedMaxPrice.value = maxPrice
+    }
+
+    fun setSortOption(option: SortOption) {
+        _sortOption.value = option
+    }
+
+    fun clearAllFilters() {
+        _searchQuery.value = ""
+        _selectedCategory.value = "Tous"
+        _selectedCity.value = "Tous"
+        _selectedMaxPrice.value = 0
+        _sortOption.value = SortOption.RECENT
+    }
+
+    fun showSnackbar(message: String) {
+        _snackbarMessage.value = message
+    }
+
+    fun dismissSnackbar() {
+        _snackbarMessage.value = null
+    }
+
+    // ==================== PROFILE ACTIONS ====================
+    fun setOwnerMode(enabled: Boolean) {
+        _isOwnerMode.value = enabled
+    }
+
+    fun setProfileLanguage(lang: String) {
+        _profileLanguage.value = lang
+    }
+
+    fun setIdentityVerificationStatus(status: String) {
+        _identityVerificationStatus.value = status
+    }
+
+    fun withdrawFunds(amount: Int) {
+        if (_withdrawableBalance.value >= amount) {
+            _withdrawableBalance.value -= amount
+            showSnackbar("Retrait de ${amount} F effectué avec succès")
+        }
+    }
+
+    fun updateProfile(dob: String, gender: String, profession: String, city: String) {
+        _profileDob.value = dob
+        _profileGender.value = gender
+        _profileProfession.value = profession
+        _profileCity.value = city
+        viewModelScope.launch {
+            repository.upsertUserProfile(
+                UserProfile(
+                    fullName = "Marie-Claire Nzamba",
+                    phone = "+241 77 12 34 56",
+                    dob = dob,
+                    gender = gender,
+                    profession = profession,
+                    city = city,
+                    language = _profileLanguage.value,
+                    isOwnerMode = _isOwnerMode.value,
+                    isPhoneVerified = _isPhoneVerified.value,
+                    isSocialLinked = _isSocialLinked.value,
+                    identityStatus = _identityVerificationStatus.value
+                )
+            )
+        }
+    }
+
+    fun setPhoneVerified(verified: Boolean) {
+        _isPhoneVerified.value = verified
+    }
+
+    fun setSocialLinked(linked: Boolean) {
+        _isSocialLinked.value = linked
+    }
+
+    fun setAuthState(state: String) {
+        _authState.value = state
+    }
+
+    fun setLoggedIn(loggedIn: Boolean) {
+        _isLoggedIn.value = loggedIn
+    }
+
+    // ==================== NAVIGATION ====================
+    fun navigateTo(screen: Screen) {
+        _currentScreen.value = screen
     }
 
     fun navigateTo(screen: String) {
-        _currentScreen.value = screen
+        _currentScreen.value = when (screen) {
+            "home" -> Screen.Home
+            "explore" -> Screen.Explore
+            "details" -> Screen.Details
+            "bookmarks" -> Screen.Bookmarks
+            "bookings" -> Screen.Bookings
+            "messages" -> Screen.Messages
+            "chat" -> Screen.Chat
+            "post_listing" -> Screen.PostListing
+            "profile" -> Screen.Profile
+            else -> Screen.Home
+        }
     }
 
     fun selectItem(item: RentalItem) {
         _selectedItem.value = item
     }
 
-    fun toggleBookmark(item: RentalItem) {
-        viewModelScope.launch {
-            repository.updateBookmarkStatus(item.id, !item.isBookmarked)
-            // If the currently selected item is this one, update the selection state to reflect bookmark change
-            if (_selectedItem.value?.id == item.id) {
-                _selectedItem.value = _selectedItem.value?.copy(isBookmarked = !item.isBookmarked)
-            }
+    // ==================== ONBOARDING ====================
+    fun nextOnboarding() {
+        val current = _onboardingStep.value
+        if (current < 3) {
+            _onboardingStep.value = current + 1
+        } else {
+            _onboardingStep.value = 4
         }
     }
 
-    // Interactive booking with Airtel/Moov money simulation
+    fun skipOnboarding() {
+        _onboardingStep.value = 4
+    }
+
+    fun restartOnboarding() {
+        _onboardingStep.value = 0
+        _currentScreen.value = Screen.Home
+    }
+
+    // ==================== BOOKMARK ====================
+    fun toggleBookmark(item: RentalItem) {
+        viewModelScope.launch {
+            repository.updateBookmarkStatus(item.id, !item.isBookmarked)
+            if (_selectedItem.value?.id == item.id) {
+                _selectedItem.value = _selectedItem.value?.copy(isBookmarked = !item.isBookmarked)
+            }
+            showSnackbar(
+                if (!item.isBookmarked) "Ajouté aux favoris" else "Retiré des favoris"
+            )
+        }
+    }
+
+    // ==================== BOOKING ====================
     fun initiateBooking(
         rentalItem: RentalItem,
         days: Int,
@@ -266,13 +329,10 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             _paymentState.value = PaymentState.Processing("Initialisation de la transaction pour " + rentalItem.title + "...")
             delay(1500)
-
             _paymentState.value = PaymentState.Processing(
                 "Demande de paiement de " + (rentalItem.pricePerDay * days) + " F CFA envoyée à " + paymentMethod + " (" + phoneInput + ")."
             )
             delay(1500)
-
-            // Dynamic interactive change: switch state to AwaitingPin instead of auto-completing
             _paymentState.value = PaymentState.AwaitingPin(rentalItem, days, paymentMethod, phoneInput)
         }
     }
@@ -287,8 +347,6 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             _paymentState.value = PaymentState.Processing("Validation du code PIN et sécurisation des fonds de caution...")
             delay(2000)
-
-            // Creating actual Booking records in Db
             val totalPrice = rentalItem.pricePerDay * days
             val newBooking = Booking(
                 rentalItemId = rentalItem.id,
@@ -302,8 +360,14 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
                 status = "Payé"
             )
             repository.insertBooking(newBooking)
-
             _paymentState.value = PaymentState.Success(newBooking)
+        }
+    }
+
+    fun cancelBooking(bookingId: Int, reason: String) {
+        viewModelScope.launch {
+            repository.updateBookingStatus(bookingId, "Annulé", reason)
+            showSnackbar("Réservation annulée")
         }
     }
 
@@ -311,11 +375,83 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         _paymentState.value = PaymentState.Idle
     }
 
-    // Simulated Chat Messaging
+    // ==================== REVIEWS ====================
+    fun addReview(rentalItemId: Int, rating: Int, comment: String) {
+        val current = _reviews.value.toMutableMap()
+        val list = current[rentalItemId]?.toMutableList() ?: mutableListOf()
+        val authorName = "Visiteur Gabonais"
+        val currentDate = SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE).format(Date())
+        list.add(0, RentalReview(rentalItemId, rating, comment, authorName, currentDate))
+        current[rentalItemId] = list
+        _reviews.value = current
+        showSnackbar("Avis publié avec succès")
+    }
+
+    // ==================== REACTIVE DATA ====================
+    val rawRentalItems: StateFlow<List<RentalItem>> = repository.allRentalItems
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val bookmarkedItems: StateFlow<List<RentalItem>> = repository.bookmarkedItems
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val bookings: StateFlow<List<Booking>> = repository.allBookings
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val filteredRentalItems: StateFlow<List<RentalItem>> = combine(
+        rawRentalItems,
+        _searchQuery,
+        _selectedCategory,
+        _selectedCity,
+        _selectedMaxPrice,
+        _sortOption
+    ) { values ->
+        val items = values[0] as List<RentalItem>
+        val query = values[1] as String
+        val category = values[2] as String
+        val city = values[3] as String
+        val maxPrice = values[4] as Int
+        val sort = values[5] as SortOption
+        items.filter { item ->
+            val matchesQuery = item.title.contains(query, ignoreCase = true) ||
+                    item.description.contains(query, ignoreCase = true) ||
+                    item.neighborhood.contains(query, ignoreCase = true)
+            val matchesCategory = category == "Tous" || item.category.equals(category, ignoreCase = true)
+            val matchesCity = city == "Tous" || item.city.equals(city, ignoreCase = true)
+            val matchesPrice = item.pricePerDay >= 0 && (maxPrice == 0 || item.pricePerDay <= maxPrice)
+            matchesQuery && matchesCategory && matchesCity && matchesPrice
+        }.let { filtered ->
+            when (sort) {
+                SortOption.PRICE_ASC -> filtered.sortedBy { it.pricePerDay }
+                SortOption.PRICE_DESC -> filtered.sortedByDescending { it.pricePerDay }
+                SortOption.RECENT -> filtered.sortedByDescending { it.createdAt }
+                SortOption.RATING -> filtered.sortedByDescending { it.ownerRating }
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val similarItems: StateFlow<List<RentalItem>> = _selectedItem.flatMapLatest { item ->
+        if (item != null) {
+            repository.getSimilarItems(item.id, item.category)
+        } else {
+            flowOf(emptyList())
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Chat
+    private val _activeChatRentalId = MutableStateFlow<Int?>(null)
+    val activeChatMessages: StateFlow<List<ChatMessage>> = _activeChatRentalId
+        .flatMapLatest { id ->
+            if (id != null) {
+                repository.getChatMessagesForRental(id)
+            } else {
+                flowOf(emptyList())
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // ==================== CHAT ACTIONS ====================
     fun openChatFor(item: RentalItem) {
         _activeChatRentalId.value = item.id
         viewModelScope.launch {
-            // Seed a starter reply if empty
             val currentMsgs = repository.getChatMessagesForRental(item.id).first()
             if (currentMsgs.isEmpty()) {
                 repository.insertChatMessage(
@@ -332,7 +468,6 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     fun sendChatMessage(rentalId: Int, messageText: String, ownerName: String) {
         if (messageText.isBlank()) return
         viewModelScope.launch {
-            // Insert user message
             repository.insertChatMessage(
                 ChatMessage(
                     rentalItemId = rentalId,
@@ -341,7 +476,6 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
                 )
             )
 
-            // Auto simulated owner response
             delay(1500)
             val responseText = when {
                 messageText.contains("disponible", ignoreCase = true) || messageText.contains("dispo", ignoreCase = true) -> {
@@ -351,7 +485,7 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
                     "Le tarif est fixé à la journée. Si vous louez pour plus d'une semaine, je peux vous faire un geste commercial. N'hésitez pas à lancer la réservation pour en discuter."
                 }
                 messageText.contains("visite", ignoreCase = true) || messageText.contains("voir", ignoreCase = true) -> {
-                    "Bien sûr, la visite est tout à fait possible à ${viewModelScope.run { rawRentalItems.value.find { it.id == rentalId }?.neighborhood ?: "Libreville" }}. Dites-moi quand vous seriez disponible !"
+                    "Bien sûr, la visite est tout à fait possible. Dites-moi quand vous seriez disponible !"
                 }
                 else -> {
                     "Merci pour votre message ! C'est noté. Que souhaitez-vous savoir d'autre sur cette location pour finaliser notre accord ?"
@@ -367,7 +501,7 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    // Add listing
+    // ==================== LISTING ACTIONS ====================
     fun postNewListing(
         title: String,
         description: String,
@@ -381,7 +515,6 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     ) {
         viewModelScope.launch {
             val img = if (imageUrl.isBlank()) {
-                // Fallback stock pictures depending on category
                 when (category) {
                     "Immobilier" -> "https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80"
                     "Véhicules" -> "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80"
@@ -403,15 +536,25 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
                 isVerified = true
             )
             repository.insertRentalItem(newItem)
+            showSnackbar("Annonce publiée avec succès !")
         }
     }
-}
 
-sealed interface PaymentState {
-    object Idle : PaymentState
-    data class Processing(val status: String) : PaymentState
-    data class AwaitingPin(val rentalItem: RentalItem, val days: Int, val paymentMethod: String, val phoneInput: String) : PaymentState
-    data class Success(val booking: Booking) : PaymentState
+    fun deleteListing(itemId: Int) {
+        viewModelScope.launch {
+            repository.deleteRentalItem(itemId)
+            showSnackbar("Annonce supprimée")
+        }
+    }
+
+    fun updateUserProfile(name: String, phone: String) {
+        showSnackbar("Profil mis à jour")
+    }
+
+    // ==================== SORT ====================
+    fun sortItemsBy(option: SortOption) {
+        _sortOption.value = option
+    }
 }
 
 class RentalViewModelFactory(private val application: Application) : ViewModelProvider.Factory {

@@ -3,7 +3,6 @@ package com.example.ui.screens
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -39,20 +38,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.theme.*
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.ui.viewmodel.RentalViewModel
 import kotlinx.coroutines.delay
-
-// Colors mapped exactly from the high-fidelity HTML templates
-val BrandNavy = Color(0xFF0B1526)
-val PrimaryGreen = Color(0xFF13EC5B)
-val BgLight = Color(0xFFF6F8F6)
-val BgDark = Color(0xFF102216)
-val SurfaceDark = Color(0xFF1A3324)
-
-val BrandAirtel = Color(0xFFE40000)
-val BrandMoov = Color(0xFF0067A5)
 
 @Composable
 fun OnboardingNavigator(
@@ -91,13 +81,11 @@ fun OnboardingNavigator(
 
 @Composable
 fun SplashScreenView(onNext: () -> Unit) {
-    // Launch a timer to auto slide to next screen after 3 seconds
     LaunchedEffect(Unit) {
         delay(3200)
         onNext()
     }
 
-    // Spin animation for loading spinner
     val infiniteTransition = rememberInfiniteTransition(label = "SplashSpin")
     val angle by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -113,9 +101,8 @@ fun SplashScreenView(onNext: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .background(BrandNavy)
-            .clickable { onNext() } // Allow skip click
+            .clickable { onNext() }
     ) {
-        // Glowing background blobs
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -135,7 +122,6 @@ fun SplashScreenView(onNext: () -> Unit) {
                 .blur(80.dp)
         )
 
-        // Center Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -146,7 +132,7 @@ fun SplashScreenView(onNext: () -> Unit) {
             Text(
                 text = buildAnnotatedString {
                     append("Loc")
-                    withStyle(style = androidx.compose.ui.text.SpanStyle(color = PrimaryGreen)) {
+                    withStyle(style = SpanStyle(color = PrimaryGreen)) {
                         append("All")
                     }
                 },
@@ -159,7 +145,6 @@ fun SplashScreenView(onNext: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Glowing green line
             Box(
                 modifier = Modifier
                     .width(70.dp)
@@ -174,7 +159,6 @@ fun SplashScreenView(onNext: () -> Unit) {
             )
         }
 
-        // Bottom subtext & Spinner
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -183,7 +167,6 @@ fun SplashScreenView(onNext: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Spinning wheel
             Canvas(modifier = Modifier.size(28.dp).rotate(angle)) {
                 drawArc(
                     color = Color.White.copy(alpha = 0.15f),
@@ -220,7 +203,6 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
             .fillMaxSize()
             .background(BrandNavy)
     ) {
-        // Skip Button top right
         TextButton(
             onClick = onSkip,
             modifier = Modifier
@@ -236,14 +218,12 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
             )
         }
 
-        // Beautiful overlapping cards with Gabon landmarks / listings images
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.55f)
                 .padding(top = 90.dp)
         ) {
-            // Glow backdrop
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
@@ -255,7 +235,6 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                     .blur(50.dp)
             )
 
-            // Primary Card 1: Immobilier (Tilted Right)
             Card(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
@@ -277,7 +256,6 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
-                    // Tag label
                     Surface(
                         modifier = Modifier
                             .padding(16.dp)
@@ -308,7 +286,6 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                 }
             }
 
-            // Primary Card 2: Véhicules (Tilted Left)
             Card(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
@@ -330,7 +307,6 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
-                    // Tag label
                     Surface(
                         modifier = Modifier
                             .padding(16.dp)
@@ -362,7 +338,6 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
             }
         }
 
-        // Bottom Board Sheet
         Card(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -379,7 +354,6 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                     .padding(top = 36.dp, bottom = 48.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Little handle top
                 Box(
                     modifier = Modifier
                         .width(44.dp)
@@ -390,7 +364,6 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                // Title with custom underline style
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "Louez tout,",
@@ -408,7 +381,6 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                             color = PrimaryGreen,
                             lineHeight = 36.sp
                         )
-                        // Underline drawing
                         Canvas(
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
@@ -442,13 +414,11 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(40.dp))
 
-                // Pagination Dots & CTA Button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Pagination
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Box(
                             modifier = Modifier
@@ -471,7 +441,6 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                         )
                     }
 
-                    // Next button
                     Button(
                         onClick = onNext,
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
@@ -505,7 +474,6 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
             .fillMaxSize()
             .background(BrandNavy)
     ) {
-        // Skip Button top right
         TextButton(
             onClick = onSkip,
             modifier = Modifier
@@ -521,7 +489,6 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
             )
         }
 
-        // Phone payments screen mockup illustration in outer center
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -530,7 +497,6 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                 .padding(top = 90.dp),
             contentAlignment = Alignment.Center
         ) {
-            // Background blur halo
             Box(
                 modifier = Modifier
                     .size(240.dp)
@@ -539,7 +505,6 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                     .blur(70.dp)
             )
 
-            // Phone frame
             Card(
                 modifier = Modifier
                     .width(180.dp)
@@ -557,7 +522,6 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Lock pill top
                     Box(
                         modifier = Modifier
                             .width(50.dp)
@@ -565,10 +529,7 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                             .clip(RoundedCornerShape(5.dp))
                             .background(Color.White.copy(alpha = 0.12f))
                     )
-
                     Spacer(modifier = Modifier.height(4.dp))
-
-                    // Minimal header
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -577,8 +538,6 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                         Box(modifier = Modifier.size(18.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.12f)))
                         Box(modifier = Modifier.width(55.dp).height(6.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.12f)))
                     }
-
-                    // Total Pay Box
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
@@ -595,13 +554,10 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                             Text("15 000 F", fontSize = 15.sp, color = Color.White, fontWeight = FontWeight.Bold)
                         }
                     }
-
-                    // Payment Channels list
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        // Airtel Money option
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -624,8 +580,6 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                             Spacer(modifier = Modifier.weight(1f))
                             Box(modifier = Modifier.size(9.dp).border(1.dp, BrandAirtel, CircleShape))
                         }
-
-                        // Moov Money option
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -649,10 +603,7 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                             Box(modifier = Modifier.size(9.dp).border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape))
                         }
                     }
-
                     Spacer(modifier = Modifier.weight(1f))
-
-                    // Booking button
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -666,7 +617,6 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                 }
             }
 
-            // Floaters Airtel / Moov Money bubbles
             Card(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -727,7 +677,6 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                 }
             }
 
-            // Floating Lock Icon
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -752,7 +701,6 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
             }
         }
 
-        // Bottom Board Sheet
         Card(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -769,7 +717,6 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                     .padding(top = 36.dp, bottom = 48.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Little handle top
                 Box(
                     modifier = Modifier
                         .width(44.dp)
@@ -777,9 +724,7 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.2f))
                 )
-
                 Spacer(modifier = Modifier.height(28.dp))
-
                 Text(
                     text = "Paiements simplifiés",
                     fontSize = 30.sp,
@@ -788,9 +733,7 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                     textAlign = TextAlign.Center,
                     lineHeight = 34.sp
                 )
-
                 Spacer(modifier = Modifier.height(18.dp))
-
                 Text(
                     text = "Réglez vos réservations de location en toute sécurité au Gabon avec Airtel Money, Moov Money ou par carte bancaire.",
                     fontSize = 15.sp,
@@ -799,16 +742,12 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                     lineHeight = 22.sp,
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
-
                 Spacer(modifier = Modifier.height(40.dp))
-
-                // Pagination Dots & CTA Button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Pagination
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Box(
                             modifier = Modifier
@@ -830,8 +769,6 @@ fun PaymentsOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                                 .background(Color.White.copy(alpha = 0.2f))
                         )
                     }
-
-                    // Next button
                     Button(
                         onClick = onNext,
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
@@ -865,7 +802,6 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
             .fillMaxSize()
             .background(BrandNavy)
     ) {
-        // Glowing Background
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -877,7 +813,6 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
                 .blur(60.dp)
         )
 
-        // Center Profile Card with verified badge
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -903,7 +838,6 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    // Profile Photo with badge overlay
                     Box(modifier = Modifier.size(85.dp)) {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
@@ -917,7 +851,6 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
                                 .border(3.dp, Color.White.copy(alpha = 0.12f), CircleShape),
                             contentScale = ContentScale.Crop
                         )
-                        // Verified badge
                         Icon(
                             imageVector = Icons.Rounded.CheckCircle,
                             contentDescription = null,
@@ -930,7 +863,6 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
                         )
                     }
 
-                    // Broker Name & rating
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -941,8 +873,6 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
-
-                        // Rating pill
                         Surface(
                             color = Color.White.copy(alpha = 0.05f),
                             shape = RoundedCornerShape(10.dp)
@@ -977,8 +907,6 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
                 }
             }
 
-            // Beautiful floating messages and tags
-            // Floating custom Chat Bubble
             Surface(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -1008,7 +936,6 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
                 }
             }
 
-            // Floating Identity Confirmed badge card
             Card(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -1046,7 +973,6 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
             }
         }
 
-        // Bottom Board Sheet
         Card(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -1063,7 +989,6 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
                     .padding(top = 36.dp, bottom = 48.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Little handle top
                 Box(
                     modifier = Modifier
                         .width(44.dp)
@@ -1071,10 +996,7 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.2f))
                 )
-
                 Spacer(modifier = Modifier.height(28.dp))
-
-                // Title double layer
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "Communauté de",
@@ -1092,7 +1014,6 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
                             color = PrimaryGreen,
                             lineHeight = 34.sp
                         )
-                        // Underline SVG
                         Canvas(
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
@@ -1126,13 +1047,11 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(38.dp))
 
-                // Pagination Dots & CTA Button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Pagination
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Box(
                             modifier = Modifier
@@ -1155,7 +1074,6 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
                         )
                     }
 
-                    // Commencer Button
                     Button(
                         onClick = onStart,
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),

@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.ui.components.*
+import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
 import java.text.NumberFormat
 import java.util.*
@@ -83,7 +85,7 @@ data class ReceivedReservation(
 
 @Composable
 fun ProfileNavigator(viewModel: RentalViewModel) {
-    var subScreen by remember { mutableStateOf("main") } // "main", "dashboard", "earnings", "wallet", "listings", "calendar", "bookings_received", "identity", "disputes", "tenant_bookings", "language", "security", "help", "damage", "review_tenant"
+    var subScreen by remember { mutableStateOf("main") } // "main", "dashboard", "earnings", "wallet", "listings", "calendar", "bookings_received", "identity", "disputes", "tenant_bookings", "language", "security", "help", "damage", "review_tenant", "edit_profile"
     
     // Dispute state helpers
     var selectedDisputeId by remember { mutableStateOf<String?>(null) }
@@ -109,7 +111,13 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
             when (screen) {
                 "main" -> ProfileMainScreen(
                     viewModel = viewModel,
-                    onNavigate = { dest -> subScreen = dest }
+                    onNavigate = { dest -> subScreen = dest },
+                    onEditProfile = { subScreen = "edit_profile" }
+                )
+                "edit_profile" -> EditProfileScreen(
+                    viewModel = viewModel,
+                    onBack = { subScreen = "main" },
+                    onSave = { subScreen = "main" }
                 )
                 "dashboard" -> OwnerDashboardScreen(
                     viewModel = viewModel,
@@ -199,11 +207,13 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
 @Composable
 fun ProfileMainScreen(
     viewModel: RentalViewModel,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit,
+    onEditProfile: () -> Unit
 ) {
     val isOwnerMode by viewModel.isOwnerMode.collectAsState()
     val verifStatus by viewModel.identityVerificationStatus.collectAsState()
     val language by viewModel.profileLanguage.collectAsState()
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = Modifier
@@ -269,7 +279,7 @@ fun ProfileMainScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            "+241 77 12 34 56 (Libreville)",
+                            maskPhoneNumber("+241 77 12 34 56") + " (Libreville)",
                             color = Color.White.copy(alpha = 0.65f),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
@@ -351,6 +361,14 @@ fun ProfileMainScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+
+            // Informations Personnelles
+            ProfileOptionRow(
+                icon = Icons.Rounded.Person,
+                title = "Informations Personnelles",
+                subtitle = "Modifier votre nom & téléphone",
+                onClick = onEditProfile
+            )
 
             // Sub links Section depending on Mode
             Text(
@@ -456,25 +474,45 @@ fun ProfileMainScreen(
                 onClick = { onNavigate("help") }
             )
 
-            Spacer(modifier = Modifier.height(30.dp))
-
-            // Logout Simulator Button
-            Button(
-                onClick = { viewModel.setLoggedIn(false) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.15f), contentColor = Color.Red),
-                shape = RoundedCornerShape(14.dp),
+            Text(
+                text = "LocAll v1.0.0 (Prototype)",
+                color = Color.White.copy(alpha = 0.3f),
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp)
-                    .padding(bottom = 12.dp)
+                    .padding(vertical = 16.dp)
+            )
+
+            Button(
+                onClick = { showLogoutDialog = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Red.copy(alpha = 0.15f),
+                    contentColor = Color.Red
+                )
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Rounded.ExitToApp, contentDescription = null, modifier = Modifier.size(20.dp))
-                    Text("Se déconnecter", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                }
+                Icon(
+                    imageVector = Icons.Default.Logout,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Se déconnecter", fontWeight = FontWeight.Bold)
+            }
+
+            if (showLogoutDialog) {
+                ConfirmDialog(
+                    title = "Se déconnecter",
+                    message = "Êtes-vous sûr de vouloir vous déconnecter ?",
+                    confirmText = "Déconnexion",
+                    onConfirm = { viewModel.setLoggedIn(false) },
+                    onDismiss = { showLogoutDialog = false },
+                    isDestructive = true
+                )
             }
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -1211,8 +1249,8 @@ fun OwnerListingsScreen(
             divider = {}
         ) {
             Tab(selected = selectedItemIndex == 0, onClick = { selectedItemIndex = 0 }, text = { Text("Actives (5)", fontWeight = FontWeight.Bold) })
-            Tab(selected = selectedItemIndex == 1, onClick = { selectedItemIndex == 1 }, text = { Text("En révision (1)", fontWeight = FontWeight.Bold) })
-            Tab(selected = selectedItemIndex == 2, onClick = { selectedItemIndex == 2 }, text = { Text("Suspendues (0)", fontWeight = FontWeight.Bold) })
+            Tab(selected = selectedItemIndex == 1, onClick = { selectedItemIndex = 1 }, text = { Text("En révision (1)", fontWeight = FontWeight.Bold) })
+            Tab(selected = selectedItemIndex == 2, onClick = { selectedItemIndex = 2 }, text = { Text("Suspendues (0)", fontWeight = FontWeight.Bold) })
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -1253,6 +1291,36 @@ fun OwnerListingsScreen(
                             Column(horizontalAlignment = Alignment.End) {
                                 Surface(color = Color(0xFF0C2417), shape = RoundedCornerShape(6.dp)) {
                                     Text("Actif", color = PrimaryGreen, fontSize = 9.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                }
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Surface(
+                                onClick = { },
+                                color = Color(0xFF1A3324),
+                                shape = RoundedCornerShape(8.dp),
+                                border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))
+                            ) {
+                                Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Rounded.Edit, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Modifier", color = PrimaryGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                            Surface(
+                                onClick = { viewModel.deleteListing(item.id) },
+                                color = Color.Red.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(8.dp),
+                                border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.3f))
+                            ) {
+                                Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Rounded.Delete, contentDescription = null, tint = Color.Red, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Supprimer", color = Color.Red, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -1423,6 +1491,7 @@ fun ReceivedBookingsScreen(
     // Handover check modals
     var activeHandoverCheck by remember { mutableStateOf<ReceivedReservation?>(null) }
     var isHandoverConfirmed by remember { mutableStateOf(false) }
+    var pendingRefuseReservation by remember { mutableStateOf<ReceivedReservation?>(null) }
 
     if (activeHandoverCheck != null) {
         Dialog(onDismissRequest = { activeHandoverCheck = null }) {
@@ -1484,6 +1553,20 @@ fun ReceivedBookingsScreen(
                 }
             }
         }
+    }
+
+    if (pendingRefuseReservation != null) {
+        ConfirmDialog(
+            title = "Refuser la réservation",
+            message = "Êtes-vous sûr de vouloir refuser cette réservation ?",
+            confirmText = "Refuser",
+            onConfirm = {
+                mockReservations = mockReservations.filter { it.id != pendingRefuseReservation?.id }
+                pendingRefuseReservation = null
+            },
+            onDismiss = { pendingRefuseReservation = null },
+            isDestructive = true
+        )
     }
 
     Column(
@@ -1579,7 +1662,7 @@ fun ReceivedBookingsScreen(
                                 }
                             }
 
-                            Divider(color = Color.White.copy(alpha = 0.08f))
+                            HorizontalDivider(color = Color.White.copy(alpha = 0.08f))
 
                             Text(res.itemTitle, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                             Text(res.dates, color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
@@ -1616,7 +1699,7 @@ fun ReceivedBookingsScreen(
 
                                     Button(
                                         onClick = {
-                                            mockReservations = mockReservations.filter { it.id != res.id }
+                                            pendingRefuseReservation = res
                                         },
                                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.15f), contentColor = Color.Red),
                                         shape = RoundedCornerShape(10.dp),
@@ -2349,7 +2432,7 @@ fun DisputesHistoryScreen(
                             }
                         }
 
-                        Divider(color = Color.White.copy(alpha = 0.05f))
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.05f))
 
                         Text(disp.type, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         Text(disp.description, color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp)
@@ -2715,7 +2798,7 @@ fun TenantBookingsScreen(
                                 }
                             }
 
-                            Divider(color = Color.White.copy(alpha = 0.05f))
+                            HorizontalDivider(color = Color.White.copy(alpha = 0.05f))
 
                             Text(b.rentalItemTitle, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Text("Durée: ${b.days} Jours", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
@@ -3536,5 +3619,85 @@ fun TenantReviewScreen(
             Text("Publier l'évaluation", fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(30.dp))
+    }
+}
+
+@Composable
+fun EditProfileScreen(
+    viewModel: RentalViewModel,
+    onBack: () -> Unit,
+    onSave: () -> Unit
+) {
+    var name by remember { mutableStateOf("Jean Dupont") }
+    var phone by remember { mutableStateOf("+241 77 12 34 56") }
+    
+    Column(
+        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Modifier le profil", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        Text("NOM", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(6.dp))
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedBorderColor = Color(0xFF13EC5B),
+                unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                focusedContainerColor = Color(0xFF162133),
+                unfocusedContainerColor = Color(0xFF162133)
+            )
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text("TÉLÉPHONE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(6.dp))
+        OutlinedTextField(
+            value = phone,
+            onValueChange = { phone = it },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedBorderColor = Color(0xFF13EC5B),
+                unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                focusedContainerColor = Color(0xFF162133),
+                unfocusedContainerColor = Color(0xFF162133)
+            )
+        )
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        Button(
+            onClick = {
+                viewModel.updateUserProfile(name, phone)
+                onSave()
+            },
+            modifier = Modifier.fillMaxWidth().height(54.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF13EC5B), contentColor = Color(0xFF0B1526))
+        ) {
+            Text("Enregistrer", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        }
     }
 }

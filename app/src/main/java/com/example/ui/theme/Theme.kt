@@ -1,18 +1,13 @@
 package com.example.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme =
-  darkColorScheme(
+private val DarkColorScheme = darkColorScheme(
     primary = PrimaryGreen,
     secondary = SoftGreen80,
     tertiary = Grey80,
@@ -23,10 +18,9 @@ private val DarkColorScheme =
     onTertiary = BrandNavy,
     onBackground = Color.White,
     onSurface = Color.White
-  )
+)
 
-private val LightColorScheme =
-  darkColorScheme( // Use DarkColorScheme as base to enforce the Sophisticated Dark look
+private val LightColorScheme = darkColorScheme(
     primary = PrimaryGreen,
     secondary = SoftGreen80,
     tertiary = Grey80,
@@ -37,15 +31,15 @@ private val LightColorScheme =
     onTertiary = BrandNavy,
     onBackground = Color.White,
     onSurface = Color.White
-  )
+)
 
 @Composable
 fun MyApplicationTheme(
-  darkTheme: Boolean = true, // Force dark theme for Sophisticated Dark design
-  dynamicColor: Boolean = false, // Disable dynamic system-wide color overlays to preserve Gabon LocAll brand palette
-  content: @Composable () -> Unit,
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = false,
+    content: @Composable () -> Unit,
 ) {
-  val colorScheme = DarkColorScheme
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
-  MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+    MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
 }

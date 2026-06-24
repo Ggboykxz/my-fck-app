@@ -8,6 +8,8 @@ val PrimaryGreen = Color(0xFF13EC5B)
 val BgLight = Color(0xFFF6F8F6)
 val BgDark = Color(0xFF102216)
 val SurfaceDark = Color(0xFF1A3324)
+val BrandAirtel = Color(0xFFE40000)
+val BrandMoov = Color(0xFF0067A5)
 
 val Green80 = Color(0xFF99FFB3)
 val Grey80 = Color(0xFFC2DCC7)

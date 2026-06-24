@@ -1,9 +1,7 @@
 package com.example.data.repository
 
 import com.example.data.local.RentalDao
-import com.example.data.model.Booking
-import com.example.data.model.ChatMessage
-import com.example.data.model.RentalItem
+import com.example.data.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
@@ -12,6 +10,8 @@ class RentalRepository(private val rentalDao: RentalDao) {
     val allRentalItems: Flow<List<RentalItem>> = rentalDao.getAllRentalItems()
     val bookmarkedItems: Flow<List<RentalItem>> = rentalDao.getBookmarkedItems()
     val allBookings: Flow<List<Booking>> = rentalDao.getAllBookings()
+    val userProfile: Flow<UserProfile?> = rentalDao.getUserProfile()
+    val searchHistory: Flow<List<SearchHistoryEntry>> = rentalDao.getSearchHistory()
 
     fun getRentalItemsByCategory(category: String): Flow<List<RentalItem>> =
         rentalDao.getRentalItemsByCategory(category)
@@ -19,11 +19,17 @@ class RentalRepository(private val rentalDao: RentalDao) {
     suspend fun getRentalItemById(id: Int): RentalItem? =
         rentalDao.getRentalItemById(id)
 
+    fun getSimilarItems(excludeId: Int, category: String): Flow<List<RentalItem>> =
+        rentalDao.getSimilarItems(excludeId, category)
+
     suspend fun insertRentalItem(item: RentalItem) =
         rentalDao.insertRentalItem(item)
 
     suspend fun updateRentalItem(item: RentalItem) =
         rentalDao.updateRentalItem(item)
+
+    suspend fun deleteRentalItem(id: Int) =
+        rentalDao.deleteRentalItem(id)
 
     suspend fun updateBookmarkStatus(id: Int, isBookmarked: Boolean) =
         rentalDao.updateBookmarkStatus(id, isBookmarked)
@@ -31,13 +37,30 @@ class RentalRepository(private val rentalDao: RentalDao) {
     suspend fun insertBooking(booking: Booking) =
         rentalDao.insertBooking(booking)
 
+    suspend fun getBookingById(id: Int): Booking? =
+        rentalDao.getBookingById(id)
+
+    suspend fun updateBookingStatus(id: Int, status: String, reason: String? = null) =
+        rentalDao.updateBookingStatus(id, status, reason)
+
     fun getChatMessagesForRental(itemId: Int): Flow<List<ChatMessage>> =
         rentalDao.getChatMessagesForRental(itemId)
 
     suspend fun insertChatMessage(message: ChatMessage) =
         rentalDao.insertChatMessage(message)
 
-    // Seeds the database with premium authentic Gabonese listings if it is empty!
+    suspend fun getLastOwnerMessage(itemId: Int): ChatMessage? =
+        rentalDao.getLastOwnerMessage(itemId)
+
+    suspend fun upsertUserProfile(profile: UserProfile) =
+        rentalDao.upsertUserProfile(profile)
+
+    suspend fun insertSearchHistory(entry: SearchHistoryEntry) =
+        rentalDao.insertSearchHistory(entry)
+
+    suspend fun clearSearchHistory() =
+        rentalDao.clearSearchHistory()
+
     suspend fun seedDatabase() {
         val currentItems = allRentalItems.first()
         if (currentItems.isEmpty()) {

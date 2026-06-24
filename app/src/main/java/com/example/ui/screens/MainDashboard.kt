@@ -47,23 +47,30 @@ import com.example.data.model.Booking
 import com.example.data.model.ChatMessage
 import com.example.data.model.RentalItem
 import com.example.ui.viewmodel.PaymentState
+import com.example.ui.viewmodel.Screen
+import com.example.ui.components.*
+import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import android.content.Intent
+import kotlinx.coroutines.delay
 
 @Composable
 fun MainDashboardView(viewModel: RentalViewModel) {
     val currentScreen by viewModel.currentScreen.collectAsState()
     val selectedItem by viewModel.selectedItem.collectAsState()
+    val unreadCount by viewModel.unreadMessageCount.collectAsState()
 
     // Main Layout Scaffold with M3 Bottom Navigation
     Scaffold(
         bottomBar = {
-            if (currentScreen != "details" && currentScreen != "chat") {
+            if (currentScreen !is Screen.Details && currentScreen !is Screen.Chat) {
                 DashboardBottomBar(
                     currentScreen = currentScreen,
-                    onNavigate = { screen -> viewModel.navigateTo(screen) }
+                    onNavigate = { screen -> viewModel.navigateTo(screen) },
+                    unreadCount = unreadCount
                 )
             }
         }
@@ -82,20 +89,20 @@ fun MainDashboardView(viewModel: RentalViewModel) {
                 label = "DashboardScreenTransition"
             ) { screen ->
                 when (screen) {
-                    "home" -> ExploreScreen(viewModel)
-                    "bookings" -> BookingsScreen(viewModel)
-                    "post_listing" -> PostListingScreen(viewModel)
-                    "bookmarks" -> BookmarksScreen(viewModel)
-                    "messages" -> InboxScreen(viewModel)
-                    "profile" -> ProfileNavigator(viewModel = viewModel)
-                    "details" -> selectedItem?.let { item ->
+                    is Screen.Home, is Screen.Explore -> ExploreScreen(viewModel)
+                    is Screen.Bookings -> BookingsScreen(viewModel)
+                    is Screen.PostListing -> PostListingScreen(viewModel)
+                    is Screen.Bookmarks -> BookmarksScreen(viewModel)
+                    is Screen.Messages -> InboxScreen(viewModel)
+                    is Screen.Profile -> ProfileNavigator(viewModel = viewModel)
+                    is Screen.Details -> selectedItem?.let { item ->
                         ItemDetailsScreen(
                             item = item,
                             viewModel = viewModel,
                             onBack = { viewModel.navigateTo("home") }
                         )
                     }
-                    "chat" -> selectedItem?.let { item ->
+                    is Screen.Chat -> selectedItem?.let { item ->
                         ChatRoomScreen(
                             item = item,
                             viewModel = viewModel,
@@ -110,8 +117,9 @@ fun MainDashboardView(viewModel: RentalViewModel) {
 
 @Composable
 fun DashboardBottomBar(
-    currentScreen: String,
-    onNavigate: (String) -> Unit
+    currentScreen: Screen,
+    onNavigate: (String) -> Unit,
+    unreadCount: Int = 0
 ) {
     NavigationBar(
         containerColor = BrandNavy,
@@ -119,7 +127,7 @@ fun DashboardBottomBar(
         modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         NavigationBarItem(
-            selected = currentScreen == "home" || currentScreen == "details",
+            selected = currentScreen is Screen.Home || currentScreen is Screen.Explore || currentScreen is Screen.Details,
             onClick = { onNavigate("home") },
             icon = { Icon(Icons.Rounded.Search, contentDescription = "Explorer") },
             label = { Text("Explorer", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
@@ -133,7 +141,7 @@ fun DashboardBottomBar(
         )
 
         NavigationBarItem(
-            selected = currentScreen == "post_listing",
+            selected = currentScreen is Screen.PostListing,
             onClick = { onNavigate("post_listing") },
             icon = { Icon(Icons.Rounded.AddCircle, contentDescription = "Ajouter", tint = PrimaryGreen, modifier = Modifier.size(28.dp)) },
             label = { Text("Publier", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryGreen) },
@@ -147,7 +155,7 @@ fun DashboardBottomBar(
         )
 
         NavigationBarItem(
-            selected = currentScreen == "bookmarks",
+            selected = currentScreen is Screen.Bookmarks,
             onClick = { onNavigate("bookmarks") },
             icon = { Icon(Icons.Rounded.FavoriteBorder, contentDescription = "Favoris") },
             label = { Text("Favoris", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
@@ -161,9 +169,24 @@ fun DashboardBottomBar(
         )
 
         NavigationBarItem(
-            selected = currentScreen == "messages",
+            selected = currentScreen is Screen.Messages,
             onClick = { onNavigate("messages") },
-            icon = { Icon(Icons.Default.Email, contentDescription = "Messages") },
+            icon = {
+                BadgedBox(
+                    badge = {
+                        if (unreadCount > 0) {
+                            Badge(
+                                containerColor = Color.Red,
+                                contentColor = Color.White
+                            ) {
+                                Text("$unreadCount", fontSize = 9.sp)
+                            }
+                        }
+                    }
+                ) {
+                    Icon(Icons.Default.Email, contentDescription = "Messages")
+                }
+            },
             label = { Text("Messages", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = PrimaryGreen,
@@ -175,7 +198,7 @@ fun DashboardBottomBar(
         )
 
         NavigationBarItem(
-            selected = currentScreen == "profile",
+            selected = currentScreen is Screen.Profile,
             onClick = { onNavigate("profile") },
             icon = { Icon(Icons.Rounded.Person, contentDescription = "Profil") },
             label = { Text("Profil", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
@@ -203,9 +226,22 @@ fun ExploreScreen(viewModel: RentalViewModel) {
 
     val hasActiveFilters = searchQuery.isNotEmpty() || selectedCat != "Tous" || selectedCity != "Tous" || selectedMaxPrice != 0
 
+    var sortOption by remember { mutableStateOf(SortOption.RECENT) }
     var showPriceFilterDialog by remember { mutableStateOf(false) }
     var selectedItemForModal by remember { mutableStateOf<RentalItem?>(null) }
     var showBookingFromModal by remember { mutableStateOf<RentalItem?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) { delay(1500); isLoading = false }
+    LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(1500); isRefreshing = false } }
+
+    val sortedItems = when (sortOption) {
+        SortOption.PRICE_ASC -> items.sortedBy { it.pricePerDay }
+        SortOption.PRICE_DESC -> items.sortedByDescending { it.pricePerDay }
+        SortOption.RECENT -> items.sortedByDescending { it.id }
+        SortOption.RATING -> items
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -263,12 +299,12 @@ fun ExploreScreen(viewModel: RentalViewModel) {
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { viewModel.searchQuery.value = it },
+                    onValueChange = { viewModel.setSearchQuery(it) },
                     placeholder = { Text("Quartier, villa, SUV...", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp) },
                     leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = "Rechercher", tint = Color.White.copy(alpha = 0.5f)) },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { viewModel.searchQuery.value = "" }) {
+                            IconButton(onClick = { viewModel.setSearchQuery("") }) {
                                 Icon(Icons.Rounded.Clear, contentDescription = "Effacer la recherche", tint = Color.White.copy(alpha = 0.5f))
                             }
                         }
@@ -298,6 +334,11 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                 ) {
                     Icon(Icons.Rounded.Settings, contentDescription = "Filtres de prix", tint = BrandNavy)
                 }
+
+                SortDropdown(
+                    selected = sortOption,
+                    onSelect = { sortOption = it; viewModel.setSortOption(it) }
+                )
             }
         }
 
@@ -324,9 +365,9 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                         Surface(
                             onClick = {
                                 if (tag == "Moins cher") {
-                                    viewModel.selectedMaxPrice.value = 40000
+                                    viewModel.setSelectedMaxPrice(40000)
                                 } else {
-                                    viewModel.searchQuery.value = tag
+                                    viewModel.setSearchQuery(tag)
                                 }
                             },
                             color = Color.White.copy(alpha = 0.05f),
@@ -352,10 +393,10 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                         item {
                             Surface(
                                 onClick = {
-                                    viewModel.searchQuery.value = ""
-                                    viewModel.selectedCategory.value = "Tous"
-                                    viewModel.selectedCity.value = "Tous"
-                                    viewModel.selectedMaxPrice.value = 0
+                                viewModel.setSearchQuery("")
+                                viewModel.setSelectedCategory("Tous")
+                                viewModel.setSelectedCity("Tous")
+                                viewModel.setSelectedMaxPrice(0)
                                 },
                                 color = PrimaryGreen.copy(alpha = 0.15f),
                                 shape = RoundedCornerShape(20.dp),
@@ -406,7 +447,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                                 if (isSelected) Color.Transparent else Color.White.copy(alpha = 0.12f),
                                 RoundedCornerShape(12.dp)
                             )
-                            .clickable { viewModel.selectedCity.value = city }
+                            .clickable { viewModel.setSelectedCity(city) }
                             .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         Text(
@@ -484,12 +525,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                 modifier = Modifier.fillMaxWidth().testTag("categories_section"),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "Rechercher par Catégorie",
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                SectionHeader(title = "Rechercher par Catégorie")
 
                 val categoriesWithIcons = listOf(
                     Triple("Tous", Icons.Rounded.Category, "Tous"),
@@ -513,7 +549,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                         Card(
                             modifier = Modifier
                                 .testTag("category_filter_$catName")
-                                .clickable { viewModel.selectedCategory.value = catName },
+                                .clickable { viewModel.setSelectedCategory(catName) },
                             shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = if (isSelected) PrimaryGreen else Color(0xFF162133)
@@ -564,7 +600,11 @@ fun ExploreScreen(viewModel: RentalViewModel) {
         }
 
         // Grid/List elements containing rental listings
-        if (items.isEmpty()) {
+        if (isLoading) {
+            items(3) { SkeletonCard() }
+        } else if (isRefreshing) {
+            items(3) { SkeletonCard() }
+        } else if (sortedItems.isEmpty()) {
             item {
                 Box(
                     modifier = Modifier
@@ -592,7 +632,25 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                 }
             }
         } else {
-            items(items) { item ->
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    IconButton(
+                        onClick = {
+                            isRefreshing = true
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Refresh,
+                            contentDescription = "Rafraîchir",
+                            tint = PrimaryGreen
+                        )
+                    }
+                }
+            }
+            items(sortedItems) { item ->
                 RentalCard(
                     item = item,
                     onSelect = {
@@ -614,7 +672,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
             currentMaxPrice = viewModel.selectedMaxPrice.collectAsState().value,
             onDismiss = { showPriceFilterDialog = false },
             onApply = { maxPrice ->
-                viewModel.selectedMaxPrice.value = maxPrice
+                viewModel.setSelectedMaxPrice(maxPrice)
                 showPriceFilterDialog = false
             }
         )
@@ -806,7 +864,7 @@ fun RentalCard(
                     )
                 }
 
-                Divider(color = Color.White.copy(alpha = 0.12f), thickness = 1.dp)
+                HorizontalDivider(color = Color.White.copy(alpha = 0.12f), thickness = 1.dp)
 
                 // Price display in CFA
                 Row(
@@ -1019,7 +1077,7 @@ fun RentalDetailModalDialog(
                             )
                         }
 
-                        Divider(color = Color.White.copy(alpha = 0.12f))
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
                         // Price
                         Row(
@@ -1057,15 +1115,10 @@ fun RentalDetailModalDialog(
                             }
                         }
 
-                        Divider(color = Color.White.copy(alpha = 0.12f))
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
                         // Description
-                        Text(
-                            text = "Description",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
+                        SectionHeader(title = "Description")
                         Text(
                             text = item.description,
                             fontSize = 14.sp,
@@ -1073,15 +1126,10 @@ fun RentalDetailModalDialog(
                             lineHeight = 22.sp
                         )
 
-                        Divider(color = Color.White.copy(alpha = 0.12f))
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
                         // Landlord
-                        Text(
-                            text = "Propriétaire",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
+                        SectionHeader(title = "Propriétaire")
 
                         Card(
                             modifier = Modifier.fillMaxWidth(),
@@ -1137,7 +1185,7 @@ fun RentalDetailModalDialog(
                                                 .background(Color.White.copy(alpha = 0.4f), CircleShape)
                                         )
                                         Text(
-                                            text = item.ownerPhone,
+                                            text = maskPhoneNumber(item.ownerPhone),
                                             fontSize = 11.sp,
                                             color = Color.White.copy(alpha = 0.5f)
                                         )
@@ -1305,6 +1353,7 @@ fun ItemDetailsScreen(
     viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     var showBookingDialog by remember { mutableStateOf(false) }
 
     LazyColumn(
@@ -1352,18 +1401,42 @@ fun ItemDetailsScreen(
                         )
                     }
 
-                    IconButton(
-                        onClick = { viewModel.toggleBookmark(item) },
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(Color.White.copy(alpha = 0.9f), CircleShape)
-                    ) {
-                        Icon(
-                            imageVector = if (item.isBookmarked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                            contentDescription = "Bookmark button toggle",
-                            tint = if (item.isBookmarked) Color.Red else Color.Black,
-                            modifier = Modifier.size(20.dp)
-                        )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        IconButton(
+                            onClick = {
+                                val shareText = shareListing(item.title, formatPriceCfa(item.pricePerDay))
+                                val sendIntent = Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    putExtra(Intent.EXTRA_TEXT, shareText)
+                                    type = "text/plain"
+                                }
+                                context.startActivity(Intent.createChooser(sendIntent, "Partager l'annonce"))
+                            },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(Color.White.copy(alpha = 0.9f), CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Share,
+                                contentDescription = "Partager",
+                                tint = BrandNavy,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        IconButton(
+                            onClick = { viewModel.toggleBookmark(item) },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(Color.White.copy(alpha = 0.9f), CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = if (item.isBookmarked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                                contentDescription = "Bookmark button toggle",
+                                tint = if (item.isBookmarked) Color.Red else Color.Black,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -1468,7 +1541,7 @@ fun ItemDetailsScreen(
                 }
 
                 // Description Title and contents
-                Text("Description du bien", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                SectionHeader(title = "Description du bien")
                 Text(
                     text = item.description,
                     fontSize = 14.sp,
@@ -1478,7 +1551,7 @@ fun ItemDetailsScreen(
                 )
 
                 // Landlord contact row
-                Text("Annonceur", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                SectionHeader(title = "Annonceur")
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -1535,7 +1608,7 @@ fun ItemDetailsScreen(
                 }
 
                 // Fake map section represent localization
-                Text("Géolocalisation du bien", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                SectionHeader(title = "Géolocalisation du bien")
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1585,6 +1658,66 @@ fun ItemDetailsScreen(
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
+
+                // Similar listings
+                val similarItems by viewModel.similarItems.collectAsState()
+                if (similarItems.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    SectionHeader(title = "Annonces similaires")
+                    Spacer(modifier = Modifier.height(12.dp))
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        items(similarItems) { simItem ->
+                            Card(
+                                modifier = Modifier.width(160.dp).clickable { viewModel.selectItem(simItem); viewModel.navigateTo("details") },
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))
+                            ) {
+                                Column {
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(LocalContext.current).data(simItem.imageUrl).crossfade(true).build(),
+                                        contentDescription = simItem.title,
+                                        modifier = Modifier.fillMaxWidth().height(100.dp).clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    Column(modifier = Modifier.padding(8.dp)) {
+                                        Text(simItem.title, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text(formatPriceCfa(simItem.pricePerDay) + " / jour", color = PrimaryGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Booking recap
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Récapitulatif", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Prix / jour", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp)
+                            Text(formatPriceCfa(item.pricePerDay), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Commission LocAll (5%)", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp)
+                            Text(formatPriceCfa((item.pricePerDay * 0.05).toInt()), color = Color.White, fontSize = 13.sp)
+                        }
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.White.copy(alpha = 0.1f))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Total / jour", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(formatPriceCfa((item.pricePerDay * 1.05).toInt()), color = PrimaryGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Bottom CTA action button
                 Button(
@@ -1670,7 +1803,7 @@ fun BookingInteractiveDialog(
                             overflow = TextOverflow.Ellipsis
                         )
 
-                        Divider()
+                        HorizontalDivider()
 
                         // Days Selection Bar Selector
                         Text("Durée de location (en jours)", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
@@ -2105,6 +2238,7 @@ fun BookingInteractiveDialog(
 @Composable
 fun BookingsScreen(viewModel: RentalViewModel) {
     val bookings by viewModel.bookings.collectAsState()
+    var showCancelDialog by remember { mutableStateOf<Booking?>(null) }
 
     Column(
         modifier = Modifier
@@ -2121,7 +2255,7 @@ fun BookingsScreen(viewModel: RentalViewModel) {
             color = Color.White
         )
 
-        Divider(color = Color.White.copy(alpha = 0.12f))
+        HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
         if (bookings.isEmpty()) {
             Box(
@@ -2130,31 +2264,13 @@ fun BookingsScreen(viewModel: RentalViewModel) {
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.List,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.35f),
-                        modifier = Modifier.size(54.dp)
-                    )
-                    Text(
-                        "Vous n'avez pas de réservations actives pour le moment.",
-                        color = Color.White.copy(alpha = 0.60f),
-                        fontSize = 14.sp,
-                        textAlign = TextAlign.Center
-                    )
-                    Button(
-                        onClick = { viewModel.navigateTo("home") },
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Explorer les biens", fontWeight = FontWeight.Bold)
-                    }
-                }
+                EmptyState(
+                    icon = Icons.Rounded.List,
+                    title = "Aucune réservation",
+                    subtitle = "Vos réservations apparaîtront ici",
+                    actionText = "Explorer",
+                    onAction = { viewModel.navigateTo("home") }
+                )
             }
         } else {
             LazyColumn(
@@ -2162,15 +2278,32 @@ fun BookingsScreen(viewModel: RentalViewModel) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(bookings) { booking ->
-                    BookingItemCard(booking)
+                    BookingItemCard(
+                        booking = booking,
+                        onCancelClick = { showCancelDialog = booking }
+                    )
                 }
             }
         }
     }
+
+    showCancelDialog?.let { booking ->
+        ConfirmDialog(
+            title = "Annuler la réservation",
+            message = "Êtes-vous sûr de vouloir annuler cette réservation ? Cette action est irréversible.",
+            confirmText = "Annuler la réservation",
+            onConfirm = {
+                viewModel.cancelBooking(booking.id, "Annulé par l'utilisateur")
+                showCancelDialog = null
+            },
+            onDismiss = { showCancelDialog = null },
+            isDestructive = true
+        )
+    }
 }
 
 @Composable
-fun BookingItemCard(booking: Booking) {
+fun BookingItemCard(booking: Booking, onCancelClick: () -> Unit = {}) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -2227,11 +2360,11 @@ fun BookingItemCard(booking: Booking) {
 
                 Column(horizontalAlignment = Alignment.End) {
                     Text("Paiement via ${booking.paymentMethod}", fontSize = 11.sp, color = Color.White.copy(alpha = 0.5f))
-                    Text(booking.paymentPhone, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color.White)
+                    Text(maskPhoneNumber(booking.paymentPhone), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color.White)
                 }
             }
 
-            Divider(color = Color.White.copy(alpha = 0.12f), thickness = 1.dp)
+            HorizontalDivider(color = Color.White.copy(alpha = 0.12f), thickness = 1.dp)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -2245,6 +2378,25 @@ fun BookingItemCard(booking: Booking) {
                     fontWeight = FontWeight.ExtraBold,
                     color = PrimaryGreen
                 )
+            }
+
+            if (booking.status != "Annulé" && booking.status != "Terminé") {
+                Spacer(modifier = Modifier.height(8.dp))
+                Surface(
+                    onClick = { onCancelClick() },
+                    color = Color.Red.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.3f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(Icons.Rounded.Cancel, contentDescription = null, tint = Color.Red, modifier = Modifier.size(16.dp))
+                        Text("Annuler", color = Color.Red, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }
@@ -2274,7 +2426,7 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
             color = Color.White
         )
 
-        Divider(color = Color.White.copy(alpha = 0.12f))
+        HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
         if (items.isEmpty()) {
             Box(
@@ -2283,24 +2435,13 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.FavoriteBorder,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.35f),
-                        modifier = Modifier.size(54.dp)
-                    )
-                    Text(
-                        "Vous n'avez pas encore enregistré de biens en favoris.",
-                        color = Color.White.copy(alpha = 0.60f),
-                        fontSize = 14.sp,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                EmptyState(
+                    icon = Icons.Rounded.FavoriteBorder,
+                    title = "Aucun favori",
+                    subtitle = "Ajoutez des annonces à vos favoris pour les retrouver ici",
+                    actionText = "Explorer",
+                    onAction = { viewModel.navigateTo("home") }
+                )
             }
         } else {
             LazyColumn(
@@ -2364,15 +2505,31 @@ fun InboxScreen(viewModel: RentalViewModel) {
             color = Color.White
         )
 
-        Divider(color = Color.White.copy(alpha = 0.12f))
+        HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
         // Simply show active chat rooms for existing seed items to provide easy test navigation
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            val showItems = items.take(4) // display top 4 items to simulate discussion
-            items(showItems) { item ->
+        if (items.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                EmptyState(
+                    icon = Icons.Default.Email,
+                    title = "Aucun message",
+                    subtitle = "Vos conversations apparaîtront ici",
+                    actionText = "Explorer",
+                    onAction = { viewModel.navigateTo("home") }
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                val showItems = items.take(4) // display top 4 items to simulate discussion
+                items(showItems) { item ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -2432,6 +2589,7 @@ fun InboxScreen(viewModel: RentalViewModel) {
                 }
             }
         }
+        }
     }
 }
 
@@ -2445,6 +2603,14 @@ fun ChatRoomScreen(
 ) {
     val messages by viewModel.activeChatMessages.collectAsState()
     var userMessageText by remember { mutableStateOf("") }
+    var showTypingIndicator by remember { mutableStateOf(false) }
+
+    LaunchedEffect(showTypingIndicator) {
+        if (showTypingIndicator) {
+            delay(2000)
+            showTypingIndicator = false
+        }
+    }
 
     val scrollState = rememberScrollState()
 
@@ -2546,6 +2712,26 @@ fun ChatRoomScreen(
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
 
+        if (showTypingIndicator) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(Color.Gray)
+                )
+                Text(
+                    text = "écrit...",
+                    color = Color.Gray,
+                    fontSize = 12.sp
+                )
+            }
+        }
+
         // Write messaging bar bottom
         Surface(
             color = Color.White,
@@ -2582,6 +2768,7 @@ fun ChatRoomScreen(
                         if (userMessageText.isNotBlank()) {
                             viewModel.sendChatMessage(item.id, userMessageText, item.ownerName)
                             userMessageText = ""
+                            showTypingIndicator = true
                         }
                     },
                     modifier = Modifier
@@ -2634,7 +2821,7 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                 fontSize = 13.sp,
                 color = Color.Gray
             )
-            Divider(color = Color(0xFFF1F1F1))
+            HorizontalDivider(color = Color(0xFFF1F1F1))
         }
 
         if (isSuccessPost) {
