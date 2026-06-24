@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -303,7 +304,15 @@ fun ExploreScreen(viewModel: RentalViewModel) {
         // Custom Search Bar & Filters Trigger Click
         item {
             Row(
-                modifier = Modifier.fillMaxWidth().testTag("search_container"),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        1.dp,
+                        Color.White.copy(alpha = 0.12f),
+                        RoundedCornerShape(16.dp)
+                    )
+                    .background(Color.White.copy(alpha = 0.04f), RoundedCornerShape(16.dp))
+                    .testTag("search_container"),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -327,10 +336,11 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        focusedBorderColor = PrimaryGreen,
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
-                        focusedContainerColor = Color(0xFF162133),
-                        unfocusedContainerColor = Color(0xFF162133)
+                        focusedBorderColor = Color.White.copy(alpha = 0.18f),
+                        unfocusedBorderColor = Color.White.copy(alpha = 0.10f),
+                        focusedContainerColor = Color.White.copy(alpha = 0.07f),
+                        unfocusedContainerColor = Color.White.copy(alpha = 0.05f),
+                        cursorColor = PrimaryGreen
                     ),
                     singleLine = true
                 )
@@ -529,6 +539,117 @@ fun ExploreScreen(viewModel: RentalViewModel) {
             }
         }
 
+        // Annonce du jour Featured Section
+        item {
+            val featuredItem = items.firstOrNull()
+            if (featuredItem != null) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    SectionHeader(title = "Annonce du jour")
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp)
+                            .clickable { selectedItemForModal = featuredItem },
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(featuredItem.imageUrl)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = featuredItem.title,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            colors = listOf(
+                                                Color.Transparent,
+                                                Color.Black.copy(alpha = 0.85f)
+                                            )
+                                        )
+                                    )
+                            )
+                            // Spotlight badge
+                            Surface(
+                                color = PrimaryGreen,
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
+                                    .align(Alignment.TopStart)
+                                    .padding(12.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Star,
+                                        contentDescription = null,
+                                        tint = BrandNavy,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        "Spotlight",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = BrandNavy
+                                    )
+                                }
+                            }
+                            Column(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = featuredItem.title,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.LocationOn,
+                                        contentDescription = null,
+                                        tint = PrimaryGreen,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        "${featuredItem.neighborhood}, ${featuredItem.city}",
+                                        fontSize = 12.sp,
+                                        color = Color.White.copy(alpha = 0.7f)
+                                    )
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    Text(
+                                        formatPriceCfa(featuredItem.pricePerDay) + " / Jour",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = PrimaryGreen
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Horizontal Category Tabs with Dynamic Counters and Icons
         item {
             Column(
@@ -538,7 +659,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                 SectionHeader(title = "Rechercher par Catégorie")
 
                 val categoriesWithIcons = listOf(
-                    Triple("Tous", Icons.Rounded.Category, "Tous"),
+                    Triple("Tous", Icons.Rounded.Apps, "Tous"),
                     Triple("Immobilier", Icons.Rounded.Home, "Immobilier"),
                     Triple("Véhicules", Icons.Rounded.DirectionsCar, "Véhicules"),
                     Triple("Équipements", Icons.Rounded.Build, "Équipements")
@@ -562,7 +683,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                                 .clickable { viewModel.setSelectedCategory(catName) },
                             shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = if (isSelected) PrimaryGreen else Color(0xFF162133)
+                                containerColor = if (isSelected) PrimaryGreen.copy(alpha = 0.9f) else Color.White.copy(alpha = 0.06f)
                             ),
                             border = BorderStroke(
                                 1.dp,
@@ -767,20 +888,14 @@ fun RentalCard(
                     }
 
                     // Bookmark heart button custom styled
-                    IconButton(
+                    AnimatedHeartButton(
+                        isFavorite = item.isBookmarked,
                         onClick = onBookmarkToggle,
                         modifier = Modifier
                             .size(36.dp)
                             .background(Color.Black.copy(alpha = 0.6f), CircleShape)
                             .testTag("bookmark_toggle_button_${item.id}")
-                    ) {
-                        Icon(
-                            imageVector = if (item.isBookmarked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                            contentDescription = "Bookmark button toggle",
-                            tint = if (item.isBookmarked) Color.Red else Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
+                    )
                 }
 
                 // Verified sticker tag overlay on picture
@@ -1366,10 +1481,13 @@ fun ItemDetailsScreen(
     val context = LocalContext.current
     var showBookingDialog by remember { mutableStateOf(false) }
 
-    LazyColumn(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(BrandNavy)
+    ) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize()
     ) {
         // Picture header with absolute overlay controls
         item {
@@ -1386,6 +1504,19 @@ fun ItemDetailsScreen(
                     contentDescription = item.title,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
+                )
+
+                // Bottom gradient overlay for text readability
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                        .align(Alignment.BottomCenter)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, BrandNavy)
+                            )
+                        )
                 )
 
                 // Upper Overlay Row
@@ -1424,7 +1555,7 @@ fun ItemDetailsScreen(
                             },
                             modifier = Modifier
                                 .size(40.dp)
-                                .background(Color.White.copy(alpha = 0.9f), CircleShape)
+                                .background(PrimaryGreen, CircleShape)
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Share,
@@ -1434,19 +1565,13 @@ fun ItemDetailsScreen(
                             )
                         }
 
-                        IconButton(
+                        AnimatedHeartButton(
+                            isFavorite = item.isBookmarked,
                             onClick = { viewModel.toggleBookmark(item) },
                             modifier = Modifier
                                 .size(40.dp)
-                                .background(Color.White.copy(alpha = 0.9f), CircleShape)
-                        ) {
-                            Icon(
-                                imageVector = if (item.isBookmarked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                                contentDescription = "Bookmark button toggle",
-                                tint = if (item.isBookmarked) Color.Red else Color.Black,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                        )
                     }
                 }
             }
@@ -1455,7 +1580,7 @@ fun ItemDetailsScreen(
         // Details summary card
         item {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(20.dp).padding(bottom = 80.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Category & verify label
@@ -1565,8 +1690,8 @@ fun ItemDetailsScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                    colors = CardDefaults.cardColors(containerColor = BrandNavy.copy(alpha = 0.6f)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.18f))
                 ) {
                     Row(
                         modifier = Modifier.padding(14.dp),
@@ -1669,6 +1794,45 @@ fun ItemDetailsScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Reviews section
+                val mockReviews = listOf(
+                    Triple("Jean K.", 5, "Très bon propriétaire, bien comme décrit !"),
+                    Triple("Patricia M.", 4, "Bon rapport qualité-prix, je recommande.")
+                )
+                SectionHeader(title = "Avis")
+                Spacer(modifier = Modifier.height(8.dp))
+                mockReviews.forEach { (name, stars, text) ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    repeat(stars) {
+                                        Icon(
+                                            Icons.Rounded.Star,
+                                            contentDescription = null,
+                                            tint = Color(0xFFFFB300),
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                    }
+                                }
+                            }
+                            Text(text, fontSize = 12.sp, color = Color.White.copy(alpha = 0.65f), lineHeight = 18.sp)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
                 // Similar listings
                 val similarItems by viewModel.similarItems.collectAsState()
                 if (similarItems.isNotEmpty()) {
@@ -1728,21 +1892,43 @@ fun ItemDetailsScreen(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-
-                // Bottom CTA action button
-                Button(
-                    onClick = { showBookingDialog = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandNavy),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .testTag("rent_now_button")
-                ) {
-                    Text("Louer maintenant", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                }
             }
         }
+
+        // Bottom spacing for floating bar
+        item { Spacer(modifier = Modifier.height(80.dp)) }
+    }
+
+    // Floating price bar
+    Surface(
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF162133).copy(alpha = 0.95f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+        shadowElevation = 8.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text("Total / jour", fontSize = 11.sp, color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Medium)
+                Text(formatPriceCfa((item.pricePerDay * 1.05).toInt()), fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = PrimaryGreen)
+            }
+            Button(
+                onClick = { showBookingDialog = true },
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.height(48.dp).testTag("rent_now_button")
+            ) {
+                Text("Louer maintenant", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+            }
+        }
+    }
     }
 
     if (showBookingDialog) {
@@ -1795,6 +1981,19 @@ fun BookingInteractiveDialog(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                val currentStep = when (paymentState) {
+                    is PaymentState.Idle -> 1
+                    is PaymentState.AwaitingPin -> 3
+                    is PaymentState.Processing -> 4
+                    is PaymentState.Success -> 4
+                    else -> 1
+                }
+                StepIndicator(
+                    currentStep = currentStep,
+                    totalSteps = 4,
+                    stepLabels = listOf("Jours", "Paiement", "Numéro", "Confirm")
+                )
+
                 when (val state = paymentState) {
                     is PaymentState.Idle -> {
                         Text(
@@ -1861,12 +2060,18 @@ fun BookingInteractiveDialog(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text("Prix Total", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color.Gray)
-                                Text(
-                                    formatPriceCfa(item.pricePerDay * daysCount),
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = BrandNavy
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    PointsChip(points = 50)
+                                    Text(
+                                        formatPriceCfa(item.pricePerDay * daysCount),
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = BrandNavy
+                                    )
+                                }
                             }
                         }
 
@@ -2274,12 +2479,10 @@ fun BookingsScreen(viewModel: RentalViewModel) {
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                EmptyState(
-                    icon = Icons.Rounded.List,
+                AnimatedEmptyState(
+                    icon = Icons.Rounded.EventBusy,
                     title = "Aucune réservation",
-                    subtitle = "Vos réservations apparaîtront ici",
-                    actionText = "Explorer",
-                    onAction = { viewModel.navigateTo("home") }
+                    subtitle = "Explorez les annonces et louez votre premier bien"
                 )
             }
         } else {
@@ -2445,12 +2648,10 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                EmptyState(
+                AnimatedEmptyState(
                     icon = Icons.Rounded.FavoriteBorder,
                     title = "Aucun favori",
-                    subtitle = "Ajoutez des annonces à vos favoris pour les retrouver ici",
-                    actionText = "Explorer",
-                    onAction = { viewModel.navigateTo("home") }
+                    subtitle = "Ajoutez des annonces en favori pour les retrouver facilement"
                 )
             }
         } else {
@@ -2525,12 +2726,10 @@ fun InboxScreen(viewModel: RentalViewModel) {
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                EmptyState(
-                    icon = Icons.Default.Email,
+                AnimatedEmptyState(
+                    icon = Icons.Rounded.ChatBubbleOutline,
                     title = "Aucun message",
-                    subtitle = "Vos conversations apparaîtront ici",
-                    actionText = "Explorer",
-                    onAction = { viewModel.navigateTo("home") }
+                    subtitle = "Contactez un propriétaire pour démarrer une conversation"
                 )
             }
         } else {
@@ -2667,7 +2866,31 @@ fun ChatRoomScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Box(modifier = Modifier.size(6.dp).background(PrimaryGreen, CircleShape))
+                        val infiniteTransition = rememberInfiniteTransition(label = "online")
+                        val pulseAlpha by infiniteTransition.animateFloat(
+                            initialValue = 0.4f,
+                            targetValue = 1f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(800),
+                                repeatMode = RepeatMode.Reverse
+                            ),
+                            label = "pulseAlpha"
+                        )
+                        val pulseScale by infiniteTransition.animateFloat(
+                            initialValue = 0.8f,
+                            targetValue = 1.2f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(800),
+                                repeatMode = RepeatMode.Reverse
+                            ),
+                            label = "pulseScale"
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size((6 * pulseScale).dp)
+                                .clip(CircleShape)
+                                .background(PrimaryGreen.copy(alpha = pulseAlpha))
+                        )
                         Text("En ligne", fontSize = 10.sp, color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Medium)
                     }
                 }
@@ -2682,7 +2905,25 @@ fun ChatRoomScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item { Spacer(modifier = Modifier.height(16.dp)) }
+            item {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Surface(
+                        color = Color.Black.copy(alpha = 0.06f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = "Aujourd'hui",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+            }
 
             items(messages) { message ->
                 val isMe = message.sender == "User"
@@ -2743,17 +2984,16 @@ fun ChatRoomScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(Color.Gray)
-                )
-                Text(
-                    text = "écrit...",
-                    color = Color.Gray,
-                    fontSize = 12.sp
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    repeat(3) { i ->
+                        val dotOffset by rememberInfiniteTransition(label = "dot$i").animateFloat(
+                            initialValue = 0f, targetValue = -8f,
+                            animationSpec = infiniteRepeatable(tween(300, delayMillis = i * 100), RepeatMode.Reverse),
+                            label = "dotAnim$i"
+                        )
+                        Box(modifier = Modifier.size(6.dp).offset(y = dotOffset.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.5f)))
+                    }
+                }
             }
         }
 
@@ -2764,7 +3004,18 @@ fun ChatRoomScreen(
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
             modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
         ) {
-            Row(
+            Column {
+                QuickReplyChips(
+                    replies = listOf("Disponible ?", "Quel prix ?", "Visite possible ?", "Négociation"),
+                    onReply = { reply ->
+                        viewModel.sendChatMessage(item.id, reply, item.ownerName)
+                        showTypingIndicator = true
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+                Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp),
@@ -2807,6 +3058,7 @@ fun ChatRoomScreen(
                 ) {
                     Icon(Icons.Rounded.Send, contentDescription = "Envoyer", tint = if (userMessageText.isNotBlank()) BrandNavy else Color.White.copy(alpha = 0.3f))
                 }
+            }
             }
         }
     }
@@ -2881,6 +3133,21 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                 }
             }
         } else {
+            // Step Indicator
+            item {
+                val currentStep = when {
+                    title.isBlank() -> 1
+                    neighborhood.isBlank() -> 2
+                    description.isBlank() -> 3
+                    else -> 4
+                }
+                StepIndicator(
+                    currentStep = currentStep,
+                    totalSteps = 4,
+                    stepLabels = listOf("Détails", "Localisation", "Description", "Publier")
+                )
+            }
+
             // Image Preview
             item {
                 if (imageUrl.isNotBlank()) {

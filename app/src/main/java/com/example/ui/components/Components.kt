@@ -4,6 +4,8 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -14,13 +16,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
@@ -379,6 +385,291 @@ fun SectionHeader(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.clickable { onAction() }
             )
+        }
+    }
+}
+
+// ==================== GLASSMORPHISM CARD ====================
+@Composable
+fun GlassmorphismCard(
+    modifier: Modifier = Modifier,
+    cornerRadius: Dp = 20.dp,
+    content: @Composable () -> Unit
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(cornerRadius),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.08f)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
+    ) {
+        content()
+    }
+}
+
+// ==================== ANIMATED HEART BUTTON ====================
+@Composable
+fun AnimatedHeartButton(
+    isFavorite: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var animScale by remember { mutableStateOf(1f) }
+    val scale by animateFloatAsState(
+        targetValue = animScale,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "heartScale"
+    )
+    LaunchedEffect(isFavorite) {
+        if (isFavorite) {
+            animScale = 1.3f
+            kotlinx.coroutines.delay(200)
+            animScale = 1f
+        }
+    }
+    IconButton(
+        onClick = { onClick(); animScale = 1.4f },
+        modifier = modifier.scale(scale)
+    ) {
+        Icon(
+            imageVector = if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+            contentDescription = "Favori",
+            tint = if (isFavorite) Color.Red else Color.White,
+            modifier = Modifier.size(22.dp)
+        )
+    }
+}
+
+// ==================== QUICK REPLY CHIPS ====================
+@Composable
+fun QuickReplyChips(
+    replies: List<String>,
+    onReply: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LazyRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(replies) { reply ->
+            Surface(
+                onClick = { onReply(reply) },
+                color = PrimaryGreen.copy(alpha = 0.12f),
+                shape = RoundedCornerShape(20.dp),
+                border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.25f))
+            ) {
+                Text(
+                    text = reply,
+                    color = PrimaryGreen,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+                )
+            }
+        }
+    }
+}
+
+// ==================== STEP INDICATOR ====================
+@Composable
+fun StepIndicator(
+    currentStep: Int,
+    totalSteps: Int,
+    stepLabels: List<String>,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        for (i in 1..totalSteps) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(
+                            when {
+                                i < currentStep -> PrimaryGreen
+                                i == currentStep -> PrimaryGreen
+                                else -> Color.White.copy(alpha = 0.1f)
+                            }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (i < currentStep) {
+                        Icon(Icons.Rounded.Check, contentDescription = null, tint = BrandNavy, modifier = Modifier.size(18.dp))
+                    } else {
+                        Text(
+                            text = "$i",
+                            color = if (i == currentStep) BrandNavy else Color.White.copy(alpha = 0.5f),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+                if (i <= stepLabels.size) {
+                    Text(
+                        text = stepLabels[i - 1],
+                        color = if (i <= currentStep) Color.White else Color.White.copy(alpha = 0.4f),
+                        fontSize = 10.sp,
+                        fontWeight = if (i == currentStep) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
+            if (i < totalSteps) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(2.dp)
+                        .padding(horizontal = 4.dp)
+                        .align(Alignment.CenterVertically)
+                        .background(if (i < currentStep) PrimaryGreen else Color.White.copy(alpha = 0.1f))
+                )
+            }
+        }
+    }
+}
+
+// ==================== TRUST SCORE ====================
+@Composable
+fun TrustScore(
+    score: Int,
+    modifier: Modifier = Modifier
+) {
+    val color = when {
+        score >= 80 -> PrimaryGreen
+        score >= 50 -> Color(0xFFFFB300)
+        else -> Color.Red
+    }
+    val label = when {
+        score >= 80 -> "Excellent"
+        score >= 50 -> "Bon"
+        else -> "À améliorer"
+    }
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(modifier = Modifier.size(40.dp)) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                drawArc(
+                    color = Color.White.copy(alpha = 0.1f),
+                    startAngle = -90f,
+                    sweepAngle = 360f,
+                    useCenter = false,
+                    style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
+                )
+                drawArc(
+                    color = color,
+                    startAngle = -90f,
+                    sweepAngle = 360f * (score / 100f),
+                    useCenter = false,
+                    style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
+                )
+            }
+            Text(
+                text = "$score",
+                color = Color.White,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+        Column {
+            Text("Score de confiance", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(label, color = color, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+        }
+    }
+}
+
+// ==================== BADGE CHIP ====================
+@Composable
+fun BadgeChip(
+    label: String,
+    icon: ImageVector,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        color = color.copy(alpha = 0.12f),
+        shape = RoundedCornerShape(8.dp),
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(12.dp))
+            Text(label, color = color, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+// ==================== ANIMATED EMPTY STATE ====================
+@Composable
+fun AnimatedEmptyState(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    modifier: Modifier = Modifier
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "emptyFloat")
+    val offsetY by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = -12f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = EaseInOut),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "floatY"
+    )
+    Box(
+        modifier = modifier.fillMaxWidth().padding(vertical = 48.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .offset(y = offsetY.dp)
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.06f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = Color.White.copy(alpha = 0.35f), modifier = Modifier.size(40.dp))
+            }
+            Text(title, color = Color.White.copy(alpha = 0.7f), fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+            Text(subtitle, color = Color.White.copy(alpha = 0.4f), fontSize = 13.sp, textAlign = TextAlign.Center)
+        }
+    }
+}
+
+// ==================== REWARD/POINT CHIP ====================
+@Composable
+fun PointsChip(
+    points: Int,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        color = Color(0xFFFFB300).copy(alpha = 0.12f),
+        shape = RoundedCornerShape(20.dp),
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(Icons.Rounded.Star, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(14.dp))
+            Text("$points pts", color = Color(0xFFFFB300), fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

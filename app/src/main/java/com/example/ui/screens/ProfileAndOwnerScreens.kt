@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.*
+
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -43,6 +45,9 @@ import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.ui.components.*
+import com.example.ui.components.TrustScore
+import com.example.ui.components.BadgeChip
+import com.example.ui.components.PointsChip
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
 import java.text.NumberFormat
@@ -298,12 +303,15 @@ fun ProfileMainScreen(
                     }
 
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            "Marie-Claire Nzamba",
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                "Marie-Claire Nzamba",
+                                color = Color.White,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            PointsChip(points = 1250)
+                        }
                         Text(
                             maskPhoneNumber("+241 77 12 34 56") + " (Libreville)",
                             color = Color.White.copy(alpha = 0.65f),
@@ -325,6 +333,21 @@ fun ProfileMainScreen(
                         }
                     }
                 }
+            }
+
+            // Trust Score
+            TrustScore(score = 85)
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Badge Chips
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                BadgeChip(label = "Top Locator", icon = Icons.Rounded.EmojiEvents, color = Color(0xFFFFB300))
+                BadgeChip(label = "Vérifié", icon = Icons.Rounded.VerifiedUser, color = PrimaryGreen)
+                BadgeChip(label = "Réactif", icon = Icons.Rounded.Speed, color = Color(0xFF4FC3F7))
             }
 
             Spacer(modifier = Modifier.height(20.dp))
