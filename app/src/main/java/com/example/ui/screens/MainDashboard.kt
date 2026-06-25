@@ -91,7 +91,7 @@ fun MainDashboardView(viewModel: RentalViewModel) {
                 label = "DashboardScreenTransition"
             ) { screen ->
                 when (screen) {
-                    is Screen.Home, is Screen.Explore -> ExploreScreen(viewModel)
+                    is Screen.Home -> ExploreScreen(viewModel)
                     is Screen.Bookings -> BookingsScreen(viewModel)
                     is Screen.PostListing -> PostListingScreen(viewModel)
                     is Screen.Bookmarks -> BookmarksScreen(viewModel)
@@ -115,7 +115,7 @@ fun MainDashboardView(viewModel: RentalViewModel) {
                             ChatRoomScreen(
                                 item = item,
                                 viewModel = viewModel,
-                                onBack = { viewModel.navigateTo("details") }
+                                onBack = { viewModel.navigateTo("home") }
                             )
                         } else {
                             ExploreScreen(viewModel)
@@ -139,10 +139,10 @@ fun DashboardBottomBar(
         modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         NavigationBarItem(
-            selected = currentScreen is Screen.Home || currentScreen is Screen.Explore || currentScreen is Screen.Details,
+            selected = currentScreen is Screen.Home || currentScreen is Screen.Details,
             onClick = { onNavigate("home") },
             icon = {
-                val isSel = currentScreen is Screen.Home || currentScreen is Screen.Explore || currentScreen is Screen.Details
+                val isSel = currentScreen is Screen.Home || currentScreen is Screen.Details
                 SmoothIcon(Icons.Rounded.Search, contentDescription = "Explorer", tint = if (isSel) BrandNavy else Color.White.copy(alpha = 0.45f), backgroundColor = if (isSel) PrimaryGreen else Color.White.copy(alpha = 0.08f), modifier = Modifier.size(32.dp), iconSize = 18.dp)
             },
             label = { Text("Explorer", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
@@ -284,7 +284,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
             ) {
                 Column {
                     Text(
-                        "Bienvenue au Gabon 🇬🇦",
+                        "Bienvenue au Gabon",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         color = Color.White.copy(alpha = 0.60f)
@@ -294,22 +294,6 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
-                    )
-                }
-
-                // App icon mini badge with logout button to test onboarding
-                IconButton(
-                    onClick = { viewModel.restartOnboarding() },
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF162133))
-                        .border(1.dp, Color.White.copy(alpha = 0.15f), CircleShape)
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Refresh,
-                        contentDescription = "Restart onboarding logo",
-                        tint = PrimaryGreen
                     )
                 }
             }
@@ -1325,6 +1309,7 @@ fun RentalDetailModalDialog(
 
                                 IconButton(
                                     onClick = {
+                                        viewModel.selectItem(item)
                                         viewModel.openChatFor(item)
                                         viewModel.navigateTo("chat")
                                         onDismissRequest()
@@ -2457,12 +2442,23 @@ fun BookingsScreen(viewModel: RentalViewModel) {
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            "Mes Réservations",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            SmoothIconButton(
+                icon = Icons.AutoMirrored.Rounded.ArrowBack,
+                onClick = { viewModel.navigateTo("home") },
+                tint = Color.White
+            )
+            Text(
+                "Mes Réservations",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
 
         HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
@@ -2527,12 +2523,22 @@ fun BookingItemCard(booking: Booking, onCancelClick: () -> Unit = {}) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
-                    color = Color(0xFF0C2417),
+                    color = when (booking.status) {
+                        "Payé" -> Color(0xFF0C2417)
+                        "Confirmé" -> Color(0xFF0D2944)
+                        "Annulé" -> Color(0xFF3C1111)
+                        else -> Color(0xFF162133)
+                    },
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        text = "Statut: Payé",
-                        color = PrimaryGreen,
+                        text = "Statut: ${booking.status}",
+                        color = when (booking.status) {
+                            "Payé" -> PrimaryGreen
+                            "Confirmé" -> Color(0xFF4FC3F7)
+                            "Annulé" -> Color.Red
+                            else -> Color.White
+                        },
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -2731,7 +2737,7 @@ fun InboxScreen(viewModel: RentalViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                val showItems = items.take(4) // display top 4 items to simulate discussion
+                val showItems = items
                 items(showItems) { item ->
                 Card(
                     modifier = Modifier
@@ -2820,11 +2826,11 @@ fun ChatRoomScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF7F7F7))
+            .background(BrandNavy)
     ) {
         // App header containing landlord profiles
         Surface(
-            color = Color(0xFF0F1A2E),
+            color = Color(0xFF162133),
             tonalElevation = 8.dp,
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
         ) {
@@ -2907,14 +2913,14 @@ fun ChatRoomScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Surface(
-                        color = Color.Black.copy(alpha = 0.06f),
+                        color = Color.White.copy(alpha = 0.08f),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
                             text = "Aujourd'hui",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color.Gray,
+                            color = Color.White.copy(alpha = 0.4f),
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                         )
                     }
@@ -2995,7 +3001,7 @@ fun ChatRoomScreen(
 
         // Write messaging bar bottom
         Surface(
-            color = Color(0xFF0F1A2E),
+            color = Color(0xFF162133),
             tonalElevation = 8.dp,
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f)),
             modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)

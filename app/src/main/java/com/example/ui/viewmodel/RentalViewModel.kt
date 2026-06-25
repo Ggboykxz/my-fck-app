@@ -37,7 +37,6 @@ sealed interface PaymentState {
 
 sealed interface Screen {
     data object Home : Screen
-    data object Explore : Screen
     data object Details : Screen
     data object Bookmarks : Screen
     data object Bookings : Screen
@@ -271,7 +270,6 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     fun navigateTo(screen: String) {
         _currentScreen.value = when (screen) {
             "home" -> Screen.Home
-            "explore" -> Screen.Explore
             "details" -> Screen.Details
             "bookmarks" -> Screen.Bookmarks
             "bookings" -> Screen.Bookings
