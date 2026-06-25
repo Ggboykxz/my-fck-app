@@ -2440,6 +2440,7 @@ fun BookingInteractiveDialog(
 @Composable
 fun BookingsScreen(viewModel: RentalViewModel) {
     val bookings by viewModel.bookings.collectAsState()
+    val isLoading by viewModel.isBookingsLoading.collectAsState()
     var showCancelDialog by remember { mutableStateOf<Booking?>(null) }
 
     Column(
@@ -2470,7 +2471,11 @@ fun BookingsScreen(viewModel: RentalViewModel) {
 
         HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
-        if (bookings.isEmpty()) {
+        if (isLoading) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(3) { SkeletonBookingItem() }
+            }
+        } else if (bookings.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -2628,6 +2633,7 @@ fun BookingItemCard(booking: Booking, onCancelClick: () -> Unit = {}) {
 @Composable
 fun BookmarksScreen(viewModel: RentalViewModel) {
     val items by viewModel.bookmarkedItems.collectAsState()
+    val isLoading by viewModel.isBookmarksLoading.collectAsState()
 
     var selectedItemForModal by remember { mutableStateOf<RentalItem?>(null) }
     var showBookingFromModal by remember { mutableStateOf<RentalItem?>(null) }
@@ -2649,7 +2655,11 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
 
         HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
-        if (items.isEmpty()) {
+        if (isLoading) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(4) { SkeletonCard() }
+            }
+        } else if (items.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -2708,6 +2718,7 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
 @Composable
 fun InboxScreen(viewModel: RentalViewModel) {
     val items by viewModel.rawRentalItems.collectAsState()
+    val isLoading by viewModel.isInboxLoading.collectAsState()
 
     Column(
         modifier = Modifier
@@ -2726,8 +2737,11 @@ fun InboxScreen(viewModel: RentalViewModel) {
 
         HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
-        // Simply show active chat rooms for existing seed items to provide easy test navigation
-        if (items.isEmpty()) {
+        if (isLoading) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(5) { SkeletonChatItem() }
+            }
+        } else if (items.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

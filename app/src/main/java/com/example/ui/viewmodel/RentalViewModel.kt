@@ -139,6 +139,19 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     private val _referralEarnings = MutableStateFlow(15000)
     val referralEarnings: StateFlow<Int> = _referralEarnings.asStateFlow()
 
+    // Loading states for skeleton screens
+    private val _isHomeLoading = MutableStateFlow(true)
+    val isHomeLoading: StateFlow<Boolean> = _isHomeLoading.asStateFlow()
+
+    private val _isBookmarksLoading = MutableStateFlow(true)
+    val isBookmarksLoading: StateFlow<Boolean> = _isBookmarksLoading.asStateFlow()
+
+    private val _isBookingsLoading = MutableStateFlow(true)
+    val isBookingsLoading: StateFlow<Boolean> = _isBookingsLoading.asStateFlow()
+
+    private val _isInboxLoading = MutableStateFlow(true)
+    val isInboxLoading: StateFlow<Boolean> = _isInboxLoading.asStateFlow()
+
     // Snackbar
     private val _snackbarMessage = MutableStateFlow<String?>(null)
     val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()
@@ -197,6 +210,24 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
 
         viewModelScope.launch {
             repository.seedDatabase()
+        }
+
+        // Simulate loading delays for skeleton screens
+        viewModelScope.launch {
+            delay(1200)
+            _isHomeLoading.value = false
+        }
+        viewModelScope.launch {
+            delay(800)
+            _isBookmarksLoading.value = false
+        }
+        viewModelScope.launch {
+            delay(1000)
+            _isBookingsLoading.value = false
+        }
+        viewModelScope.launch {
+            delay(600)
+            _isInboxLoading.value = false
         }
     }
 
