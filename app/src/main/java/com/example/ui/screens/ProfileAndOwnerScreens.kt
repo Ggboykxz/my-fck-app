@@ -2,6 +2,7 @@ package com.example.ui.screens
 
 import android.content.Intent
 import androidx.compose.animation.*
+import androidx.compose.ui.graphics.vector.ImageVector
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -123,7 +124,7 @@ data class ReceivedReservation(
 
 @Composable
 fun ProfileNavigator(viewModel: RentalViewModel) {
-    var subScreen by remember { mutableStateOf("main") } // "main", "dashboard", "earnings", "wallet", "listings", "calendar", "bookings_received", "identity", "disputes", "tenant_bookings", "language", "security", "notifications", "help", "payment_methods", "damage", "review_tenant", "edit_profile", "about", "advanced_search", "settings", "invite_friend", "rating", "reservation_detail", "payment_history"
+    var subScreen by remember { mutableStateOf("main") } // "main", "dashboard", "earnings", "wallet", "listings", "calendar", "bookings_received", "identity", "disputes", "tenant_bookings", "language", "security", "notifications", "help", "payment_methods", "damage", "review_tenant", "edit_profile", "about", "advanced_search", "settings", "invite_friend", "rating", "reservation_detail", "payment_history", "leaderboard", "achievements", "flash_offers", "loyalty_redeem", "rewards_coupons", "dispute"
     
     // Dispute state helpers
     var selectedDisputeId by remember { mutableStateOf<String?>(null) }
@@ -271,6 +272,25 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
                     }
                 }
                 "payment_history" -> PaymentHistoryScreen(
+                    onBack = { subScreen = "main" }
+                )
+                "leaderboard" -> LeaderboardScreen(
+                    onBack = { subScreen = "main" }
+                )
+                "achievements" -> AchievementsScreen(
+                    onBack = { subScreen = "main" }
+                )
+                "flash_offers" -> FlashOffersScreen(
+                    onBack = { subScreen = "main" }
+                )
+                "loyalty_redeem" -> LoyaltyRedeemScreen(
+                    viewModel = viewModel,
+                    onBack = { subScreen = "main" }
+                )
+                "rewards_coupons" -> RewardsCouponsScreen(
+                    onBack = { subScreen = "main" }
+                )
+                "dispute" -> DisputeScreen(
                     onBack = { subScreen = "main" }
                 )
             }
@@ -622,6 +642,54 @@ fun ProfileMainScreen(
                 containerColor = Color(0xFFAB47BC).copy(alpha = 0.12f),
                 iconTint = Color(0xFFAB47BC),
                 onClick = { onNavigate("invite_friend") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.Leaderboard,
+                title = "Classement",
+                subtitle = "Top propriétaires et locataires",
+                containerColor = Color(0xFFFFB300).copy(alpha = 0.12f),
+                iconTint = Color(0xFFFFB300),
+                onClick = { onNavigate("leaderboard") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.EmojiEvents,
+                title = "Mes Succès",
+                subtitle = "Badges et réalisations débloqués",
+                containerColor = Color(0xFFAB47BC).copy(alpha = 0.12f),
+                iconTint = Color(0xFFAB47BC),
+                onClick = { onNavigate("achievements") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.FlashOn,
+                title = "Offres Flash",
+                subtitle = "Réductions exclusives à durée limitée",
+                containerColor = Color(0xFFFF6F00).copy(alpha = 0.12f),
+                iconTint = Color(0xFFFF6F00),
+                onClick = { onNavigate("flash_offers") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.Stars,
+                title = "Mes Points",
+                subtitle = "Échangez vos points contre des récompenses",
+                containerColor = PrimaryGreen.copy(alpha = 0.12f),
+                iconTint = PrimaryGreen,
+                onClick = { onNavigate("loyalty_redeem") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.LocalOffer,
+                title = "Récompenses & Coupons",
+                subtitle = "Codes promo et avantages",
+                containerColor = Color(0xFF4FC3F7).copy(alpha = 0.12f),
+                iconTint = Color(0xFF4FC3F7),
+                onClick = { onNavigate("rewards_coupons") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.Gavel,
+                title = "Signaler un Litige",
+                subtitle = "Médiation et résolution de conflits",
+                containerColor = Color(0xFFEF5350).copy(alpha = 0.12f),
+                iconTint = Color(0xFFEF5350),
+                onClick = { onNavigate("dispute") }
             )
             ProfileOptionRow(
                 icon = Icons.Rounded.RateReview,
@@ -5298,6 +5366,414 @@ fun PaymentHistoryScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+// ==================== LEADERBOARD SCREEN ====================
+@Composable
+fun LeaderboardScreen(
+    onBack: () -> Unit
+) {
+    val leaderboardData = listOf(
+        mapOf("name" to "Kwame Asante", "rating" to "4.97", "city" to "Libreville"),
+        mapOf("name" to "Marie-Claire Obiang", "rating" to "4.95", "city" to "Port-Gentil"),
+        mapOf("name" to "Stéphane Koumba", "rating" to "4.92", "city" to "Libreville"),
+        mapOf("name" to "Patricia Ndong", "rating" to "4.88", "city" to "Franceville"),
+        mapOf("name" to "Rodrigue Mintsa", "rating" to "4.85", "city" to "Libreville"),
+        mapOf("name" to "Sophie Nguema", "rating" to "4.82", "city" to "Port-Gentil"),
+        mapOf("name" to "David Ogoula", "rating" to "4.80", "city" to "Libreville"),
+        mapOf("name" to "Aimée Mboumba", "rating" to "4.78", "city" to "Owendo"),
+        mapOf("name" to "Bernadette Nguéma", "rating" to "4.75", "city" to "Libreville"),
+        mapOf("name" to "Françoise Limbaka", "rating" to "4.72", "city" to "Port-Gentil")
+    )
+    val medals = listOf("🥇", "🥈", "🥉")
+
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Classement", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+            Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Top Propriétaires", color = PrimaryGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text("Classement basé sur les notes et avis", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(leaderboardData.size) { index ->
+                val entry = leaderboardData[index]
+                val name = entry["name"] ?: ""
+                val rating = entry["rating"] ?: ""
+                val city = entry["city"] ?: ""
+                Card(
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (index < 3) PrimaryGreen.copy(alpha = 0.08f) else Color(0xFF162133)
+                    ),
+                    border = BorderStroke(1.dp, if (index < 3) PrimaryGreen.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.08f))
+                ) {
+                    Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            text = if (index < 3) medals[index] else "${index + 1}",
+                            fontSize = if (index < 3) 22.sp else 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (index < 3) Color.White else Color.White.copy(alpha = 0.5f),
+                            modifier = Modifier.width(36.dp),
+                            textAlign = TextAlign.Center
+                        )
+                        Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(PrimaryGreen.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Rounded.Person, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(24.dp))
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(name, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(city, color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(rating, color = PrimaryGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                            Text("⭐", fontSize = 12.sp)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ==================== ACHIEVEMENTS SCREEN ====================
+@Composable
+fun AchievementsScreen(
+    onBack: () -> Unit
+) {
+    data class Achievement(val title: String, val desc: String, val unlocked: Boolean, val icon: ImageVector)
+    val achievements = listOf(
+        Achievement("Premier Pas", "Créez votre premier compte", true, Icons.Rounded.PersonAdd),
+        Achievement("Première Location", "Effectuez votre première réservation", true, Icons.Rounded.CarRental),
+        Achievement("Propriétaire Actif", "Publiez 3 annonces minimum", true, Icons.Rounded.Home),
+        Achievement("Groupe Social", "Invitez 5 amis via le parrainage", false, Icons.Rounded.Group),
+        Achievement("Fidélité", "Cumulez 10 réservations", false, Icons.Rounded.EmojiEvents),
+        Achievement("Confiance Verte", "Obtenez la vérification d'identité", true, Icons.Rounded.Verified),
+        Achievement("Super Hôte", "Maintenez une note >= 4.8 sur 10 avis", false, Icons.Rounded.Star),
+        Achievement("Réactif", "Répondez en moins de 1h pendant 30 jours", false, Icons.Rounded.Timer),
+        Achievement("Événementier", "Louez du matériel événementiel 5 fois", false, Icons.Rounded.Celebration),
+        Achievement("Explorateur", "Louez dans 3 villes différentes", false, Icons.Rounded.Explore)
+    )
+    val unlocked = achievements.count { it.unlocked }
+
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Mes Succès", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+            Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("$unlocked / ${achievements.size}", color = PrimaryGreen, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                Text("succès débloqués", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = { unlocked.toFloat() / achievements.size },
+                    modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                    color = PrimaryGreen,
+                    trackColor = Color.White.copy(alpha = 0.1f)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(achievements) { achievement ->
+                Card(
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (achievement.unlocked) PrimaryGreen.copy(alpha = 0.08f) else Color(0xFF162133)
+                    ),
+                    border = BorderStroke(1.dp, if (achievement.unlocked) PrimaryGreen.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.08f))
+                ) {
+                    Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(if (achievement.unlocked) PrimaryGreen.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
+                            Icon(achievement.icon, contentDescription = null, tint = if (achievement.unlocked) PrimaryGreen else Color.White.copy(alpha = 0.3f), modifier = Modifier.size(24.dp))
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(achievement.title, color = if (achievement.unlocked) Color.White else Color.White.copy(alpha = 0.5f), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(achievement.desc, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
+                        }
+                        if (achievement.unlocked) {
+                            Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(22.dp))
+                        } else {
+                            Icon(Icons.Rounded.Lock, contentDescription = null, tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(20.dp))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ==================== FLASH OFFERS SCREEN ====================
+@Composable
+fun FlashOffersScreen(
+    onBack: () -> Unit
+) {
+    val flashOffers = listOf(
+        Triple("Villa La Sablière", "-30%", "Se termine dans 2h 15min"),
+        Triple("Toyota Hilux 4x4", "-25%", "Se termine dans 4h 30min"),
+        Triple("Pack Sono Concert", "-20%", "Se termine dans 1h 45min"),
+        Triple("Appartement F2 Sibang", "-15%", "Se termine dans 6h 00min"),
+        Triple("Van Hiace 14 places", "-35%", "Se termine dans 3h 20min")
+    )
+
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Offres Flash ⚡", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFFF6F00).copy(alpha = 0.12f)), border = BorderStroke(1.dp, Color(0xFFFF6F00).copy(alpha = 0.3f))) {
+            Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Icon(Icons.Rounded.FlashOn, contentDescription = null, tint = Color(0xFFFF6F00), modifier = Modifier.size(28.dp))
+                Column {
+                    Text("Dépêchez-vous !", color = Color(0xFFFF6F00), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("Des réductions exclusives disparaissent bientôt", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            items(flashOffers) { (title, discount, timer) ->
+                Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)), border = BorderStroke(1.dp, Color(0xFFFF6F00).copy(alpha = 0.2f))) {
+                    Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFFFF6F00).copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
+                            Text(discount, color = Color(0xFFFF6F00), fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(timer, color = Color(0xFFFF6F00), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                        Button(
+                            onClick = {},
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF6F00), contentColor = Color.White),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text("Voir", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ==================== LOYALTY REDEEM SCREEN ====================
+@Composable
+fun LoyaltyRedeemScreen(
+    viewModel: RentalViewModel,
+    onBack: () -> Unit
+) {
+    val points by viewModel.referralEarnings.collectAsState()
+    val rewards = listOf(
+        Triple("Réduction 5 000 F", "5 000 points", Icons.Rounded.Discount),
+        Triple("Location gratuite 1 jour", "15 000 points", Icons.Rounded.CardGiftcard),
+        Triple("Upgrade véhicule", "10 000 points", Icons.Rounded.Upgrade),
+        Triple("Assurance offerte", "20 000 points", Icons.Rounded.Shield),
+        Triple("Cashback 10 000 F", "25 000 points", Icons.Rounded.Payments)
+    )
+
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Mes Points", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.1f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
+            Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("⭐", fontSize = 32.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("${points / 1000} 000", color = PrimaryGreen, fontSize = 32.sp, fontWeight = FontWeight.ExtraBold)
+                Text("points disponibles", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text("RÉCOMPENSES DISPONIBLES", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            items(rewards) { (title, cost, icon) ->
+                val canAfford = points >= 5000
+                Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+                    Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Box(modifier = Modifier.size(48.dp).clip(CircleShape).background(PrimaryGreen.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
+                            Icon(icon, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(24.dp))
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(cost, color = Color(0xFFFFB300), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                        Button(
+                            onClick = { viewModel.showSnackbar("Points échangés avec succès !") },
+                            enabled = canAfford,
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy, disabledContainerColor = Color.White.copy(alpha = 0.08f), disabledContentColor = Color.White.copy(alpha = 0.3f)),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                        ) {
+                            Text("Échanger", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ==================== REWARDS & COUPONS SCREEN ====================
+@Composable
+fun RewardsCouponsScreen(
+    onBack: () -> Unit
+) {
+    val coupons = listOf(
+        Triple("BIENVENUE10", "10% sur votre 1ère location", "Valide jusqu'au 31/12/2026"),
+        Triple("ÉTÉ2026", "15% sur les réservations > 3 jours", "Valide jusqu'au 30/09/2026"),
+        Triple("PARRAINAGE", "5 000 F CFA de crédit", "Valide après 1ère utilisation")
+    )
+
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Récompenses & Coupons", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text("MES COUPONS", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            items(coupons) { (code, description, expiry) ->
+                Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.2f))) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(Icons.Rounded.LocalOffer, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+                            Text(code, color = PrimaryGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(description, color = Color.White, fontSize = 13.sp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(expiry, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ==================== DISPUTE SCREEN ====================
+@Composable
+fun DisputeScreen(
+    onBack: () -> Unit
+) {
+    var disputeType by remember { mutableStateOf("Dommage") }
+    var description by remember { mutableStateOf("") }
+
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Signaler un Litige", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Icon(Icons.Rounded.Gavel, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(48.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+        Text("Décrivez votre problème", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text("Un médiateur LocAll examinera votre dossier sous 24-48h.", color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp, textAlign = TextAlign.Center)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text("TYPE DE LITIGE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp, modifier = Modifier.fillMaxWidth())
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("Dommage", "Retard", "Annulation", "Litige financier").forEach { type ->
+                val isSelected = disputeType == type
+                Surface(
+                    onClick = { disputeType = type },
+                    color = if (isSelected) PrimaryGreen.copy(alpha = 0.15f) else Color(0xFF162133),
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.08f))
+                ) {
+                    Text(type, color = if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.6f), fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = description,
+            onValueChange = { description = it },
+            placeholder = { Text("Décrivez le problème en détail...", color = Color.White.copy(alpha = 0.3f)) },
+            modifier = Modifier.fillMaxWidth().height(140.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White, unfocusedTextColor = Color.White,
+                focusedBorderColor = PrimaryGreen, unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                focusedContainerColor = Color(0xFF162133), unfocusedContainerColor = Color(0xFF162133)
+            )
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Button(
+            onClick = {},
+            enabled = description.isNotBlank(),
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier.fillMaxWidth().height(52.dp)
+        ) {
+            Icon(Icons.Rounded.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Envoyer la demande", fontWeight = FontWeight.Bold)
         }
     }
 }
