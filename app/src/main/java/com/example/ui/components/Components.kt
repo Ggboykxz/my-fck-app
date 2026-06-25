@@ -455,7 +455,8 @@ fun QuickReplyChips(
                 onClick = { onReply(reply) },
                 color = PrimaryGreen.copy(alpha = 0.12f),
                 shape = RoundedCornerShape(20.dp),
-                border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.25f))
+                border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.25f)),
+                modifier = Modifier.widthIn(max = 180.dp)
             ) {
                 Text(
                     text = reply,

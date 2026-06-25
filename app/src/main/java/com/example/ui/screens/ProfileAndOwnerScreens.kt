@@ -847,7 +847,7 @@ fun OwnerDashboardScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp),
+                    .aspectRatio(2f),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
@@ -2284,7 +2284,7 @@ fun IdentityVerificationScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp)
+                            .aspectRatio(1.5f)
                             .clip(RoundedCornerShape(16.dp))
                             .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(16.dp))
                             .background(Color.Black),

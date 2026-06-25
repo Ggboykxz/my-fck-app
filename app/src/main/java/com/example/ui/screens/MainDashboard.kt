@@ -484,7 +484,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp),
+                    .aspectRatio(2.5f),
                 shape = RoundedCornerShape(22.dp)
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -549,7 +549,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(220.dp)
+                            .aspectRatio(2f)
                             .clickable { selectedItemForModal = featuredItem },
                         shape = RoundedCornerShape(20.dp),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
@@ -810,7 +810,7 @@ fun RentalCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
+                    .aspectRatio(16f / 9f)
             ) {
                 // Item photo image
                 AsyncImage(
@@ -975,7 +975,9 @@ fun RentalCard(
                         text = "${item.neighborhood}, ${item.city}",
                         fontSize = 12.sp,
                         color = Color.White.copy(alpha = 0.7f),
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
@@ -1043,7 +1045,7 @@ fun RentalDetailModalDialog(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(260.dp)
+                            .aspectRatio(1.8f)
                     ) {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
@@ -1170,7 +1172,9 @@ fun RentalDetailModalDialog(
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
-                            lineHeight = 26.sp
+                            lineHeight = 26.sp,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
 
                         // Location
@@ -1276,7 +1280,9 @@ fun RentalDetailModalDialog(
                                         text = item.ownerName,
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White
+                                        color = Color.White,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
@@ -1485,7 +1491,7 @@ fun ItemDetailsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(300.dp)
+                    .aspectRatio(1.5f)
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
@@ -1603,7 +1609,9 @@ fun ItemDetailsScreen(
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
-                    lineHeight = 28.sp
+                    lineHeight = 28.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 // Location tag
@@ -2827,6 +2835,7 @@ fun ChatRoomScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(BrandNavy)
+            .imePadding()
     ) {
         // App header containing landlord profiles
         Surface(
@@ -3091,7 +3100,8 @@ fun PostListingScreen(viewModel: RentalViewModel) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = 20.dp)
+            .imePadding(),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         item {

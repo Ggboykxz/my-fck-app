@@ -171,12 +171,13 @@ fun LoginScreenView(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = 24.dp)
+            .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         item {
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.statusBarsPadding())
 
             // Upper Logo Design exactly from HTML
             Box(
@@ -476,7 +477,7 @@ fun LoginScreenView(
                 )
             }
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.statusBarsPadding())
         }
     }
 }
@@ -519,7 +520,8 @@ fun RegisterScreenView(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = 24.dp)
+            .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -993,6 +995,7 @@ fun ForgotPasswordScreenView(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp)
+            .imePadding()
     ) {
         Spacer(modifier = Modifier.height(48.dp))
 
@@ -1142,6 +1145,7 @@ fun OtpScreenView(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp)
+            .imePadding()
     ) {
         Spacer(modifier = Modifier.height(48.dp))
 
@@ -1341,6 +1345,7 @@ fun NewPasswordScreenView(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp)
+            .imePadding()
     ) {
         Spacer(modifier = Modifier.height(48.dp))
 
