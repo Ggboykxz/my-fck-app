@@ -453,7 +453,12 @@ class RentalRepository(private val rentalDao: RentalDao) {
 
                 // Conversation 12: Moto NMAX - Test ride
                 ChatMessage(rentalItemId = 25, sender = "User", messageText = "Est-ce que je peux faire un essai avant la location longue durée ?", timestamp = now - 43200000),
-                ChatMessage(rentalItemId = 25, sender = "Moto Express Oyem", messageText = "Bien sûr, venez essayer demain matin au magasin. C'est gratuit !", timestamp = now - 43100000)
+                ChatMessage(rentalItemId = 25, sender = "Moto Express Oyem", messageText = "Bien sûr, venez essayer demain matin au magasin. C'est gratuit !", timestamp = now - 43100000),
+
+                // Enriched messages: image and location types
+                ChatMessage(rentalItemId = 1, sender = "Propriétaire", messageText = "[image] https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800", timestamp = now - 3600000),
+                ChatMessage(rentalItemId = 1, sender = "Propriétaire", messageText = "[location] Villa La Sablière, Rue des Manguiers, Libreville", timestamp = now - 3500000),
+                ChatMessage(rentalItemId = 2, sender = "Propriétaire", messageText = "[image] https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800", timestamp = now - 7200000)
             )
             for (msg in seedMessages) {
                 rentalDao.insertChatMessage(msg)

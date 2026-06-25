@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.foundation.BorderStroke
@@ -1680,6 +1681,49 @@ fun ItemDetailsScreen(
                     )
                 }
 
+                // Geolocation map placeholder
+                Card(
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0D2137)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Box(modifier = Modifier.fillMaxWidth().height(140.dp)) {
+                        // Map placeholder with grid pattern
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+                            // Draw grid lines
+                            for (i in 0..10) {
+                                val x = size.width * i / 10
+                                drawLine(Color.White.copy(alpha = 0.04f), Offset(x, 0f), Offset(x, size.height))
+                            }
+                            for (i in 0..6) {
+                                val y = size.height * i / 6
+                                drawLine(Color.White.copy(alpha = 0.04f), Offset(0f, y), Offset(size.width, y))
+                            }
+                            // Draw center pin
+                            drawCircle(PrimaryGreen.copy(alpha = 0.15f), radius = 20f, center = center)
+                            drawCircle(PrimaryGreen, radius = 8f, center = center)
+                            drawCircle(Color.White, radius = 4f, center = center)
+                        }
+                        // Location label
+                        Column(modifier = Modifier.align(Alignment.BottomStart).padding(10.dp)) {
+                            Text("${item.neighborhood}", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("${item.city}, Gabon", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
+                        }
+                        // Open in maps button
+                        Icon(
+                            Icons.Rounded.Map,
+                            contentDescription = "Voir sur la carte",
+                            tint = PrimaryGreen,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(8.dp)
+                                .size(28.dp)
+                                .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                .padding(4.dp)
+                        )
+                    }
+                }
+
                 // Daily Price Box
                 Card(
                     shape = RoundedCornerShape(16.dp),
@@ -3004,6 +3048,13 @@ fun ChatRoomScreen(
 
             items(messages) { message ->
                 val isMe = message.sender == "User"
+                val isImage = message.messageText.startsWith("[image]")
+                val isLocation = message.messageText.startsWith("[location]")
+                val displayText = when {
+                    isImage -> message.messageText.removePrefix("[image] ").trim()
+                    isLocation -> message.messageText.removePrefix("[location] ").trim()
+                    else -> message.messageText
+                }
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = if (isMe) Alignment.End else Alignment.Start
@@ -3035,12 +3086,43 @@ fun ChatRoomScreen(
                             )
                             .padding(14.dp)
                     ) {
-                        Text(
-                            text = message.messageText,
-                            fontSize = 14.sp,
-                            color = if (isMe) Color.White else Color.White.copy(alpha = 0.9f),
-                            lineHeight = 20.sp
-                        )
+                        when {
+                            isImage -> Column {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(displayText)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = "Image partagée",
+                                    modifier = Modifier.fillMaxWidth().height(160.dp).clip(RoundedCornerShape(10.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text("📷 Photo partagée", fontSize = 11.sp, color = Color.White.copy(alpha = 0.5f))
+                            }
+                            isLocation -> Column {
+                                Card(
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0D2137))
+                                ) {
+                                    Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(PrimaryGreen.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
+                                            Icon(Icons.Rounded.LocationOn, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(18.dp))
+                                        }
+                                        Column {
+                                            Text("📍 Position partagée", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                            Text(displayText, color = Color.White.copy(alpha = 0.6f), fontSize = 10.sp)
+                                        }
+                                    }
+                                }
+                            }
+                            else -> Text(
+                                text = displayText,
+                                fontSize = 14.sp,
+                                color = if (isMe) Color.White else Color.White.copy(alpha = 0.9f),
+                                lineHeight = 20.sp
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
