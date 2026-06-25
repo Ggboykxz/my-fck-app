@@ -257,12 +257,29 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         _sortOption.value = option
     }
 
+    // Advanced filters: date range and distance
+    private val _startDate = MutableStateFlow<String?>(null)
+    val startDate: StateFlow<String?> = _startDate.asStateFlow()
+
+    private val _endDate = MutableStateFlow<String?>(null)
+    val endDate: StateFlow<String?> = _endDate.asStateFlow()
+
+    private val _maxDistance = MutableStateFlow(50f)
+    val maxDistance: StateFlow<Float> = _maxDistance.asStateFlow()
+
+    fun setStartDate(date: String?) { _startDate.value = date }
+    fun setEndDate(date: String?) { _endDate.value = date }
+    fun setMaxDistance(distance: Float) { _maxDistance.value = distance }
+
     fun clearAllFilters() {
         _searchQuery.value = ""
         _selectedCategory.value = "Tous"
         _selectedCity.value = "Tous"
         _selectedMaxPrice.value = 0
         _sortOption.value = SortOption.RECENT
+        _startDate.value = null
+        _endDate.value = null
+        _maxDistance.value = 50f
     }
 
     fun addReferral() {

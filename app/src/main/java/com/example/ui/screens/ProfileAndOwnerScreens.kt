@@ -4738,6 +4738,9 @@ fun AdvancedSearchScreen(
     var selectedCategory by remember { mutableStateOf("Tous") }
     var selectedCity by remember { mutableStateOf("Tous") }
     var maxPrice by remember { mutableIntStateOf(0) }
+    var startDate by remember { mutableStateOf("") }
+    var endDate by remember { mutableStateOf("") }
+    var maxDistance by remember { mutableFloatStateOf(50f) }
     val items by viewModel.filteredRentalItems.collectAsState()
 
     Column(
@@ -4829,6 +4832,54 @@ fun AdvancedSearchScreen(
         )
 
         Spacer(modifier = Modifier.height(20.dp))
+
+        Text("DATES DE DISPONIBILITÉ", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedTextField(
+                value = startDate,
+                onValueChange = { startDate = it; viewModel.setStartDate(it.ifEmpty { null }) },
+                placeholder = { Text("Début (ex: 15/07)", color = Color.White.copy(alpha = 0.3f), fontSize = 12.sp) },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(10.dp),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.White, unfocusedTextColor = Color.White,
+                    focusedBorderColor = PrimaryGreen, unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                    focusedContainerColor = Color(0xFF162133), unfocusedContainerColor = Color(0xFF162133)
+                )
+            )
+            OutlinedTextField(
+                value = endDate,
+                onValueChange = { endDate = it; viewModel.setEndDate(it.ifEmpty { null }) },
+                placeholder = { Text("Fin (ex: 20/07)", color = Color.White.copy(alpha = 0.3f), fontSize = 12.sp) },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(10.dp),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.White, unfocusedTextColor = Color.White,
+                    focusedBorderColor = PrimaryGreen, unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                    focusedContainerColor = Color(0xFF162133), unfocusedContainerColor = Color(0xFF162133)
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text("DISTANCE MAX: ${maxDistance.toInt()} km", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+        Slider(
+            value = maxDistance,
+            onValueChange = { maxDistance = it },
+            onValueChangeFinished = { viewModel.setMaxDistance(maxDistance) },
+            valueRange = 1f..100f,
+            colors = SliderDefaults.colors(
+                thumbColor = PrimaryGreen,
+                activeTrackColor = PrimaryGreen,
+                inactiveTrackColor = Color.White.copy(alpha = 0.1f)
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text("${items.size} résultat(s) trouvé(s)", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp)
 

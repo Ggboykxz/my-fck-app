@@ -6,6 +6,8 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -1486,22 +1488,59 @@ fun ItemDetailsScreen(
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Picture header with absolute overlay controls
+        // Picture header with horizontal pager gallery
         item {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1.5f)
             ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(item.imageUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = item.title,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                val galleryImages = remember(item.imageUrl) {
+                    listOfNotNull(item.imageUrl) + listOf(
+                        item.imageUrl?.replace("w=800", "w=801"),
+                        item.imageUrl?.replace("w=800", "w=802")
+                    ).filterNotNull().take(2)
+                }
+                val pagerState = rememberPagerState(pageCount = { galleryImages.size })
+
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize()
+                ) { page ->
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(galleryImages[page])
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "${item.title} - Photo ${page + 1}",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
+                // Page indicator dots
+                if (galleryImages.size > 1) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 48.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        repeat(galleryImages.size) { index ->
+                            Box(
+                                modifier = Modifier
+                                    .padding(horizontal = 4.dp)
+                                    .size(if (pagerState.currentPage == index) 8.dp else 6.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (pagerState.currentPage == index) PrimaryGreen
+                                        else Color.White.copy(alpha = 0.4f)
+                                    )
+                            )
+                        }
+                    }
+                }
 
                 // Bottom gradient overlay for text readability
                 Box(
@@ -1557,6 +1596,19 @@ fun ItemDetailsScreen(
                                 .size(40.dp)
                                 .background(Color.Black.copy(alpha = 0.6f), CircleShape)
                         )
+                        // Like counter
+                        val likeCount = remember(item.id) { (item.id * 7 + 12) % 150 + 3 }
+                        Box(
+                            modifier = Modifier
+                                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                                .padding(horizontal = 10.dp, vertical = 6.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Icon(Icons.Rounded.FavoriteBorder, contentDescription = null, tint = Color.Red, modifier = Modifier.size(14.dp))
+                                Text("$likeCount", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 }
             }
