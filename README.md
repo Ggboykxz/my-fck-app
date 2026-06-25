@@ -2,7 +2,7 @@
 <img width="1200" height="475" alt="LocAll Banner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
 <h1>LocAll</h1>
 <p><strong>Louez tout, partout au Gabon</strong></p>
-<p>Application mobile de location entre particuliers — prototype fonctionnel (45 écrans)</p>
+<p>Application mobile de location entre particuliers — prototype fonctionnel (51 écrans)</p>
 </div>
 
 ---
@@ -20,7 +20,7 @@ LocAll est une application Android de marketplace de location (véhicules, équi
 
 ---
 
-## Captures d'écran — 45 écrans
+## Captures d'écran — 51 écrans
 
 ### 1. Onboarding (4 écrans)
 
@@ -169,6 +169,15 @@ LocAll est une application Android de marketplace de location (véhicules, équi
 - Signalement de dommages
 - Avis locataire
 
+### Fonctionnalités additionnelles
+- Recherche avancée avec filtres (catégorie, ville, prix)
+- Paramètres généraux (notifications, thème, géolocalisation)
+- Système d'invitation d'amis (5 000 F CFA par parrainage)
+- Formulaire d'avis avec notation par étoiles
+- Détail de réservation avec annulation
+- Historique des paiements avec résumé
+- Badges sur les annonces (Nouveau, Populaire)
+
 ### Design & UX
 - Thème dark/light
 - Numéros de téléphone masqués
@@ -228,12 +237,13 @@ app/src/main/java/com/example/
 
 > **Prototype fonctionnel** — toutes les données sont simulées (Room DB locale, pas de backend).
 
-### 45 écrans implémentés
+### 51 écrans implémentés
 - 4 écrans d'onboarding
 - 12 écrans d'authentification
 - 7 écrans du dashboard principal
 - 14 écrans de profil & paramètres
 - 6 écrans d'espace propriétaire
+- 6 écrans additionnels (recherche avancée, paramètres, invitation, avis, détail réservation, historique paiements)
 - 2 états spéciaux (paiement, skeleton)
 
 ## Licence

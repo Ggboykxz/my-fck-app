@@ -181,10 +181,116 @@ class RentalRepository(private val rentalDao: RentalDao) {
                     ownerRating = 4.6f,
                     imageUrl = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80",
                     isVerified = true
+                ),
+                RentalItem(
+                    title = "Terrain constructible 500m² - Akanda",
+                    description = "Terrain plat viabilisé (eau, électricité, gaz) idéal pour construire villa ou immeuble. Situé dans zone résidentielle calme à Akanda, près du marché. Titre foncier disponible.",
+                    category = "Immobilier",
+                    pricePerDay = 25000,
+                    city = "Libreville",
+                    neighborhood = "Akanda",
+                    ownerName = "Patrick Ondimba",
+                    ownerPhone = "066123456",
+                    ownerRating = 4.4f,
+                    imageUrl = "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                RentalItem(
+                    title = "Mercedes-Benz Classe C 2024 - VIP",
+                    description = "Berline premium allemande entièrement noire, intérieur cuir beige, toit ouvrant panoramique, système audio Harman Kardon. Chauffeur inclus pour vos événements professionnels ou mariages à Libreville.",
+                    category = "Véhicules",
+                    pricePerDay = 120000,
+                    city = "Libreville",
+                    neighborhood = "Batterie IV",
+                    ownerName = "Luxury Cars Gabon",
+                    ownerPhone = "077987654",
+                    ownerRating = 4.9f,
+                    imageUrl = "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                RentalItem(
+                    title = "Caméra Sony A7IV + Gimbal - Vidéaste",
+                    description = "Kit complet pour vidéastes professionnels : boîtier Sony A7IV, objectif 24-70mm f/2.8, gimbal DJI RS3, deux batteries NP-FZ100, carte 256go. Idéal pour mariages, clips vidéo ou couverture d'événements au Gabon.",
+                    category = "Équipements",
+                    pricePerDay = 35000,
+                    city = "Libreville",
+                    neighborhood = "Nzeng-Ayong",
+                    ownerName = "Studio Créatif Gabon",
+                    ownerPhone = "066789123",
+                    ownerRating = 4.7f,
+                    imageUrl = "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                RentalItem(
+                    title = "Tente Événementielle 10x20m - Mariage",
+                    description = "Grande tente blanche de réception pour mariages et événements professionnels. Comprend structure métallique, bâche imperméable, sol parquet modulable, guirlandes lumineuses LED et installation sur site à Libreville ou Akanda.",
+                    category = "Équipements",
+                    pricePerDay = 80000,
+                    city = "Akanda",
+                    neighborhood = "Angondjé",
+                    ownerName = "Avenir Événementiel",
+                    ownerPhone = "074558833",
+                    ownerRating = 4.6f,
+                    imageUrl = "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                RentalItem(
+                    title = "Moto Honda Africa Twin 2023 - Aventure",
+                    description = "Moto trail tout-terrain pour aventuriers. Parfaite pour explorer les pistes du Gabon intérieur (Lopé, Minvoul, Makokou). Casque intégral et gants inclus. Permis moto obligatoire.",
+                    category = "Véhicules",
+                    pricePerDay = 30000,
+                    city = "Franceville",
+                    neighborhood = "Centre",
+                    ownerName = "Gabon Aventure",
+                    ownerPhone = "066456789",
+                    ownerRating = 4.5f,
+                    imageUrl = "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?auto=format&fit=crop&w=800&q=80",
+                    isVerified = false
+                ),
+                RentalItem(
+                    title = "Piscine Gonflable Familiale + Tabourets",
+                    description = "Kit détente complet : piscine gonflable 3m x 0.76m avec filtration intégrée, 4 transats pliables, parasol UV. Livraison gratuite à Libreville. Idéal pour jardins ou terrasses lors des fêtes de fin d'année.",
+                    category = "Équipements",
+                    pricePerDay = 15000,
+                    city = "Libreville",
+                    neighborhood = "Oloumi",
+                    ownerName = "Loc Gabon",
+                    ownerPhone = "077234567",
+                    ownerRating = 4.2f,
+                    imageUrl = "https://images.unsplash.com/photo-1575429198097-0414ec08e8cd?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                RentalItem(
+                    title = "Duplex Moderne Vue Estuaire - Nkembo",
+                    description = "Superbe duplex moderne de 180m² avec vue imprenable sur l'estuaire du Komo. 3 chambres avec salles de bain attenantes, salon double hauteur, cuisine équipée haut de gamme, piscine privée et jardin tropical. Gardiennage 24h/24.",
+                    category = "Immobilier",
+                    pricePerDay = 200000,
+                    city = "Libreville",
+                    neighborhood = "Nkembo",
+                    ownerName = "Premium Properties Gabon",
+                    ownerPhone = "011789456",
+                    ownerRating = 5.0f,
+                    imageUrl = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
                 )
             )
             for (item in seedItems) {
                 rentalDao.insertRentalItem(item)
+            }
+
+            // Seed initial chat conversations
+            val seedMessages = listOf(
+                ChatMessage(rentalItemId = 1, sender = "Kofi Mensah", messageText = "Bonjour ! La villa est disponible du 15 au 20 juillet. Souhaitez-vous réserver ?", timestamp = System.currentTimeMillis() - 3600000),
+                ChatMessage(rentalItemId = 1, sender = "User", messageText = "Oui, elle correspond parfaitement à mes critères. Le WiFi est inclus ?", timestamp = System.currentTimeMillis() - 3500000),
+                ChatMessage(rentalItemId = 1, sender = "Kofi Mensah", messageText = "Oui, fibre optique 100 Mo/s. La piscine est également chauffée.", timestamp = System.currentTimeMillis() - 3400000),
+                ChatMessage(rentalItemId = 5, sender = "Mael Koumba", messageText = "Le Prado est disponible dès demain. Besoin d'un chauffeur ?", timestamp = System.currentTimeMillis() - 7200000),
+                ChatMessage(rentalItemId = 5, sender = "User", messageText = "Non merci, je conduis moi-même. LeGPS est fonctionnel ?", timestamp = System.currentTimeMillis() - 7100000),
+                ChatMessage(rentalItemId = 5, sender = "Mael Koumba", messageText = "Oui, tout est opérationnel. Je vous envoie les photos de l'état actuel.", timestamp = System.currentTimeMillis() - 7000000),
+                ChatMessage(rentalItemId = 9, sender = "Avenir Evenementiel", messageText = "Pack sono complet disponible pour le 28 juin. Montage inclus ?", timestamp = System.currentTimeMillis() - 14400000),
+                ChatMessage(rentalItemId = 9, sender = "User", messageText = "Oui, j'organise un mariage à Akanda. Combien pour 3 jours ?", timestamp = System.currentTimeMillis() - 14300000)
+            )
+            for (msg in seedMessages) {
+                rentalDao.insertChatMessage(msg)
             }
         }
     }

@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.test.core.app.ApplicationProvider
 import com.example.data.local.AppDatabase
+import com.example.data.model.Booking
 import com.example.data.model.RentalItem
 import com.example.data.repository.RentalRepository
 import com.example.ui.screens.*
@@ -521,5 +522,80 @@ class AllScreensScreenshotTest {
             }
         }
         screenshot("45_skeleton_loading")
+    }
+
+    // ==================== NEW SCREENS (6) ====================
+
+    @Test
+    fun screenshot_46_advanced_search() {
+        composeTestRule.setContent {
+            MyApplicationTheme {
+                AdvancedSearchScreen(viewModel = viewModel, onBack = {})
+            }
+        }
+        screenshot("46_advanced_search")
+    }
+
+    @Test
+    fun screenshot_47_settings() {
+        composeTestRule.setContent {
+            MyApplicationTheme {
+                SettingsScreen(onBack = {})
+            }
+        }
+        screenshot("47_settings")
+    }
+
+    @Test
+    fun screenshot_48_invite_friend() {
+        composeTestRule.setContent {
+            MyApplicationTheme {
+                InviteFriendScreen(onBack = {})
+            }
+        }
+        screenshot("48_invite_friend")
+    }
+
+    @Test
+    fun screenshot_49_rating() {
+        composeTestRule.setContent {
+            MyApplicationTheme {
+                RatingScreen(rentalItemTitle = "Villa de Luxe - La Sablière", onBack = {}, onSubmitted = {})
+            }
+        }
+        screenshot("49_rating")
+    }
+
+    @Test
+    fun screenshot_50_reservation_detail() {
+        val mockBooking = Booking(
+            id = 1,
+            rentalItemId = 5,
+            rentalItemTitle = "Toyota Prado VXR 2023",
+            rentalItemCategory = "Véhicules",
+            pricePerDay = 95000,
+            days = 3,
+            totalPrice = 285000,
+            status = "Confirmé",
+            paymentMethod = "Airtel Money",
+            paymentPhone = "+241 07 12 34 56",
+            bookingTimestamp = System.currentTimeMillis()
+        )
+        composeTestRule.setContent {
+            MyApplicationTheme {
+                ReservationDetailScreen(booking = mockBooking, onBack = {}, onCancel = {})
+            }
+        }
+        screenshot("50_reservation_detail")
+    }
+
+    @Test
+    fun screenshot_51_payment_history() {
+        composeTestRule.setContent {
+            MyApplicationTheme {
+                PaymentHistoryScreen(onBack = {})
+            }
+        }
+        screenshot("51_payment_history")
     }
 }

@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import android.content.Intent
 import androidx.compose.animation.*
 
 import androidx.compose.foundation.*
@@ -66,11 +67,16 @@ data class NotificationItem(
 )
 
 val mockNotifications = listOf(
-    NotificationItem(1, "reservation", "Réservation confirmée", "Votre réservation Toyota Hilux a été confirmée", "Il y a 2h", false),
-    NotificationItem(2, "message", "Nouveau message", "Jean a envoyé un message concernant la Mitsubishi L200", "Il y a 4h", false),
-    NotificationItem(3, "payment", "Paiement reçu", "45 000 F CFA reçus pour la location Toyota Hilux", "Il y a 1 jour", true),
-    NotificationItem(4, "system", "Mise à jour", "LocAll v1.0.1 est maintenant disponible", "Il y a 2 jours", true),
-    NotificationItem(5, "reservation", "Réservation annulée", "La réservation de Paul a été annulée", "Il y a 3 jours", true)
+    NotificationItem(1, "reservation", "Réservation confirmée", "Votre réservation Toyota Hilux a été confirmée pour le 15 juillet", "Il y a 2h", false),
+    NotificationItem(2, "message", "Nouveau message", "Kofi Mensah a envoyé un message concernant la Villa La Sablière", "Il y a 4h", false),
+    NotificationItem(3, "payment", "Paiement reçu", "45 000 F CFA reçus pour la location Toyota Hilux - 3 jours", "Il y a 1 jour", true),
+    NotificationItem(4, "system", "Mise à jour", "LocAll v1.0.1 est maintenant disponible avec de nouvelles fonctionnalités", "Il y a 2 jours", true),
+    NotificationItem(5, "reservation", "Réservation annulée", "La réservation de Paul pour le Mitsubishi L200 a été annulée", "Il y a 3 jours", true),
+    NotificationItem(6, "payment", "Remboursé", "15 000 F CFA remboursés - Annulation précoce Groupe Electrogène", "Il y a 5 jours", true),
+    NotificationItem(7, "message", "Demande de réservation", "Sophie Nguema souhaite réserver l'Appartement Vue Mer du 20 au 25 juin", "Il y a 6 jours", false),
+    NotificationItem(8, "system", "Vérification réussie", "Votre identité a été vérifiée avec succès. Badge Vérifié activé !", "Il y a 1 semaine", true),
+    NotificationItem(9, "reservation", "Rappel de retour", "N'oubliez pas de retourner le Pack Sono Concert demain avant 18h", "Il y a 1 semaine", false),
+    NotificationItem(10, "payment", "Point de fidélité", "Vous avez gagné 250 points pour votre dernière réservation !", "Il y a 2 semaines", true)
 )
 
 data class DisputeItem(
@@ -107,7 +113,7 @@ data class ReceivedReservation(
 
 @Composable
 fun ProfileNavigator(viewModel: RentalViewModel) {
-    var subScreen by remember { mutableStateOf("main") } // "main", "dashboard", "earnings", "wallet", "listings", "calendar", "bookings_received", "identity", "disputes", "tenant_bookings", "language", "security", "notifications", "help", "payment_methods", "damage", "review_tenant", "edit_profile"
+    var subScreen by remember { mutableStateOf("main") } // "main", "dashboard", "earnings", "wallet", "listings", "calendar", "bookings_received", "identity", "disputes", "tenant_bookings", "language", "security", "notifications", "help", "payment_methods", "damage", "review_tenant", "edit_profile", "about", "advanced_search", "settings", "invite_friend", "rating", "reservation_detail", "payment_history"
     
     // Dispute state helpers
     var selectedDisputeId by remember { mutableStateOf<String?>(null) }
@@ -226,6 +232,34 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
                     onSubmitted = { subScreen = "bookings_received" }
                 )
                 "about" -> AboutScreen(
+                    onBack = { subScreen = "main" }
+                )
+                "advanced_search" -> AdvancedSearchScreen(
+                    viewModel = viewModel,
+                    onBack = { subScreen = "main" }
+                )
+                "settings" -> SettingsScreen(
+                    onBack = { subScreen = "main" }
+                )
+                "invite_friend" -> InviteFriendScreen(
+                    onBack = { subScreen = "main" }
+                )
+                "rating" -> RatingScreen(
+                    rentalItemTitle = viewModel.selectedItem.value?.title ?: "Annonce",
+                    onBack = { subScreen = "main" },
+                    onSubmitted = { subScreen = "main" }
+                )
+                "reservation_detail" -> {
+                    val booking = viewModel.bookings.collectAsState().value.firstOrNull()
+                    if (booking != null) {
+                        ReservationDetailScreen(
+                            booking = booking,
+                            onBack = { subScreen = "main" },
+                            onCancel = { subScreen = "main" }
+                        )
+                    }
+                }
+                "payment_history" -> PaymentHistoryScreen(
                     onBack = { subScreen = "main" }
                 )
             }
@@ -553,6 +587,38 @@ fun ProfileMainScreen(
                 containerColor = PrimaryGreen.copy(alpha = 0.12f),
                 iconTint = PrimaryGreen,
                 onClick = { onNavigate("help") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.Payment,
+                title = "Historique des Paiements",
+                subtitle = "Vos transactions & reçus",
+                containerColor = Color(0xFFFF9800).copy(alpha = 0.12f),
+                iconTint = Color(0xFFFF9800),
+                onClick = { onNavigate("payment_history") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.Settings,
+                title = "Paramètres",
+                subtitle = "Notifications, thème & géolocalisation",
+                containerColor = Color(0xFF78909C).copy(alpha = 0.12f),
+                iconTint = Color(0xFF78909C),
+                onClick = { onNavigate("settings") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.CardGiftcard,
+                title = "Inviter un Ami",
+                subtitle = "Gagnez 5 000 F CFA par ami invité",
+                containerColor = Color(0xFFAB47BC).copy(alpha = 0.12f),
+                iconTint = Color(0xFFAB47BC),
+                onClick = { onNavigate("invite_friend") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.RateReview,
+                title = "Donner un Avis",
+                subtitle = "Évaluez une expérience de location",
+                containerColor = Color(0xFFFFB300).copy(alpha = 0.12f),
+                iconTint = Color(0xFFFFB300),
+                onClick = { onNavigate("rating") }
             )
             ProfileOptionRow(
                 icon = Icons.Rounded.Info,
@@ -4648,5 +4714,525 @@ fun PaymentMethodsScreen(
         }
 
         Spacer(modifier = Modifier.height(30.dp))
+    }
+}
+
+// ==================== ADVANCED SEARCH SCREEN ====================
+@Composable
+fun AdvancedSearchScreen(
+    viewModel: RentalViewModel,
+    onBack: () -> Unit
+) {
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("Tous") }
+    var selectedCity by remember { mutableStateOf("Tous") }
+    var maxPrice by remember { mutableIntStateOf(0) }
+    val items by viewModel.filteredRentalItems.collectAsState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)
+            ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Recherche Avancée", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it; viewModel.setSearchQuery(it) },
+            placeholder = { Text("Rechercher...", color = Color.White.copy(alpha = 0.3f)) },
+            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = Color.White.copy(alpha = 0.5f)) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White, unfocusedTextColor = Color.White,
+                focusedBorderColor = PrimaryGreen, unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                focusedContainerColor = Color(0xFF162133), unfocusedContainerColor = Color(0xFF162133)
+            )
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text("CATÉGORIE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("Tous", "Immobilier", "Véhicules", "Équipements").forEach { cat ->
+                val isSelected = selectedCategory == cat
+                Surface(
+                    onClick = { selectedCategory = cat; viewModel.setSelectedCategory(cat) },
+                    color = if (isSelected) PrimaryGreen.copy(alpha = 0.15f) else Color(0xFF162133),
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.08f))
+                ) {
+                    Text(cat, color = if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.6f), fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text("VILLE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("Tous", "Libreville", "Port-Gentil", "Franceville").forEach { city ->
+                val isSelected = selectedCity == city
+                Surface(
+                    onClick = { selectedCity = city; viewModel.setSelectedCity(city) },
+                    color = if (isSelected) PrimaryGreen.copy(alpha = 0.15f) else Color(0xFF162133),
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.08f))
+                ) {
+                    Text(city, color = if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.6f), fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text("PRIX MAX: ${formatPriceCfa(maxPrice)}/jour", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+        Slider(
+            value = maxPrice.toFloat(),
+            onValueChange = { maxPrice = it.toInt() },
+            onValueChangeFinished = { viewModel.setSelectedMaxPrice(maxPrice) },
+            valueRange = 0f..250000f,
+            colors = SliderDefaults.colors(
+                thumbColor = PrimaryGreen,
+                activeTrackColor = PrimaryGreen,
+                inactiveTrackColor = Color.White.copy(alpha = 0.1f)
+            )
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text("${items.size} résultat(s) trouvé(s)", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp)
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(items) { item ->
+                Card(
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+                ) {
+                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current).data(item.imageUrl).crossfade(true).build(),
+                            contentDescription = item.title,
+                            modifier = Modifier.size(60.dp).clip(RoundedCornerShape(10.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(item.title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("${item.neighborhood}, ${item.city}", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                            Text(formatPriceCfa(item.pricePerDay) + " / jour", color = PrimaryGreen, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ==================== SETTINGS SCREEN ====================
+@Composable
+fun SettingsScreen(
+    onBack: () -> Unit
+) {
+    var notificationsEnabled by remember { mutableStateOf(true) }
+    var darkMode by remember { mutableStateOf(true) }
+    var locationEnabled by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Paramètres", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SmoothIcon(icon = Icons.Rounded.Notifications, tint = Color(0xFFFFB300), backgroundColor = Color(0xFFFFB300).copy(alpha = 0.12f))
+                    Column { Text("Notifications", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold); Text("Alertes push et emails", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp) }
+                }
+                Switch(checked = notificationsEnabled, onCheckedChange = { notificationsEnabled = it }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SmoothIcon(icon = Icons.Rounded.DarkMode, tint = Color(0xFF4FC3F7), backgroundColor = Color(0xFF4FC3F7).copy(alpha = 0.12f))
+                    Column { Text("Mode Sombre", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold); Text("Thème sombre de l'application", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp) }
+                }
+                Switch(checked = darkMode, onCheckedChange = { darkMode = it }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SmoothIcon(icon = Icons.Rounded.LocationOn, tint = PrimaryGreen, backgroundColor = PrimaryGreen.copy(alpha = 0.12f))
+                    Column { Text("Géolocalisation", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold); Text("Autoriser l'accès à votre position", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp) }
+                }
+                Switch(checked = locationEnabled, onCheckedChange = { locationEnabled = it }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text("COMPTE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        listOf(
+            Triple(Icons.Rounded.Password, "Changer le mot de passe", "Dernière modification il y a 3 mois"),
+            Triple(Icons.Rounded.Delete, "Supprimer mon compte", "Action irréversible"),
+            Triple(Icons.Rounded.Description, "Conditions Générales", "CGU v1.0"),
+            Triple(Icons.Rounded.Shield, "Politique de Confidentialité", "RGPD")
+        ).forEach { (icon, title, subtitle) ->
+            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+                Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Icon(icon, contentDescription = null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
+                    Column(modifier = Modifier.weight(1f)) { Text(title, color = Color.White, fontSize = 14.sp); Text(subtitle, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp) }
+                    Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White.copy(alpha = 0.3f))
+                }
+            }
+        }
+    }
+}
+
+// ==================== INVITE FRIEND SCREEN ====================
+@Composable
+fun InviteFriendScreen(
+    onBack: () -> Unit
+) {
+    val inviteCode = "LOCALL-2026-GABON"
+    val context = LocalContext.current
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Inviter un ami", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(40.dp))
+
+        Box(modifier = Modifier.size(100.dp).clip(CircleShape).background(PrimaryGreen.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
+            Icon(Icons.Rounded.CardGiftcard, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(48.dp))
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text("Gagnez des récompenses !", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text("Invitez vos amis et recevez chacun 5 000 F CFA de crédit pour votre prochaine location.", color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp, textAlign = TextAlign.Center, lineHeight = 20.sp)
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)), border = BorderStroke(2.dp, PrimaryGreen.copy(alpha = 0.3f))) {
+            Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("Votre code d'invitation", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(inviteCode, color = PrimaryGreen, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 2.sp)
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = {
+                        val sendIntent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, "Rejoins LocAll avec mon code $inviteCode et gagne 5 000 F CFA ! https://locall.app/invite/$inviteCode")
+                            type = "text/plain"
+                        }
+                        context.startActivity(Intent.createChooser(sendIntent, "Partager le code"))
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Rounded.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Partager le code", fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Card(modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+                Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("3", color = PrimaryGreen, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("Amis invités", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                }
+            }
+            Card(modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+                Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("15 000", color = Color(0xFFFFB300), fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("F CFA gagnés", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                }
+            }
+        }
+    }
+}
+
+// ==================== RATING SCREEN ====================
+@Composable
+fun RatingScreen(
+    rentalItemTitle: String,
+    onBack: () -> Unit,
+    onSubmitted: () -> Unit
+) {
+    var rating by remember { mutableIntStateOf(0) }
+    var comment by remember { mutableStateOf("") }
+    var submitted by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Donner un avis", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(40.dp))
+
+        if (submitted) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(72.dp))
+                    Text("Merci pour votre avis !", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text("Votre retour aide la communauté LocAll", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
+                    Button(onClick = { onSubmitted() }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy), shape = RoundedCornerShape(12.dp)) {
+                        Text("Retour", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        } else {
+            Text("Comment évaluez-vous \"$rentalItemTitle\" ?", color = Color.White.copy(alpha = 0.7f), fontSize = 15.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                for (i in 1..5) {
+                    IconButton(onClick = { rating = i }) {
+                        Icon(
+                            imageVector = if (i <= rating) Icons.Rounded.Star else Icons.Rounded.StarBorder,
+                            contentDescription = "$i étoiles",
+                            tint = if (i <= rating) Color(0xFFFFB300) else Color.White.copy(alpha = 0.3f),
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text("VOTRE COMMENTAIRE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = comment,
+                onValueChange = { comment = it },
+                placeholder = { Text("Décrivez votre expérience...", color = Color.White.copy(alpha = 0.3f)) },
+                modifier = Modifier.fillMaxWidth().height(140.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.White, unfocusedTextColor = Color.White,
+                    focusedBorderColor = PrimaryGreen, unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                    focusedContainerColor = Color(0xFF162133), unfocusedContainerColor = Color(0xFF162133)
+                )
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = { if (rating > 0) { submitted = true; onSubmitted() } },
+                modifier = Modifier.fillMaxWidth().height(54.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = if (rating > 0) PrimaryGreen else Color.White.copy(alpha = 0.1f), contentColor = BrandNavy),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text("Publier l'avis", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+// ==================== RESERVATION DETAIL SCREEN ====================
+@Composable
+fun ReservationDetailScreen(
+    booking: com.example.data.model.Booking,
+    onBack: () -> Unit,
+    onCancel: () -> Unit
+) {
+    var showCancelDialog by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Détails Réservation", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        val statusColor = when (booking.status) {
+            "Payé" -> PrimaryGreen
+            "Confirmé" -> Color(0xFF4FC3F7)
+            "En attente" -> Color(0xFFFFB300)
+            "Annulé" -> Color.Red
+            "Terminé" -> Color(0xFF9E9E9E)
+            else -> Color.Gray
+        }
+
+        Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = statusColor.copy(alpha = 0.1f)), border = BorderStroke(1.dp, statusColor.copy(alpha = 0.3f))) {
+            Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Icons.Rounded.Receipt, contentDescription = null, tint = statusColor, modifier = Modifier.size(40.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(booking.status, color = statusColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("Réservation #${booking.id}", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                DetailRow("Annonce", booking.rentalItemTitle)
+                DetailRow("Catégorie", booking.rentalItemCategory)
+                DetailRow("Prix / jour", formatPriceCfa(booking.pricePerDay))
+                DetailRow("Nombre de jours", "${booking.days} jour(s)")
+                HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
+                DetailRow("Total payé", formatPriceCfa(booking.totalPrice))
+                DetailRow("Mode de paiement", booking.paymentMethod)
+                DetailRow("Téléphone", maskPhoneNumber(booking.paymentPhone))
+                DetailRow("Date", java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.FRANCE).format(java.util.Date(booking.bookingTimestamp)))
+            }
+        }
+
+        if (booking.status != "Annulé" && booking.status != "Terminé") {
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(
+                onClick = { showCancelDialog = true },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.15f), contentColor = Color.Red),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Icon(Icons.Rounded.Cancel, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Annuler la réservation", fontWeight = FontWeight.Bold)
+            }
+        }
+
+        if (showCancelDialog) {
+            ConfirmDialog(
+                title = "Annuler la réservation",
+                message = "Êtes-vous sûr de vouloir annuler cette réservation ? Cette action est irréversible.",
+                confirmText = "Annuler la réservation",
+                onConfirm = { showCancelDialog = false; onCancel() },
+                onDismiss = { showCancelDialog = false },
+                isDestructive = true
+            )
+        }
+    }
+}
+
+@Composable
+private fun DetailRow(label: String, value: String) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp)
+        Text(value, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+    }
+}
+
+// ==================== PAYMENT HISTORY SCREEN ====================
+@Composable
+fun PaymentHistoryScreen(
+    onBack: () -> Unit
+) {
+    val mockPayments = listOf(
+        Triple("Toyota Hilux - 3 jours", "15/06/2026", "Payé"),
+        Triple("Villa La Sablière - 5 jours", "01/06/2026", "Payé"),
+        Triple("Groupe électrogène - 1 jour", "20/05/2026", "Remboursé"),
+        Triple("Pack Sono - 2 jours", "10/05/2026", "Payé")
+    )
+
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Historique des paiements", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.1f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
+            Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("TOTAL DÉPENSÉ", color = PrimaryGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Text(formatPriceCfa(485000), color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                Text("sur 4 transactions", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            items(mockPayments) { (title, date, status) ->
+                Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+                    Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(Color.White.copy(alpha = 0.05f)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Rounded.Receipt, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(date, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
+                        }
+                        StatusBadge(text = status, color = if (status == "Payé") PrimaryGreen else Color(0xFFFFB300))
+                    }
+                }
+            }
+        }
     }
 }
