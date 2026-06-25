@@ -124,7 +124,7 @@ data class ReceivedReservation(
 
 @Composable
 fun ProfileNavigator(viewModel: RentalViewModel) {
-    var subScreen by remember { mutableStateOf("main") } // "main", "dashboard", "earnings", "wallet", "listings", "calendar", "bookings_received", "identity", "disputes", "tenant_bookings", "language", "security", "notifications", "help", "payment_methods", "damage", "review_tenant", "edit_profile", "about", "advanced_search", "settings", "invite_friend", "rating", "reservation_detail", "payment_history", "leaderboard", "achievements", "flash_offers", "loyalty_redeem", "rewards_coupons", "dispute"
+    var subScreen by remember { mutableStateOf("main") } // "main", "dashboard", "earnings", "wallet", "listings", "calendar", "bookings_received", "identity", "disputes", "tenant_bookings", "language", "security", "notifications", "help", "payment_methods", "damage", "review_tenant", "edit_profile", "about", "advanced_search", "settings", "invite_friend", "rating", "reservation_detail", "payment_history", "leaderboard", "achievements", "flash_offers", "loyalty_redeem", "rewards_coupons", "dispute", "insurance", "digital_deposit", "realtime_verification", "interactive_calendar"
     
     // Dispute state helpers
     var selectedDisputeId by remember { mutableStateOf<String?>(null) }
@@ -291,6 +291,18 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
                     onBack = { subScreen = "main" }
                 )
                 "dispute" -> DisputeScreen(
+                    onBack = { subScreen = "main" }
+                )
+                "insurance" -> InsuranceScreen(
+                    onBack = { subScreen = "main" }
+                )
+                "digital_deposit" -> DigitalDepositScreen(
+                    onBack = { subScreen = "main" }
+                )
+                "realtime_verification" -> RealTimeVerificationScreen(
+                    onBack = { subScreen = "main" }
+                )
+                "interactive_calendar" -> InteractiveCalendarScreen(
                     onBack = { subScreen = "main" }
                 )
             }
@@ -690,6 +702,38 @@ fun ProfileMainScreen(
                 containerColor = Color(0xFFEF5350).copy(alpha = 0.12f),
                 iconTint = Color(0xFFEF5350),
                 onClick = { onNavigate("dispute") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.Shield,
+                title = "Assurance Location",
+                subtitle = "Protégez vos biens avec une assurance",
+                containerColor = PrimaryGreen.copy(alpha = 0.12f),
+                iconTint = PrimaryGreen,
+                onClick = { onNavigate("insurance") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.AccountBalance,
+                title = "Caution Numérique",
+                subtitle = "Paiement et remboursement des cautions",
+                containerColor = Color(0xFF4FC3F7).copy(alpha = 0.12f),
+                iconTint = Color(0xFF4FC3F7),
+                onClick = { onNavigate("digital_deposit") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.Verified,
+                title = "Vérification Temps Réel",
+                subtitle = "Statut de vos documents de vérification",
+                containerColor = Color(0xFFAB47BC).copy(alpha = 0.12f),
+                iconTint = Color(0xFFAB47BC),
+                onClick = { onNavigate("realtime_verification") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.CalendarMonth,
+                title = "Calendrier Interactif",
+                subtitle = "Disponibilités et réservations",
+                containerColor = Color(0xFFFFB300).copy(alpha = 0.12f),
+                iconTint = Color(0xFFFFB300),
+                onClick = { onNavigate("interactive_calendar") }
             )
             ProfileOptionRow(
                 icon = Icons.Rounded.RateReview,
@@ -5774,6 +5818,349 @@ fun DisputeScreen(
             Icon(Icons.Rounded.Send, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text("Envoyer la demande", fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+// ==================== INSURANCE OPTIONS SCREEN ====================
+@Composable
+fun InsuranceScreen(
+    onBack: () -> Unit
+) {
+    var selectedPlan by remember { mutableStateOf("basic") }
+    val plans = listOf(
+        Triple("basic", "Essentiel", "7 500 F CFA/jour"),
+        Triple("standard", "Confort", "12 500 F CFA/jour"),
+        Triple("premium", "Premium", "20 000 F CFA/jour")
+    )
+
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Assurance Location", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Icon(Icons.Rounded.Shield, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(48.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+        Text("Protégez votre location", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text("Choisissez une couverture adaptée à vos besoins", color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp, textAlign = TextAlign.Center)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        plans.forEach { (id, name, price) ->
+            val isSelected = selectedPlan == id
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).clickable { selectedPlan = id },
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = if (isSelected) PrimaryGreen.copy(alpha = 0.08f) else Color(0xFF162133)),
+                border = BorderStroke(2.dp, if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.08f))
+            ) {
+                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(if (isSelected) PrimaryGreen.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.3f))
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(name, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(price, color = PrimaryGreen, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Couverture incluse :", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                listOf("Dommages matériels", "Vol et tentative de vol", "Assistance routière 24/7", "Responsabilité civile").forEach { item ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Rounded.Check, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(16.dp))
+                        Text(item, color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Button(
+            onClick = {},
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier.fillMaxWidth().height(52.dp).padding(bottom = 16.dp)
+        ) {
+            Icon(Icons.Rounded.Shield, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Souscrire à l'assurance", fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+// ==================== DIGITAL DEPOSIT SCREEN ====================
+@Composable
+fun DigitalDepositScreen(
+    onBack: () -> Unit
+) {
+    var depositMethod by remember { mutableStateOf("airtel") }
+
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Caution Numérique", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.08f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
+            Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("50 000 F CFA", color = PrimaryGreen, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                Text("Montant de la caution", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Remboursée sous 48h après retour du bien", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text("MODE DE PAIEMENT", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        listOf(
+            Triple("airtel", "Airtel Money", Color(0xFFE53935)),
+            Triple("moov", "Moov Money", Color(0xFFFFB300)),
+            Triple("card", "Carte Bancaire", Color(0xFF4FC3F7))
+        ).forEach { (id, name, color) ->
+            val isSelected = depositMethod == id
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { depositMethod = id },
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = if (isSelected) color.copy(alpha = 0.08f) else Color(0xFF162133)),
+                border = BorderStroke(1.dp, if (isSelected) color else Color.White.copy(alpha = 0.08f))
+            ) {
+                Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(color.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
+                    }
+                    Text(name, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                    if (isSelected) Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = color, modifier = Modifier.size(22.dp))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Button(
+            onClick = {},
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier.fillMaxWidth().height(52.dp).padding(bottom = 16.dp)
+        ) {
+            Text("Payer la caution de 50 000 F CFA", fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+// ==================== REAL-TIME VERIFICATION SCREEN ====================
+@Composable
+fun RealTimeVerificationScreen(
+    onBack: () -> Unit
+) {
+    val verificationSteps = listOf(
+        Triple("Identité vérifiée", "CNI scannée et validée par OCR", true),
+        Triple("Selfie validé", "Correspondance faciale confirmée", true),
+        Triple("Adresse confirmée", "Justificatif de domicile vérifié", false),
+        Triple("Téléphone vérifié", "Code SMS reçu et validé", true)
+    )
+
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Vérification Temps Réel", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.08f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
+            Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Icons.Rounded.Verified, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(48.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Profil 75% vérifié", color = PrimaryGreen, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = { 0.75f },
+                    modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                    color = PrimaryGreen,
+                    trackColor = Color.White.copy(alpha = 0.1f)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text("ÉTAPES DE VÉRIFICATION", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        verificationSteps.forEach { (title, desc, isVerified) ->
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = if (isVerified) PrimaryGreen.copy(alpha = 0.06f) else Color(0xFF162133))
+            ) {
+                Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(if (isVerified) PrimaryGreen.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
+                        Icon(
+                            if (isVerified) Icons.Rounded.CheckCircle else Icons.Rounded.Schedule,
+                            contentDescription = null,
+                            tint = if (isVerified) PrimaryGreen else Color.White.copy(alpha = 0.3f),
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text(desc, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
+                    }
+                    Text(
+                        if (isVerified) "Vérifié" else "En attente",
+                        color = if (isVerified) PrimaryGreen else Color(0xFFFFB300),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+            Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Icon(Icons.Rounded.Info, contentDescription = null, tint = Color(0xFF4FC3F7), modifier = Modifier.size(20.dp))
+                Text("La vérification complète débloque le badge Vérifié et augmente votre confiance de 40%.", color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp)
+            }
+        }
+    }
+}
+
+// ==================== INTERACTIVE CALENDAR SCREEN ====================
+@Composable
+fun InteractiveCalendarScreen(
+    onBack: () -> Unit
+) {
+    val bookedDates = listOf(5, 6, 7, 12, 13, 19, 20, 21, 27, 28)
+    val availableDates = listOf(1, 2, 3, 4, 8, 9, 10, 11, 14, 15, 16, 17, 18, 22, 23, 24, 25, 26, 29, 30, 31)
+    var selectedDate by remember { mutableIntStateOf(0) }
+
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Calendrier", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("Juillet 2026", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    listOf("Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim").forEach { day ->
+                        Text(day, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Calendar grid - 5 rows
+                val firstDayOffset = 2 // July 2026 starts on Wednesday
+                val totalDays = 31
+                var dayCounter = 1
+                repeat(5) { week ->
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                        repeat(7) { dayOfWeek ->
+                            val cellIndex = week * 7 + dayOfWeek
+                            val dayNum = cellIndex - firstDayOffset + 1
+                            if (dayNum in 1..totalDays) {
+                                val isBooked = dayNum in bookedDates
+                                val isSelected = dayNum == selectedDate
+                                Box(
+                                    modifier = Modifier
+                                        .size(38.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            when {
+                                                isSelected -> PrimaryGreen
+                                                isBooked -> Color(0xFFEF5350).copy(alpha = 0.2f)
+                                                else -> Color.Transparent
+                                            }
+                                        )
+                                        .clickable(enabled = !isBooked) { selectedDate = dayNum },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        "$dayNum",
+                                        color = when {
+                                            isSelected -> BrandNavy
+                                            isBooked -> Color(0xFFEF5350).copy(alpha = 0.5f)
+                                            else -> Color.White
+                                        },
+                                        fontSize = 13.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                }
+                            } else {
+                                Spacer(modifier = Modifier.size(38.dp))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(PrimaryGreen))
+                Text("Sélectionné", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(Color(0xFFEF5350).copy(alpha = 0.2f)))
+                Text("Réservé", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Box(modifier = Modifier.size(12.dp).clip(CircleShape).border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape))
+                Text("Disponible", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+            }
+        }
+
+        if (selectedDate > 0) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.08f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
+                Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Icon(Icons.Rounded.EventAvailable, contentDescription = null, tint = PrimaryGreen)
+                    Column {
+                        Text("Le $selectedDate juillet 2026 est disponible", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("Cliquez pour réserver cette date", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                    }
+                }
+            }
         }
     }
 }
