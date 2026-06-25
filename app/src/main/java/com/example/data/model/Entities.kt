@@ -72,3 +72,44 @@ data class SearchHistoryEntry(
     val query: String,
     val timestamp: Long = System.currentTimeMillis()
 ) : Serializable
+
+@Entity(tableName = "notifications")
+data class NotificationEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val type: String,
+    val title: String,
+    val message: String,
+    val time: String,
+    val isRead: Boolean = false
+)
+
+@Entity(tableName = "disputes")
+data class DisputeEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val title: String,
+    val status: String,
+    val date: String,
+    val type: String
+)
+
+@Entity(tableName = "earnings")
+data class EarningEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val amount: Int,
+    val date: String,
+    val source: String,
+    val status: String
+)
+
+data class ReceivedReservation(
+    val id: String,
+    val tenantName: String,
+    val tenantRating: Float,
+    val itemTitle: String,
+    val category: String,
+    val status: String,
+    val dates: String,
+    val days: Int,
+    val totalPrice: Int,
+    val phone: String
+)

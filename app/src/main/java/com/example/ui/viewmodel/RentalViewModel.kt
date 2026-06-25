@@ -11,6 +11,7 @@ import com.example.data.repository.RentalRepository
 import com.example.ui.components.SortOption
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -45,6 +46,13 @@ sealed interface Screen {
     data object PostListing : Screen
     data object Profile : Screen
 }
+
+data class EarningEntry(val id: Int, val amount: Int, val date: String, val source: String, val status: String)
+data class NotificationEntry(val id: Int, val type: String, val title: String, val message: String, val time: String, val isRead: Boolean)
+data class DisputeEntry(val id: String, val title: String, val status: String, val date: String, val type: String, val description: String = "", val claimAmount: Int = 0)
+data class PaymentEntry(val id: Int, val amount: Int, val date: String, val description: String, val method: String)
+// ReceivedBooking removed — using ReceivedReservation from Entities.kt
+data class MediationMessage(val sender: String, val message: String, val time: String, val isSystem: Boolean = false)
 
 class RentalViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -139,6 +147,74 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     private val _referralEarnings = MutableStateFlow(15000)
     val referralEarnings: StateFlow<Int> = _referralEarnings.asStateFlow()
 
+    // Earnings data
+    private val _earnings = MutableStateFlow(listOf(
+        EarningEntry(1, 45000, "22/06/2026", "Location Toyota Hilux - 3 jours", "Versé"),
+        EarningEntry(2, 120000, "18/06/2026", "Location Villa La Sablière - 7 jours", "Versé"),
+        EarningEntry(3, 25000, "15/06/2026", "Location Pack Sono Concert - 1 jour", "En attente"),
+        EarningEntry(4, 85000, "10/06/2026", "Location Prado Port-Gentil - 5 jours", "Versé")
+    ))
+    val earnings: StateFlow<List<EarningEntry>> = _earnings.asStateFlow()
+
+    // Notifications data
+    private val _notifications = MutableStateFlow(listOf(
+        NotificationEntry(1, "reservation", "Réservation confirmée", "Votre réservation Toyota Hilux a été confirmée", "Il y a 2h", false),
+        NotificationEntry(2, "message", "Nouveau message", "Kofi Mensah a envoyé un message", "Il y a 4h", false),
+        NotificationEntry(3, "payment", "Paiement reçu", "45 000 F CFA reçus pour Hilux", "Il y a 1 jour", true),
+        NotificationEntry(4, "system", "Mise à jour", "LocAll v1.0.1 disponible", "Il y a 2 jours", true),
+        NotificationEntry(5, "reservation", "Réservation annulée", "Paul a annulé Mitsubishi L200", "Il y a 3 jours", true),
+        NotificationEntry(6, "payment", "Remboursé", "15 000 F CFA remboursés", "Il y a 5 jours", true),
+        NotificationEntry(7, "message", "Demande de réservation", "Sophie souhaite réserver l'Appartement Vue Mer", "Il y a 6 jours", false),
+        NotificationEntry(8, "system", "Vérification réussie", "Identité vérifiée. Badge Vérifié activé !", "Il y a 1 semaine", true),
+        NotificationEntry(9, "reservation", "Rappel de retour", "Retourner Pack Sono demain avant 18h", "Il y a 1 semaine", false),
+        NotificationEntry(10, "payment", "Point de fidélité", "+250 points pour dernière réservation", "Il y a 2 semaines", true),
+        NotificationEntry(11, "promotion", "Offre spéciale", "-15% sur Immobilier ce week-end", "Il y a 2 semaines", true),
+        NotificationEntry(12, "system", "Sécurité", "Nouveau mot de passe configuré", "Il y a 3 semaines", true),
+        NotificationEntry(13, "reservation", "Modification acceptée", "Changement de dates accepté", "Il y a 3 semaines", true),
+        NotificationEntry(14, "message", "Relance propriétaire", "Marie-Claire vous a envoyé un rappel", "Il y a 1 mois", false),
+        NotificationEntry(15, "payment", "Facture disponible", "Facture location Hilux en téléchargement", "Il y a 1 mois", true),
+        NotificationEntry(16, "system", "Nouvelle fonctionnalité", "Chat vidéo disponible !", "Il y a 1 mois", true),
+        NotificationEntry(17, "promotion", "Parrainage réussi", "Rodrigue a rejoint. +5 000 F CFA !", "Il y a 1 mois", true),
+        NotificationEntry(18, "reservation", "Réservation refusée", "Jean refusé (indisponible)", "Il y a 2 mois", true),
+        NotificationEntry(19, "alert", "Litige en cours", "Litige ouvert pour Moto NMAX", "Il y a 2 mois", false),
+        NotificationEntry(20, "payment", "Retrait effectué", "50 000 F CFA retirés via Airtel", "Il y a 2 mois", true)
+    ))
+    val notifications: StateFlow<List<NotificationEntry>> = _notifications.asStateFlow()
+
+    // Disputes data
+    private val _disputes = MutableStateFlow(listOf(
+        DisputeEntry("LIT-001", "Dommage Toyota Hilux", "En cours", "20/06/2026", "Dommage", "Le pare-chocs avant a été endommagé lors de la location", 150000),
+        DisputeEntry("LIT-002", "Annulation tardive Pack Sono", "Résolu", "15/06/2026", "Annulation", "Annulation moins de 24h avant l'événement", 50000)
+    ))
+    val disputes: StateFlow<List<DisputeEntry>> = _disputes.asStateFlow()
+
+    // Payment history data
+    private val _paymentHistory = MutableStateFlow(listOf(
+        PaymentEntry(1, 45000, "22/06/2026", "Location Toyota Hilux - 3 jours", "Airtel Money"),
+        PaymentEntry(2, 120000, "18/06/2026", "Location Villa La Sablière - 7 jours", "Moov Money"),
+        PaymentEntry(3, 25000, "15/06/2026", "Location Pack Sono - 1 jour", "Carte Bancaire"),
+        PaymentEntry(4, 85000, "10/06/2026", "Location Prado - 5 jours", "Airtel Money")
+    ))
+    val paymentHistory: StateFlow<List<PaymentEntry>> = _paymentHistory.asStateFlow()
+
+    // Received bookings (owner view)
+    private val _receivedBookings = MutableStateFlow(listOf(
+        ReceivedReservation("RB-001", "Sophie Nguema", 4.8f, "Appartement Vue Mer", "Immobilier", "En attente", "20-25 juin 2026", 5, 75000, "+241 06 12 34 56"),
+        ReceivedReservation("RB-002", "Paul Obiang", 4.5f, "Toyota Hilux", "Véhicules", "Confirmée", "1-3 juillet 2026", 3, 45000, "+241 07 23 45 67"),
+        ReceivedReservation("RB-003", "Marie-Claire", 4.9f, "Villa La Sablière", "Immobilier", "Confirmée", "10-17 juillet 2026", 7, 120000, "+241 06 34 56 78")
+    ))
+    val receivedBookings: StateFlow<List<ReceivedReservation>> = _receivedBookings.asStateFlow()
+
+    // Mediation messages
+    private val _mediationMessages = MutableStateFlow(listOf(
+        MediationMessage("Système", "Litige ouvert pour 'Dommage Toyota Hilux'", "20/06/2026 14:30", true),
+        MediationMessage("Vous", "Le pare-chocs avant a été endommagé lors de la location", "20/06/2026 14:35"),
+        MediationMessage("Kwame Asante", "J'ai récupéré le véhicule dans cet état. Ce n'est pas de ma faute.", "20/06/2026 15:10"),
+        MediationMessage("Médiateur LocAll", "Nous examinons les photos et les témoignages. Délai estimé : 48h.", "20/06/2026 16:00", true),
+        MediationMessage("Système", "Enquête en cours — Les deux parties ont été contactées", "21/06/2026 09:00", true)
+    ))
+    val mediationMessages: StateFlow<List<MediationMessage>> = _mediationMessages.asStateFlow()
+
     // Loading states for skeleton screens
     private val _isHomeLoading = MutableStateFlow(true)
     val isHomeLoading: StateFlow<Boolean> = _isHomeLoading.asStateFlow()
@@ -210,6 +286,13 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
 
         viewModelScope.launch {
             repository.seedDatabase()
+        }
+
+        // Compute unread count from actual chat conversations
+        viewModelScope.launch {
+            delay(500) // Wait for seed
+            val chatCounts = repository.getAllChatMessages().first().groupBy { it.rentalItemId }
+            _unreadMessageCount.value = chatCounts.size.coerceAtMost(99)
         }
 
         // Simulate loading delays for skeleton screens
@@ -287,6 +370,24 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         _referralEarnings.value += 5000
         showSnackbar("5 000 F CFA de crédit ajouté pour le parrainage !")
     }
+
+    fun markNotificationRead(id: Int) {
+        _notifications.value = _notifications.value.map { if (it.id == id) it.copy(isRead = true) else it }
+    }
+
+    fun markAllNotificationsRead() {
+        _notifications.value = _notifications.value.map { it.copy(isRead = true) }
+    }
+
+    fun acceptReceivedBooking(id: String) {
+        _receivedBookings.value = _receivedBookings.value.map { if (it.id == id) it.copy(status = "Confirmée") else it }
+    }
+
+    fun refuseReceivedBooking(id: String) {
+        _receivedBookings.value = _receivedBookings.value.map { if (it.id == id) it.copy(status = "Refusée") else it }
+    }
+
+    fun unreadNotificationCount(): Int = _notifications.value.count { !it.isRead }
 
     fun showSnackbar(message: String) {
         _snackbarMessage.value = message
@@ -478,6 +579,8 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         _reviews.value = current
         showSnackbar("Avis publié avec succès")
     }
+
+    fun reviewsFor(itemId: Int): Flow<List<RentalReview>> = _reviews.map { map -> map[itemId] ?: emptyList() }
 
     // ==================== REACTIVE DATA ====================
     val rawRentalItems: StateFlow<List<RentalItem>> = repository.allRentalItems

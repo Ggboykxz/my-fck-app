@@ -89,7 +89,13 @@ fun MainDashboardView(viewModel: RentalViewModel) {
             AnimatedContent(
                 targetState = currentScreen,
                 transitionSpec = {
-                    fadeIn() togetherWith fadeOut()
+                    if (targetState is Screen.Details || targetState is Screen.Chat) {
+                        slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it } + fadeOut()
+                    } else if (targetState is Screen.Home) {
+                        slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it } + fadeOut()
+                    } else {
+                        fadeIn(tween(300)) togetherWith fadeOut(tween(300))
+                    }
                 },
                 label = "DashboardScreenTransition"
             ) { screen ->
@@ -1577,7 +1583,7 @@ fun ItemDetailsScreen(
                         SmoothIconButton(
                             icon = Icons.Rounded.Share,
                             onClick = {
-                                val shareText = shareListing(item.title, formatPriceCfa(item.pricePerDay))
+                                val shareText = "${shareListing(item.title, formatPriceCfa(item.pricePerDay))}\n\nVoir sur LocAll: https://locall.app/listing/${item.id}"
                                 val sendIntent = Intent().apply {
                                     action = Intent.ACTION_SEND
                                     putExtra(Intent.EXTRA_TEXT, shareText)
@@ -1878,13 +1884,10 @@ fun ItemDetailsScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Reviews section
-                val mockReviews = listOf(
-                    Triple("Jean K.", 5, "Très bon propriétaire, bien comme décrit !"),
-                    Triple("Patricia M.", 4, "Bon rapport qualité-prix, je recommande.")
-                )
+                val reviews by viewModel.reviewsFor(item.id).collectAsState(initial = emptyList())
                 SectionHeader(title = "Avis")
                 Spacer(modifier = Modifier.height(8.dp))
-                mockReviews.forEach { (name, stars, text) ->
+                reviews.forEach { review ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
@@ -1897,9 +1900,9 @@ fun ItemDetailsScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                Text(review.author, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                                 Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                                    repeat(stars) {
+                                    repeat(review.rating) {
                                         Icon(
                                             Icons.Rounded.Star,
                                             contentDescription = null,
@@ -1909,7 +1912,7 @@ fun ItemDetailsScreen(
                                     }
                                 }
                             }
-                            Text(text, fontSize = 12.sp, color = Color.White.copy(alpha = 0.65f), lineHeight = 18.sp)
+                            Text(review.comment, fontSize = 12.sp, color = Color.White.copy(alpha = 0.65f), lineHeight = 18.sp)
                         }
                     }
                 }
@@ -3236,6 +3239,7 @@ fun PostListingScreen(viewModel: RentalViewModel) {
     var ownerName by remember { mutableStateOf("") }
     var ownerPhone by remember { mutableStateOf("") }
     var imageUrl by remember { mutableStateOf("") }
+    var photoTaken by remember { mutableStateOf(false) }
     var isSuccessPost by remember { mutableStateOf(false) }
     var showErrorField by remember { mutableStateOf(false) }
 
@@ -3542,6 +3546,33 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                                     unfocusedContainerColor = Color(0xFF162133)
                                 )
                             )
+                        }
+                    }
+                }
+            }
+
+            // Photo capture simulation
+            item {
+                // Simulated photo capture
+                Card(
+                    modifier = Modifier.fillMaxWidth().height(120.dp).clickable { photoTaken = !photoTaken },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = if (photoTaken) PrimaryGreen.copy(alpha = 0.08f) else Color(0xFF162133)),
+                    border = BorderStroke(1.dp, if (photoTaken) PrimaryGreen else Color.White.copy(alpha = 0.1f))
+                ) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        if (photoTaken) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(32.dp))
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("Photo capturée !", color = PrimaryGreen, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            }
+                        } else {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Rounded.AddAPhoto, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(32.dp))
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("Appuyez pour simuler une prise de photo", color = Color.White.copy(alpha = 0.4f), fontSize = 12.sp)
+                            }
                         }
                     }
                 }

@@ -161,8 +161,10 @@ fun LoginScreenView(
     var passwordVisible by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
+    var showErrors by remember { mutableStateOf(false) }
 
     fun validateLogin(): Boolean {
+        showErrors = true
         emailError = if (emailOrPhone.isBlank()) "Ce champ est requis" else null
         passwordError = if (password.isBlank()) "Ce champ est requis" else null
         return emailError == null && passwordError == null
@@ -322,6 +324,9 @@ fun LoginScreenView(
                         fontSize = 12.sp,
                         modifier = Modifier.padding(start = 4.dp)
                     )
+                }
+                if (showErrors && password.length < 6) {
+                    Text("Le mot de passe doit contenir au moins 6 caractères", color = Color(0xFFEF5350), fontSize = 11.sp)
                 }
 
                 // Forgot password trigger
@@ -498,9 +503,11 @@ fun RegisterScreenView(
     var phoneError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
     var termsError by remember { mutableStateOf<String?>(null) }
+    var showErrors by remember { mutableStateOf(false) }
     val passwordStrength = PasswordStrength.evaluate(password)
 
     fun validateRegister(): Boolean {
+        showErrors = true
         nameError = if (fullName.isBlank()) "Le nom est requis" else null
         emailError = when {
             email.isBlank() -> "L'email est requis"
@@ -661,6 +668,9 @@ fun RegisterScreenView(
                         modifier = Modifier.padding(start = 4.dp)
                     )
                 }
+                if (showErrors && email.isNotEmpty() && !email.contains("@")) {
+                    Text("Format d'email invalide", color = Color(0xFFEF5350), fontSize = 11.sp)
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -770,6 +780,9 @@ fun RegisterScreenView(
                         fontSize = 12.sp,
                         modifier = Modifier.padding(start = 4.dp)
                     )
+                }
+                if (showErrors && password.isNotEmpty() && password.length < 6) {
+                    Text("Le mot de passe doit contenir au moins 6 caractères", color = Color(0xFFEF5350), fontSize = 11.sp)
                 }
                 if (password.isNotEmpty()) {
                     Row(

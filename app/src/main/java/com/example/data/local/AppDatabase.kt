@@ -12,9 +12,12 @@ import com.example.data.model.*
         Booking::class,
         ChatMessage::class,
         UserProfile::class,
-        SearchHistoryEntry::class
+        SearchHistoryEntry::class,
+        NotificationEntity::class,
+        DisputeEntity::class,
+        EarningEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

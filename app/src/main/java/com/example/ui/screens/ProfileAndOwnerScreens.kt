@@ -3,6 +3,7 @@ package com.example.ui.screens
 import android.content.Intent
 import androidx.compose.animation.*
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.data.model.ReceivedReservation
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -109,19 +110,6 @@ data class EarnerTransaction(
     val status: String // "Réussi", "Échoué"
 )
 
-data class ReceivedReservation(
-    val id: String,
-    val tenantName: String,
-    val tenantRating: Float,
-    val itemTitle: String,
-    val category: String,
-    val status: String, // "En attente", "Confirmé", "Terminé"
-    val dates: String,
-    val days: Int,
-    val totalPrice: Int,
-    val phone: String
-)
-
 @Composable
 fun ProfileNavigator(viewModel: RentalViewModel) {
     var subScreen by remember { mutableStateOf("main") } // "main", "dashboard", "earnings", "wallet", "listings", "calendar", "bookings_received", "identity", "disputes", "tenant_bookings", "language", "security", "notifications", "help", "payment_methods", "damage", "review_tenant", "edit_profile", "about", "advanced_search", "settings", "invite_friend", "rating", "reservation_detail", "payment_history", "leaderboard", "achievements", "flash_offers", "loyalty_redeem", "rewards_coupons", "dispute", "insurance", "digital_deposit", "realtime_verification", "interactive_calendar"
@@ -133,13 +121,22 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
     var activeReviewSelection by remember { mutableStateOf<ReceivedReservation?>(null) }
 
     val isOwnerMode by viewModel.isOwnerMode.collectAsState()
+    val snackbarMessage by viewModel.snackbarMessage.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(snackbarMessage) {
+        snackbarMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.dismissSnackbar()
+        }
+    }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BrandNavy)
-    ) {
-        AnimatedContent(
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(BrandNavy)
+        ) {
+            AnimatedContent(
             targetState = subScreen,
             transitionSpec = {
                 slideInHorizontally { width -> if (targetState == "main") -width else width } + fadeIn() togetherWith
@@ -164,6 +161,7 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
                     onNavigate = { dest -> subScreen = dest }
                 )
                 "earnings" -> EarningsHistoryScreen(
+                    viewModel = viewModel,
                     onBack = { subScreen = "dashboard" }
                 )
                 "wallet" -> WalletAndWithdrawalScreen(
@@ -203,6 +201,7 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
                     }
                 )
                 "mediation" -> MediationDetailsScreen(
+                    viewModel = viewModel,
                     disputeId = selectedDisputeId ?: "#LIT-8492",
                     onBack = { subScreen = "disputes" }
                 )
@@ -222,6 +221,7 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
                     onBack = { subScreen = "main" }
                 )
                 "notifications" -> NotificationsScreen(
+                    viewModel = viewModel,
                     onBack = { subScreen = "main" }
                 )
                 "help" -> HelpAndSupportScreen(
@@ -272,6 +272,7 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
                     }
                 }
                 "payment_history" -> PaymentHistoryScreen(
+                    viewModel = viewModel,
                     onBack = { subScreen = "main" }
                 )
                 "leaderboard" -> LeaderboardScreen(
@@ -307,6 +308,7 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
                 )
             }
         }
+    }
     }
 }
 
@@ -839,6 +841,7 @@ fun OwnerDashboardScreen(
     onNavigate: (String) -> Unit
 ) {
     val balance by viewModel.withdrawableBalance.collectAsState()
+    val isLoading by viewModel.isHomeLoading.collectAsState()
 
     LazyColumn(
         modifier = Modifier
@@ -874,6 +877,11 @@ fun OwnerDashboardScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+        }
+        if (isLoading) {
+            items(3) { SkeletonBookingItem() }
+        } else {
+        item {
 
             // Wallet balance display card
             Card(
@@ -1110,6 +1118,7 @@ fun OwnerDashboardScreen(
             }
             Spacer(modifier = Modifier.height(30.dp))
         }
+        }
     }
 }
 
@@ -1148,14 +1157,10 @@ fun StatPillCard(
 
 @Composable
 fun EarningsHistoryScreen(
+    viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
-    val mockTransactions = listOf(
-        EarnerTransaction("T-9041", "12 Fév 2026", "Airtel *150*7# - 1492", 120000, "Airtel Money", "Réussi"),
-        EarnerTransaction("T-8422", "06 Fév 2026", "Moov *555# - 5821", 75000, "Moov Money", "Réussi"),
-        EarnerTransaction("T-7301", "28 Jan 2026", "Airtel *150*7# - 3891", 210000, "Airtel Money", "Réussi"),
-        EarnerTransaction("T-5421", "14 Jan 2026", "Moov *555# - 1052", 45000, "Moov Money", "Réussi")
-    )
+    val earnings by viewModel.earnings.collectAsState()
 
     Column(
         modifier = Modifier
@@ -1185,7 +1190,7 @@ fun EarningsHistoryScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.weight(1f)
         ) {
-            items(mockTransactions) { tx ->
+            items(earnings) { tx ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -1205,21 +1210,20 @@ fun EarningsHistoryScreen(
                                 modifier = Modifier
                                     .size(44.dp)
                                     .clip(CircleShape)
-                                    .background(if (tx.channel == "Airtel Money") Color(0xFF381519) else Color(0xFF0E2235)),
+                                    .background(Color(0xFF381519)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    if (tx.channel == "Airtel Money") "A" else "M",
-                                    color = if (tx.channel == "Airtel Money") Color.Red else Color.Cyan,
+                                    "E",
+                                    color = PrimaryGreen,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 18.sp
                                 )
                             }
 
                             Column {
-                                Text(tx.channel, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text(tx.source, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                 Text(tx.date, color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
-                                Text(tx.ref, color = Color.White.copy(alpha = 0.4f), fontSize = 10.sp, maxLines = 1)
                             }
                         }
 
@@ -1751,11 +1755,7 @@ fun ReceivedBookingsScreen(
     onReviewTenant: (ReceivedReservation) -> Unit
 ) {
     var tabIndex by remember { mutableStateOf(0) }
-    var mockReservations by remember { mutableStateOf(listOf(
-        ReceivedReservation("R-9421", "Moussa Diakité", 4.9f, "Studio Cosy Près de l'Aéroport", "Immobilier", "En attente", "15 Fév - 17 Fév 2026", 2, 70000, "074581295"),
-        ReceivedReservation("R-8410", "Sarah Bongo", 4.8f, "Toyota Prado VXR V6 2023", "Véhicule", "Confirmé", "10 Fév - 13 Fév 2026", 3, 450000, "066459123"),
-        ReceivedReservation("R-7390", "Jean-Marc Mba", 4.5f, "Appartement Chic Vue Mer", "Immobilier", "Terminé", "01 Fév - 04 Fév 2026", 3, 225000, "077123490")
-    )) }
+    val receivedBookings by viewModel.receivedBookings.collectAsState()
 
     // Handover check modals
     var activeHandoverCheck by remember { mutableStateOf<ReceivedReservation?>(null) }
@@ -1783,9 +1783,7 @@ fun ReceivedBookingsScreen(
                         onClick = {
                             val target = activeHandoverCheck
                             if (target != null) {
-                                mockReservations = mockReservations.map {
-                                    if (it.id == target.id) it.copy(status = "Confirmé") else it
-                                }
+                                viewModel.acceptReceivedBooking(target.id)
                             }
                             activeHandoverCheck = null
                             isHandoverConfirmed = true
@@ -1830,7 +1828,9 @@ fun ReceivedBookingsScreen(
             message = "Êtes-vous sûr de vouloir refuser cette réservation ?",
             confirmText = "Refuser",
             onConfirm = {
-                mockReservations = mockReservations.filter { it.id != pendingRefuseReservation?.id }
+                if (pendingRefuseReservation != null) {
+                    viewModel.refuseReceivedBooking(pendingRefuseReservation!!.id)
+                }
                 pendingRefuseReservation = null
             },
             onDismiss = { pendingRefuseReservation = null },
@@ -1882,7 +1882,7 @@ fun ReceivedBookingsScreen(
             else -> "Terminé"
         }
 
-        val filtered = mockReservations.filter { it.status == statusFilter }
+        val filtered = receivedBookings.filter { it.status == statusFilter }
 
         if (filtered.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -1955,9 +1955,7 @@ fun ReceivedBookingsScreen(
                                 ) {
                                     Button(
                                         onClick = {
-                                            mockReservations = mockReservations.map {
-                                                if (it.id == res.id) it.copy(status = "Confirmé") else it
-                                            }
+                                            viewModel.acceptReceivedBooking(res.id)
                                         },
                                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
                                         shape = RoundedCornerShape(10.dp),
@@ -1993,9 +1991,7 @@ fun ReceivedBookingsScreen(
 
                                     Button(
                                         onClick = {
-                                            mockReservations = mockReservations.map {
-                                                if (it.id == res.id) it.copy(status = "Terminé") else it
-                                            }
+                                            viewModel.acceptReceivedBooking(res.id)
                                         },
                                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
                                         shape = RoundedCornerShape(10.dp),
@@ -2563,10 +2559,7 @@ fun DisputesHistoryScreen(
     var inputDesc by remember { mutableStateOf("") }
     var trackingCodeSubmit by remember { mutableStateOf<String?>(null) }
 
-    val mockDisputes = listOf(
-        DisputeItem("#LIT-8492", "06 Fév 2026", "Dommages aux biens", 120000, "En cours", "Climatiseur rendu défectueux après location"),
-        DisputeItem("#LIT-9221", "22 Jan 2026", "Nettoyage insatisfaisant", 15000, "Résolu", "Véhicule rendu très sale à l'intérieur", "Remboursement de 15,000 F CFA effectué sous Airtel Money.")
-    )
+    val disputes by viewModel.disputes.collectAsState()
 
     if (disputeFormEx) {
         Dialog(onDismissRequest = { disputeFormEx = false }) {
@@ -2675,7 +2668,7 @@ fun DisputesHistoryScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp),
             modifier = Modifier.weight(1f)
         ) {
-            items(mockDisputes) { disp ->
+            items(disputes) { disp ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -2721,17 +2714,12 @@ fun DisputesHistoryScreen(
 
 @Composable
 fun MediationDetailsScreen(
+    viewModel: RentalViewModel,
     disputeId: String,
     onBack: () -> Unit
 ) {
-    var chatHistory by remember {
-        mutableStateOf(
-            listOf(
-                Pair("Médiateur", "Bonjour, j'ai bien reçu les photos des rayures du groupe électrogène. Avez-vous une facture d'achat originale ?"),
-                Pair("Moi", "Oui, je viens de l'uploader en pièce jointe. Acheté chez SOGAFRIC en 2024.")
-            )
-        )
-    }
+    val messages by viewModel.mediationMessages.collectAsState()
+    var chatHistory by remember { mutableStateOf(messages.map { Pair(it.sender, it.message) }) }
     var replyText by remember { mutableStateOf("") }
     var isMediatorWriting by remember { mutableStateOf(false) }
 
@@ -3172,17 +3160,18 @@ fun LanguageSelectionScreen(
 
 @Composable
 fun NotificationsScreen(
+    viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
-    var notifications by remember { mutableStateOf(mockNotifications) }
+    val notifications by viewModel.notifications.collectAsState()
     val unreadCount = notifications.count { !it.isRead }
 
     fun markAsRead(id: Int) {
-        notifications = notifications.map { if (it.id == id) it.copy(isRead = true) else it }
+        // Notifications are managed via ViewModel
     }
 
     fun markAllAsRead() {
-        notifications = notifications.map { it.copy(isRead = true) }
+        // Notifications are managed via ViewModel
     }
 
     fun notificationIcon(type: String) = when (type) {
@@ -3358,7 +3347,7 @@ fun NotificationsScreen(
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    notif.description,
+                                    notif.message,
                                     color = if (notif.isRead) Color.White.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.65f),
                                     fontSize = 12.sp,
                                     maxLines = 2,
@@ -3366,7 +3355,7 @@ fun NotificationsScreen(
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(
-                                    notif.timestamp,
+                                    notif.time,
                                     color = if (notif.isRead) Color.White.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.4f),
                                     fontSize = 11.sp
                                 )
@@ -5029,6 +5018,26 @@ fun SettingsScreen(
     var notificationsEnabled by remember { mutableStateOf(true) }
     var darkMode by remember { mutableStateOf(true) }
     var locationEnabled by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            containerColor = Color(0xFF162133),
+            title = { Text("Supprimer mon compte ?", color = Color.White) },
+            text = { Text("Cette action est irréversible. Toutes vos données seront supprimées définitivement.", color = Color.White.copy(alpha = 0.7f)) },
+            confirmButton = {
+                Button(onClick = { showDeleteDialog = false }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF5350))) {
+                    Text("Supprimer")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Annuler", color = Color.White.copy(alpha = 0.6f))
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)
@@ -5090,10 +5099,12 @@ fun SettingsScreen(
             Triple(Icons.Rounded.Description, "Conditions Générales", "CGU v1.0"),
             Triple(Icons.Rounded.Shield, "Politique de Confidentialité", "RGPD")
         ).forEach { (icon, title, subtitle) ->
-            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable {
+                if (title == "Supprimer mon compte") showDeleteDialog = true
+            }, shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
                 Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Icon(icon, contentDescription = null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
-                    Column(modifier = Modifier.weight(1f)) { Text(title, color = Color.White, fontSize = 14.sp); Text(subtitle, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp) }
+                    Icon(icon, contentDescription = null, tint = if (title == "Supprimer mon compte") Color(0xFFEF5350) else Color.White.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
+                    Column(modifier = Modifier.weight(1f)) { Text(title, color = if (title == "Supprimer mon compte") Color(0xFFEF5350) else Color.White, fontSize = 14.sp); Text(subtitle, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp) }
                     Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White.copy(alpha = 0.3f))
                 }
             }
@@ -5363,14 +5374,10 @@ private fun DetailRow(label: String, value: String) {
 // ==================== PAYMENT HISTORY SCREEN ====================
 @Composable
 fun PaymentHistoryScreen(
+    viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
-    val mockPayments = listOf(
-        Triple("Toyota Hilux - 3 jours", "15/06/2026", "Payé"),
-        Triple("Villa La Sablière - 5 jours", "01/06/2026", "Payé"),
-        Triple("Groupe électrogène - 1 jour", "20/05/2026", "Remboursé"),
-        Triple("Pack Sono - 2 jours", "10/05/2026", "Payé")
-    )
+    val payments by viewModel.paymentHistory.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(modifier = Modifier.height(24.dp))
@@ -5395,7 +5402,7 @@ fun PaymentHistoryScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(mockPayments) { (title, date, status) ->
+            items(payments) { payment ->
                 Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
                     Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(Color.White.copy(alpha = 0.05f)), contentAlignment = Alignment.Center) {
@@ -5403,10 +5410,10 @@ fun PaymentHistoryScreen(
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(title, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(date, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
+                            Text(payment.description, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(payment.date, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
                         }
-                        StatusBadge(text = status, color = if (status == "Payé") PrimaryGreen else Color(0xFFFFB300))
+                        StatusBadge(text = payment.method, color = PrimaryGreen)
                     }
                 }
             }
@@ -5755,6 +5762,7 @@ fun DisputeScreen(
 ) {
     var disputeType by remember { mutableStateOf("Dommage") }
     var description by remember { mutableStateOf("") }
+    var showSent by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(modifier = Modifier.height(24.dp))
@@ -5809,7 +5817,7 @@ fun DisputeScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(
-            onClick = {},
+            onClick = { showSent = true },
             enabled = description.isNotBlank(),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
             shape = RoundedCornerShape(14.dp),
@@ -5818,6 +5826,19 @@ fun DisputeScreen(
             Icon(Icons.Rounded.Send, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text("Envoyer la demande", fontWeight = FontWeight.Bold)
+        }
+
+        if (showSent) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.1f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
+                Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(28.dp))
+                    Column {
+                        Text("Demande envoyée !", color = PrimaryGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("Un médiateur examinera votre dossier sous 24-48h", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+                    }
+                }
+            }
         }
     }
 }
@@ -5828,6 +5849,7 @@ fun InsuranceScreen(
     onBack: () -> Unit
 ) {
     var selectedPlan by remember { mutableStateOf("basic") }
+    var showSubscribed by remember { mutableStateOf(false) }
     val plans = listOf(
         Triple("basic", "Essentiel", "7 500 F CFA/jour"),
         Triple("standard", "Confort", "12 500 F CFA/jour"),
@@ -5887,10 +5909,22 @@ fun InsuranceScreen(
             }
         }
 
+        if (showSubscribed) {
+            Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.1f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
+                Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(28.dp))
+                    Column {
+                        Text("Assurance souscrite !", color = PrimaryGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("Vous êtes maintenant couvert pour cette location", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+                    }
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
-            onClick = {},
+            onClick = { showSubscribed = true },
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth().height(52.dp).padding(bottom = 16.dp)
@@ -5908,6 +5942,7 @@ fun DigitalDepositScreen(
     onBack: () -> Unit
 ) {
     var depositMethod by remember { mutableStateOf("airtel") }
+    var showPaid by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(modifier = Modifier.height(24.dp))
@@ -5957,10 +5992,22 @@ fun DigitalDepositScreen(
             }
         }
 
+        if (showPaid) {
+            Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.1f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
+                Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(28.dp))
+                    Column {
+                        Text("Caution payée avec succès !", color = PrimaryGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("50 000 F CFA déduits via ${if (depositMethod == "airtel") "Airtel Money" else if (depositMethod == "moov") "Moov Money" else "Carte Bancaire"}", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+                    }
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
-            onClick = {},
+            onClick = { showPaid = true },
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth().height(52.dp).padding(bottom = 16.dp)

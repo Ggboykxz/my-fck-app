@@ -46,6 +46,9 @@ class RentalRepository(private val rentalDao: RentalDao) {
     fun getChatMessagesForRental(itemId: Int): Flow<List<ChatMessage>> =
         rentalDao.getChatMessagesForRental(itemId)
 
+    fun getAllChatMessages(): Flow<List<ChatMessage>> =
+        rentalDao.getAllChatMessages()
+
     suspend fun insertChatMessage(message: ChatMessage) =
         rentalDao.insertChatMessage(message)
 

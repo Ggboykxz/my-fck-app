@@ -339,7 +339,7 @@ class AllScreensScreenshotTest {
     fun screenshot_29_notifications() {
         composeTestRule.setContent {
             MyApplicationTheme {
-                NotificationsScreen(onBack = {})
+                NotificationsScreen(viewModel = viewModel, onBack = {})
             }
         }
         screenshot("29_notifications")
@@ -380,7 +380,7 @@ class AllScreensScreenshotTest {
     fun screenshot_33_mediation() {
         composeTestRule.setContent {
             MyApplicationTheme {
-                MediationDetailsScreen(disputeId = "#LIT-8492", onBack = {})
+                MediationDetailsScreen(viewModel = viewModel, disputeId = "#LIT-8492", onBack = {})
             }
         }
         screenshot("33_mediation")
@@ -444,7 +444,7 @@ class AllScreensScreenshotTest {
     fun screenshot_39_earnings() {
         composeTestRule.setContent {
             MyApplicationTheme {
-                EarningsHistoryScreen(onBack = {})
+                EarningsHistoryScreen(viewModel = viewModel, onBack = {})
             }
         }
         screenshot("39_earnings")
@@ -593,7 +593,7 @@ class AllScreensScreenshotTest {
     fun screenshot_51_payment_history() {
         composeTestRule.setContent {
             MyApplicationTheme {
-                PaymentHistoryScreen(onBack = {})
+                PaymentHistoryScreen(viewModel = viewModel, onBack = {})
             }
         }
         screenshot("51_payment_history")

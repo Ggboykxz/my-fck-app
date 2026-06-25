@@ -48,6 +48,9 @@ interface RentalDao {
     @Query("SELECT * FROM chat_messages WHERE rentalItemId = :itemId ORDER BY timestamp ASC")
     fun getChatMessagesForRental(itemId: Int): Flow<List<ChatMessage>>
 
+    @Query("SELECT * FROM chat_messages ORDER BY timestamp DESC")
+    fun getAllChatMessages(): Flow<List<ChatMessage>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChatMessage(message: ChatMessage)
 
@@ -68,4 +71,28 @@ interface RentalDao {
 
     @Query("DELETE FROM search_history")
     suspend fun clearSearchHistory()
+
+    // Notifications
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertNotification(notification: NotificationEntity)
+
+    @Query("SELECT * FROM notifications ORDER BY id DESC")
+    fun getAllNotifications(): Flow<List<NotificationEntity>>
+
+    @Query("UPDATE notifications SET isRead = 1 WHERE id = :id")
+    suspend fun markNotificationRead(id: Int)
+
+    // Disputes
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertDispute(dispute: DisputeEntity)
+
+    @Query("SELECT * FROM disputes ORDER BY id DESC")
+    fun getAllDisputes(): Flow<List<DisputeEntity>>
+
+    // Earnings
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertEarning(earning: EarningEntity)
+
+    @Query("SELECT * FROM earnings ORDER BY id DESC")
+    fun getAllEarnings(): Flow<List<EarningEntity>>
 }
