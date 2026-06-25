@@ -76,7 +76,17 @@ val mockNotifications = listOf(
     NotificationItem(7, "message", "Demande de réservation", "Sophie Nguema souhaite réserver l'Appartement Vue Mer du 20 au 25 juin", "Il y a 6 jours", false),
     NotificationItem(8, "system", "Vérification réussie", "Votre identité a été vérifiée avec succès. Badge Vérifié activé !", "Il y a 1 semaine", true),
     NotificationItem(9, "reservation", "Rappel de retour", "N'oubliez pas de retourner le Pack Sono Concert demain avant 18h", "Il y a 1 semaine", false),
-    NotificationItem(10, "payment", "Point de fidélité", "Vous avez gagné 250 points pour votre dernière réservation !", "Il y a 2 semaines", true)
+    NotificationItem(10, "payment", "Point de fidélité", "Vous avez gagné 250 points pour votre dernière réservation !", "Il y a 2 semaines", true),
+    NotificationItem(11, "promotion", "Offre spéciale", "Réduction de 15% sur toutes les locations Immobilier ce week-end !", "Il y a 2 semaines", true),
+    NotificationItem(12, "system", "Sécurité", "Nouveau mot de passe configuré avec succès sur votre compte", "Il y a 3 semaines", true),
+    NotificationItem(13, "reservation", "Modification acceptée", "Votre demande de changement de dates pour la Villa Sablière a été acceptée", "Il y a 3 semaines", true),
+    NotificationItem(14, "message", "Relance propriétaire", "Marie-Claire vous a envoyé un rappel concernant la visite de l'appartement", "Il y a 1 mois", false),
+    NotificationItem(15, "payment", "Facture disponible", "Votre facture pour la location Toyota Hilux est disponible en téléchargement", "Il y a 1 mois", true),
+    NotificationItem(16, "system", "Nouvelle fonctionnalité", "Le chat vidéo est maintenant disponible pour les visites à distance !", "Il y a 1 mois", true),
+    NotificationItem(17, "promotion", "Parrainage réussi", "Votre ami Rodrigue a rejoint LocAll avec votre code. +5 000 F CFA !", "Il y a 1 mois", true),
+    NotificationItem(18, "reservation", "Réservation refusée", "La réservation de Jean pour le Van Hiace a été refusée (indisponible)", "Il y a 2 mois", true),
+    NotificationItem(19, "alert", "Litige en cours", "Un litige a été ouvert pour la location Moto NMAX. Un médiateur suit votre dossier.", "Il y a 2 mois", false),
+    NotificationItem(20, "payment", "Retrait effectué", "50 000 F CFA retirés de votre portefeuille via Airtel Money", "Il y a 2 mois", true)
 )
 
 data class DisputeItem(
@@ -242,6 +252,7 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
                     onBack = { subScreen = "main" }
                 )
                 "invite_friend" -> InviteFriendScreen(
+                    viewModel = viewModel,
                     onBack = { subScreen = "main" }
                 )
                 "rating" -> RatingScreen(
@@ -4930,10 +4941,13 @@ fun SettingsScreen(
 // ==================== INVITE FRIEND SCREEN ====================
 @Composable
 fun InviteFriendScreen(
+    viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
     val inviteCode = "LOCALL-2026-GABON"
     val context = LocalContext.current
+    val referralCount by viewModel.referralCount.collectAsState()
+    val referralEarnings by viewModel.referralEarnings.collectAsState()
 
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
@@ -4992,13 +5006,13 @@ fun InviteFriendScreen(
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Card(modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
                 Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("3", color = PrimaryGreen, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("$referralCount", color = PrimaryGreen, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
                     Text("Amis invités", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
                 }
             }
             Card(modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
                 Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("15 000", color = Color(0xFFFFB300), fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("${referralEarnings / 1000}", color = Color(0xFFFFB300), fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
                     Text("F CFA gagnés", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
                 }
             }

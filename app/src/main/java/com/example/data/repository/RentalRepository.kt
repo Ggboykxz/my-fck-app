@@ -272,6 +272,123 @@ class RentalRepository(private val rentalDao: RentalDao) {
                     ownerRating = 5.0f,
                     imageUrl = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80",
                     isVerified = true
+                ),
+                RentalItem(
+                    title = "Bureau Commercial Meublé - Montagne Sainte",
+                    description = "Espace de bureau professionnel de 120m² entièrement meublé au cœur de Montagne Sainte. Open space modulable, 2 salles de réunion, cuisine équipée, parking 10 voitures. Fibre optique et gardiennage inclus. Idéal pour startups et PME.",
+                    category = "Immobilier",
+                    pricePerDay = 45000,
+                    city = "Libreville",
+                    neighborhood = "Montagne Sainte",
+                    ownerName = "Agence Bongo Immobilier",
+                    ownerPhone = "066123456",
+                    ownerRating = 4.6f,
+                    imageUrl = "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                RentalItem(
+                    title = "Terrain Viabilisé 800m2 - Owendo",
+                    description = "Terrain plat viabilisé de 800m² situé dans le nouveau lotissement d'Owendo. Eau potable, électricité CEG, accès bitumé. Titre foncier régulier. Proche du port maritime et de la zone industrielle. Parfait pour construction résidentielle ou commerciale.",
+                    category = "Immobilier",
+                    pricePerDay = 20000,
+                    city = "Libreville",
+                    neighborhood = "Owendo",
+                    ownerName = "Patrick Ondimba",
+                    ownerPhone = "077987654",
+                    ownerRating = 4.3f,
+                    imageUrl = "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                RentalItem(
+                    title = "Toyota Hilux Double Cabine 4x4 2024",
+                    description = "Pick-up Toyota Hilux Double Cabine 2024, boîte automatique, moteur 2.8L turbodiesel. Climatisation, GPS, caméra de recul, barres de toit. Entretien régulier chez le concessionnaire Toyota. Idéal pour chantiers et déplacements professionnels.",
+                    category = "Véhicules",
+                    pricePerDay = 55000,
+                    city = "Port-Gentil",
+                    neighborhood = "S ogłoszeni",
+                    ownerName = "Gabon Transport Services",
+                    ownerPhone = "066543210",
+                    ownerRating = 4.8f,
+                    imageUrl = "https://images.unsplash.com/photo-1559416523-140ddc3d238c?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                RentalItem(
+                    title = "Camion Benne 10 Tonnes - Mines",
+                    description = "Camion benne de 10 tonnes pour transport de matériaux, minerai, sable et gravier. Moteur diesel robuste, benne hydraulique. Permis C nécessaire. Chauffeur inclus sur demande. Disponible pour missions minières à Franceville et Moanda.",
+                    category = "Véhicules",
+                    pricePerDay = 85000,
+                    city = "Franceville",
+                    neighborhood = "Zone Industrielle",
+                    ownerName = "Mines Gabon Logistics",
+                    ownerPhone = "066789012",
+                    ownerRating = 4.1f,
+                    imageUrl = "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=800&q=80",
+                    isVerified = false
+                ),
+                RentalItem(
+                    title = "Troupeau de Chèvres Locales (10 têtes)",
+                    description = "Lot de 10 chèvres locales en bonne santé, âgées de 1 à 3 ans. Race locale gabonaise, bien nourries et vaccinées. Parfaites pour élevage ou événements culturels (dot, mariage). Prix négociable pour reprise.",
+                    category = "Équipements",
+                    pricePerDay = 10000,
+                    city = "Lambaréné",
+                    neighborhood = "Centre Ville",
+                    ownerName = "Agro-Pastoral Gabon",
+                    ownerPhone = "077345678",
+                    ownerRating = 4.0f,
+                    imageUrl = "https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=800&q=80",
+                    isVerified = false
+                ),
+                RentalItem(
+                    title = "Pack Sono DJ Pro + Light Show",
+                    description = "Système sonorisation professionnelle : 2 enceintes JBL PRX 815W (1500W RMS), 2 subwoofers 18\", table de mixage Pioneer DJM-900NXS2, 2 platines CDJ-3000. Package éclairage : 8 moving heads, 12 LED pars, fumigène. Montage et technicien inclus.",
+                    category = "Équipements",
+                    pricePerDay = 40000,
+                    city = "Libreville",
+                    neighborhood = "Batterie IV",
+                    ownerName = "Events Pro Gabon",
+                    ownerPhone = "066456789",
+                    ownerRating = 4.9f,
+                    imageUrl = "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                RentalItem(
+                    title = "Van Toyota Hiace 14 Places - Shuttle",
+                    description = "Minibus Toyota Hiace 2023, 14 places assises climatisées, ceintures de sécurité, coffre à bagages. Idéal pour transferts aéroport, excursions touristiques, événements d'entreprise. Chauffeur expérimenté inclus. Assurance tous risques.",
+                    category = "Véhicules",
+                    pricePerDay = 60000,
+                    city = "Libreville",
+                    neighborhood = "Quartier Nord",
+                    ownerName = "Transport Plus Gabon",
+                    ownerPhone = "077654321",
+                    ownerRating = 4.7f,
+                    imageUrl = "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                RentalItem(
+                    title = "Appartement F2 Meublé - Sibang",
+                    description = "Appartement F2 meublé de qualité dans le quartier résidentiel de Sibang. 1 chambre avec dressing, salon moderne, cuisine équipée (réfrigérateur, four, machine à café), salle de bain carrelée. Balcon avec vue sur le jardin. Gardiennage et parking.",
+                    category = "Immobilier",
+                    pricePerDay = 30000,
+                    city = "Libreville",
+                    neighborhood = "Sibang",
+                    ownerName = "Marie Nguema Properties",
+                    ownerPhone = "066876543",
+                    ownerRating = 4.5f,
+                    imageUrl = "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                RentalItem(
+                    title = "Moto Yamaha NMAX 155cc - Livraison",
+                    description = "Scooter Yamaha NMAX 155cc 2024, boîte CVT automatique, système ABS, phare LED. Idéal pour livraisons et déplacements urbains. Casque et gilet inclus. Contrôle technique à jour. Consommation économique : 2L/100km.",
+                    category = "Véhicules",
+                    pricePerDay = 15000,
+                    city = "Oyem",
+                    neighborhood = "Centre",
+                    ownerName = "Moto Express Oyem",
+                    ownerPhone = "077123098",
+                    ownerRating = 4.2f,
+                    imageUrl = "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?auto=format&fit=crop&w=800&q=80",
+                    isVerified = false
                 )
             )
             for (item in seedItems) {
@@ -279,15 +396,64 @@ class RentalRepository(private val rentalDao: RentalDao) {
             }
 
             // Seed initial chat conversations
+            val now = System.currentTimeMillis()
             val seedMessages = listOf(
-                ChatMessage(rentalItemId = 1, sender = "Kofi Mensah", messageText = "Bonjour ! La villa est disponible du 15 au 20 juillet. Souhaitez-vous réserver ?", timestamp = System.currentTimeMillis() - 3600000),
-                ChatMessage(rentalItemId = 1, sender = "User", messageText = "Oui, elle correspond parfaitement à mes critères. Le WiFi est inclus ?", timestamp = System.currentTimeMillis() - 3500000),
-                ChatMessage(rentalItemId = 1, sender = "Kofi Mensah", messageText = "Oui, fibre optique 100 Mo/s. La piscine est également chauffée.", timestamp = System.currentTimeMillis() - 3400000),
-                ChatMessage(rentalItemId = 5, sender = "Mael Koumba", messageText = "Le Prado est disponible dès demain. Besoin d'un chauffeur ?", timestamp = System.currentTimeMillis() - 7200000),
-                ChatMessage(rentalItemId = 5, sender = "User", messageText = "Non merci, je conduis moi-même. LeGPS est fonctionnel ?", timestamp = System.currentTimeMillis() - 7100000),
-                ChatMessage(rentalItemId = 5, sender = "Mael Koumba", messageText = "Oui, tout est opérationnel. Je vous envoie les photos de l'état actuel.", timestamp = System.currentTimeMillis() - 7000000),
-                ChatMessage(rentalItemId = 9, sender = "Avenir Evenementiel", messageText = "Pack sono complet disponible pour le 28 juin. Montage inclus ?", timestamp = System.currentTimeMillis() - 14400000),
-                ChatMessage(rentalItemId = 9, sender = "User", messageText = "Oui, j'organise un mariage à Akanda. Combien pour 3 jours ?", timestamp = System.currentTimeMillis() - 14300000)
+                // Conversation 1: Villa La Sablière - Availability check
+                ChatMessage(rentalItemId = 1, sender = "Kofi Mensah", messageText = "Bonjour ! La villa est disponible du 15 au 20 juillet. Souhaitez-vous réserver ?", timestamp = now - 3600000),
+                ChatMessage(rentalItemId = 1, sender = "User", messageText = "Oui, elle correspond parfaitement à mes critères. Le WiFi est inclus ?", timestamp = now - 3500000),
+                ChatMessage(rentalItemId = 1, sender = "Kofi Mensah", messageText = "Oui, fibre optique 100 Mo/s. La piscine est également chauffée.", timestamp = now - 3400000),
+
+                // Conversation 2: Prado - Price negotiation
+                ChatMessage(rentalItemId = 5, sender = "Mael Koumba", messageText = "Le Prado est disponible dès demain. Besoin d'un chauffeur ?", timestamp = now - 7200000),
+                ChatMessage(rentalItemId = 5, sender = "User", messageText = "Non merci, je conduis moi-même. Le GPS est fonctionnel ?", timestamp = now - 7100000),
+                ChatMessage(rentalItemId = 5, sender = "Mael Koumba", messageText = "Oui, tout est opérationnel. Je vous envoie les photos de l'état actuel.", timestamp = now - 7000000),
+
+                // Conversation 3: Pack Sono - Event booking
+                ChatMessage(rentalItemId = 9, sender = "Avenir Evenementiel", messageText = "Pack sono complet disponible pour le 28 juin. Montage inclus ?", timestamp = now - 14400000),
+                ChatMessage(rentalItemId = 9, sender = "User", messageText = "Oui, j'organise un mariage à Akanda. Combien pour 3 jours ?", timestamp = now - 14300000),
+
+                // Conversation 4: Villa - Cancellation request
+                ChatMessage(rentalItemId = 1, sender = "User", messageText = "Malheureusement je dois annuler ma réservation du 15 juillet. Est-ce possible ?", timestamp = now - 86400000),
+                ChatMessage(rentalItemId = 1, sender = "Kofi Mensah", messageText = "Pas de souci, je vais procéder à l'annulation. Le remboursement sera effectué sous 48h.", timestamp = now - 86300000),
+                ChatMessage(rentalItemId = 1, sender = "User", messageText = "Merci pour votre compréhension. Je reviendrai à une autre date.", timestamp = now - 86200000),
+
+                // Conversation 5: Toyota Hilux - Damage report
+                ChatMessage(rentalItemId = 5, sender = "User", messageText = "J'ai constaté une rayure sur le pare-chocs arrière au retour du véhicule.", timestamp = now - 259200000),
+                ChatMessage(rentalItemId = 5, sender = "Mael Koumba", messageText = "Pouvez-vous m'envoyer une photo ? Nous allons évaluer les dommages.", timestamp = now - 259100000),
+                ChatMessage(rentalItemId = 5, sender = "User", messageText = "Photo envoyée. C'est une rayure superficielle, pas de bombe de peinture.", timestamp = now - 259000000),
+                ChatMessage(rentalItemId = 5, sender = "Mael Koumba", messageText = "Merci. Étant donné le caractère superficiel, je n'appliquerai pas de retenue sur la caution.", timestamp = now - 258900000),
+
+                // Conversation 6: Appartement Batterie IV - Visit request
+                ChatMessage(rentalItemId = 2, sender = "User", messageText = "Bonjour, est-il possible de visiter l'appartement ce week-end ?", timestamp = now - 432000000),
+                ChatMessage(rentalItemId = 2, sender = "Marie-Claire Nzamba", messageText = "Bien sûr ! Samedi matin de 9h à 11h, c'est parfait pour vous ?", timestamp = now - 431900000),
+                ChatMessage(rentalItemId = 2, sender = "User", messageText = "Parfait, je serai là à 9h30. Merci !", timestamp = now - 431800000),
+
+                // Conversation 7: Bureau Montagne Sainte - Invoice request
+                ChatMessage(rentalItemId = 16, sender = "User", messageText = "Pourriez-vous me fournir une facture pour la location du bureau ?", timestamp = now - 604800000),
+                ChatMessage(rentalItemId = 16, sender = "Agence Bongo Immobilier", messageText = "Bien sûr, je vous envoie la facture PDF par email. Quel est votre adresse ?", timestamp = now - 604700000),
+
+                // Conversation 8: Piscine Gonflable - Deposit return
+                ChatMessage(rentalItemId = 10, sender = "User", messageText = "Bonjour, quand sera retournée ma caution de 20 000 F ?", timestamp = now - 518400000),
+                ChatMessage(rentalItemId = 10, sender = "Loc Gabon", messageText = "La vérification est terminée, tout est en ordre. Le virement sera effectué aujourd'hui.", timestamp = now - 518300000),
+                ChatMessage(rentalItemId = 10, sender = "User", messageText = "Parfait, merci pour la rapidité !", timestamp = now - 518200000),
+
+                // Conversation 9: Terrain Owendo - Location question
+                ChatMessage(rentalItemId = 17, sender = "User", messageText = "Le terrain est-il constructible ? Y a-t-il des restrictions ?", timestamp = now - 172800000),
+                ChatMessage(rentalItemId = 17, sender = "Patrick Ondimba", messageText = "Oui, zone résidentielle mixte. Vous pouvez construire jusqu'à R+2. Le PLU est disponible.", timestamp = now - 172700000),
+
+                // Conversation 10: Camion Benne - Availability
+                ChatMessage(rentalItemId = 18, sender = "User", messageText = "Le camion est disponible pour une mission à Moanda la semaine prochaine ?", timestamp = now - 345600000),
+                ChatMessage(rentalItemId = 18, sender = "Mines Gabon Logistics", messageText = "Oui, disponible du lundi au vendredi. Besoin d'un chauffeur ?", timestamp = now - 345500000),
+
+                // Conversation 11: Van Hiace - Airport transfer
+                ChatMessage(rentalItemId = 22, sender = "User", messageText = "Je réserve le van pour 12 personnes, transfert aéroport le 20 à 6h du matin.", timestamp = now - 777600000),
+                ChatMessage(rentalItemId = 22, sender = "Transport Plus Gabon", messageText = "Confirmé ! Le chauffeur vous attendra en hall d'arrivée avec un panneau LocAll.", timestamp = now - 777500000),
+                ChatMessage(rentalItemId = 22, sender = "User", messageText = "Parfait. Le prix inclut-il les péages ?", timestamp = now - 777400000),
+                ChatMessage(rentalItemId = 22, sender = "Transport Plus Gabon", messageText = "Oui, tout est inclus dans le tarif de 60 000 F. Bon voyage !", timestamp = now - 777300000),
+
+                // Conversation 12: Moto NMAX - Test ride
+                ChatMessage(rentalItemId = 25, sender = "User", messageText = "Est-ce que je peux faire un essai avant la location longue durée ?", timestamp = now - 43200000),
+                ChatMessage(rentalItemId = 25, sender = "Moto Express Oyem", messageText = "Bien sûr, venez essayer demain matin au magasin. C'est gratuit !", timestamp = now - 43100000)
             )
             for (msg in seedMessages) {
                 rentalDao.insertChatMessage(msg)

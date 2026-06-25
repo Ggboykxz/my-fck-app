@@ -550,7 +550,7 @@ class AllScreensScreenshotTest {
     fun screenshot_48_invite_friend() {
         composeTestRule.setContent {
             MyApplicationTheme {
-                InviteFriendScreen(onBack = {})
+                InviteFriendScreen(viewModel = viewModel, onBack = {})
             }
         }
         screenshot("48_invite_friend")
