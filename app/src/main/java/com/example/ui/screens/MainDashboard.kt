@@ -60,6 +60,7 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import android.content.Intent
+import androidx.activity.compose.BackHandler
 import kotlinx.coroutines.delay
 
 @Composable
@@ -315,6 +316,8 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                         color = Color.White
                     )
                 }
+                UserAvatar(name = "Utilisateur", size = 36.dp)
+
                 BadgedBox(
                     badge = {
                         val unreadCount = viewModel.unreadNotificationCount()
@@ -1512,6 +1515,8 @@ fun ItemDetailsScreen(
     val context = LocalContext.current
     var showBookingDialog by remember { mutableStateOf(false) }
 
+    BackHandler { onBack() }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -2071,6 +2076,13 @@ fun BookingInteractiveDialog(
     var isPhoneError by remember { mutableStateOf(false) }
 
     val paymentState by viewModel.paymentState.collectAsState()
+
+    BackHandler {
+        if (paymentState !is PaymentState.Processing) {
+            viewModel.resetPaymentState()
+            onDismiss()
+        }
+    }
 
     Dialog(onDismissRequest = {
         if (paymentState !is PaymentState.Processing) {
@@ -3018,6 +3030,8 @@ fun ChatRoomScreen(
     var userMessageText by remember { mutableStateOf("") }
     var showTypingIndicator by remember { mutableStateOf(false) }
 
+    BackHandler { onBack() }
+
     LaunchedEffect(showTypingIndicator) {
         if (showTypingIndicator) {
             delay(2000)
@@ -3146,12 +3160,18 @@ fun ChatRoomScreen(
                     horizontalAlignment = if (isMe) Alignment.End else Alignment.Start
                 ) {
                     if (!isMe) {
-                        Text(
-                            text = item.ownerName,
-                            fontSize = 10.sp,
-                            color = Color.White.copy(alpha = 0.4f),
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
-                        )
+                        ) {
+                            UserAvatar(name = message.sender, size = 28.dp)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = message.sender,
+                                fontSize = 10.sp,
+                                color = Color.White.copy(alpha = 0.4f)
+                            )
+                        }
                     }
                     Box(
                         modifier = Modifier

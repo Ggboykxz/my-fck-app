@@ -5,7 +5,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+
+var isDarkMode by mutableStateOf(true)
 
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryGreen,
@@ -20,7 +25,7 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = Color.White
 )
 
-private val LightColorScheme = darkColorScheme(
+private val LightColorScheme = lightColorScheme(
     primary = PrimaryGreen,
     secondary = SoftGreen80,
     tertiary = Grey80,
@@ -39,7 +44,13 @@ fun MyApplicationTheme(
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val colorScheme = when {
+        dynamicColor && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S -> {
+            if (darkTheme) DarkColorScheme else LightColorScheme
+        }
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
 
     MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
 }

@@ -193,7 +193,7 @@ fun LoginScreenView(
             ) {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
-                    contentDescription = "LocAll brand logo",
+                    contentDescription = "Logo LocAll",
                     tint = Color(0xFF13EC5B),
                     modifier = Modifier.size(48.dp)
                 )
@@ -297,7 +297,7 @@ fun LoginScreenView(
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = "Toggle password visibility",
+                                contentDescription = "Basculer la visibilité du mot de passe",
                                 tint = Color.White.copy(alpha = 0.5f)
                             )
                         }
@@ -413,7 +413,7 @@ fun LoginScreenView(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Email, // Representing Gmail/Google simply with icon
-                            contentDescription = "Google sign in",
+                            contentDescription = "Connexion Google",
                             tint = Color(0xFF13EC5B),
                             modifier = Modifier.size(18.dp)
                         )
@@ -443,7 +443,7 @@ fun LoginScreenView(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Public, // Representing social web
-                            contentDescription = "Facebook sign in",
+                            contentDescription = "Connexion Facebook",
                             tint = Color(0xFF1877F2),
                             modifier = Modifier.size(18.dp)
                         )
@@ -753,7 +753,7 @@ fun RegisterScreenView(
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = "Toggle password visibility",
+                                contentDescription = "Basculer la visibilité du mot de passe",
                                 tint = Color.White.copy(alpha = 0.5f)
                             )
                         }
@@ -923,7 +923,7 @@ fun RegisterScreenView(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Email,
-                            contentDescription = "Google signup",
+                            contentDescription = "Inscription Google",
                             tint = Color(0xFF13EC5B),
                             modifier = Modifier.size(16.dp)
                         )
@@ -953,7 +953,7 @@ fun RegisterScreenView(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Public,
-                            contentDescription = "Facebook signup",
+                            contentDescription = "Inscription Facebook",
                             tint = Color(0xFF1877F2),
                             modifier = Modifier.size(16.dp)
                         )
@@ -1024,7 +1024,7 @@ fun ForgotPasswordScreenView(
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "Back back",
+                contentDescription = "Retour",
                 tint = Color.White,
                 modifier = Modifier.size(20.dp)
             )
@@ -1044,7 +1044,7 @@ fun ForgotPasswordScreenView(
         ) {
             Icon(
                 imageVector = Icons.Default.LockReset,
-                contentDescription = "Forgot brand icon",
+                contentDescription = "Icône mot de passe oublié",
                 tint = Color(0xFF13EC5B),
                 modifier = Modifier.size(48.dp)
             )
@@ -1174,7 +1174,7 @@ fun OtpScreenView(
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "Back",
+                contentDescription = "Retour",
                 tint = Color.White,
                 modifier = Modifier.size(20.dp)
             )
@@ -1194,7 +1194,7 @@ fun OtpScreenView(
         ) {
             Icon(
                 imageVector = Icons.Default.VerifiedUser,
-                contentDescription = "Verified confirmation icon",
+                contentDescription = "Icône de vérification",
                 tint = Color(0xFF13EC5B),
                 modifier = Modifier.size(48.dp)
             )
@@ -1374,7 +1374,7 @@ fun NewPasswordScreenView(
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "Back",
+                contentDescription = "Retour",
                 tint = Color.White,
                 modifier = Modifier.size(20.dp)
             )
@@ -1394,7 +1394,7 @@ fun NewPasswordScreenView(
         ) {
             Icon(
                 imageVector = Icons.Default.LockReset, // Re-use lock reset icon
-                contentDescription = "New password confirmation",
+                contentDescription = "Confirmation nouveau mot de passe",
                 tint = Color(0xFF13EC5B),
                 modifier = Modifier.size(48.dp)
             )
@@ -1448,7 +1448,7 @@ fun NewPasswordScreenView(
                     IconButton(onClick = { isVisibleNew = !isVisibleNew }) {
                         Icon(
                             imageVector = if (isVisibleNew) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                            contentDescription = "Toggle password visibility",
+                            contentDescription = "Basculer la visibilité du mot de passe",
                             tint = Color.White.copy(alpha = 0.5f)
                         )
                     }
@@ -1543,7 +1543,7 @@ fun NewPasswordScreenView(
                     IconButton(onClick = { isVisibleConfirm = !isVisibleConfirm }) {
                         Icon(
                             imageVector = if (isVisibleConfirm) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                            contentDescription = "Toggle password visibility",
+                            contentDescription = "Basculer la visibilité du mot de passe",
                             tint = Color.White.copy(alpha = 0.5f)
                         )
                     }
@@ -1826,7 +1826,7 @@ fun LoginSuccessView(onProceed: () -> Unit) {
                     ) {
                         Icon(
                             imageVector = Icons.Default.Check,
-                            contentDescription = "Success checkmark icon",
+                            contentDescription = "Icône de succès",
                             tint = Color(0xFF0F1724),
                             modifier = Modifier.size(48.dp)
                         )
@@ -1978,7 +1978,7 @@ fun RegisterSuccessView(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Check,
-                            contentDescription = "Success checkmark icon",
+                            contentDescription = "Icône de succès",
                             tint = Color(0xFF0F1724),
                             modifier = Modifier.size(48.dp)
                         )
@@ -2082,7 +2082,7 @@ fun CompleteProfileView(
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = "Back back",
+                        contentDescription = "Retour",
                         tint = Color.White
                     )
                 }
@@ -2113,7 +2113,7 @@ fun CompleteProfileView(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Person,
-                        contentDescription = "Avatar picture placeholder",
+                        contentDescription = "Photo de profil par défaut",
                         tint = Color.White.copy(alpha = 0.4f),
                         modifier = Modifier.size(64.dp)
                     )
@@ -2212,7 +2212,7 @@ fun CompleteProfileView(
                             IconButton(onClick = { showGenderMenu = !showGenderMenu }) {
                                 Icon(
                                     imageVector = Icons.Default.KeyboardArrowDown,
-                                    contentDescription = "Dropdown sex open",
+                                    contentDescription = "Sélecteur de sexe",
                                     tint = Color.White.copy(alpha = 0.5f)
                                 )
                             }
@@ -2313,7 +2313,7 @@ fun CompleteProfileView(
                             IconButton(onClick = { showCityMenu = !showCityMenu }) {
                                 Icon(
                                     imageVector = Icons.Default.KeyboardArrowDown,
-                                    contentDescription = "Dropdown city open",
+                                    contentDescription = "Sélecteur de ville",
                                     tint = Color.White.copy(alpha = 0.5f)
                                 )
                             }
@@ -2373,7 +2373,7 @@ fun CompleteProfileView(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.VerifiedUser,
-                                contentDescription = "Verified trust label icon",
+                                contentDescription = "Icône de badge vérifié",
                                 tint = Color(0xFF13EC5B),
                                 modifier = Modifier.size(20.dp)
                             )
@@ -2534,7 +2534,7 @@ fun ProfileSuccessView(onProceed: () -> Unit) {
                     ) {
                         Icon(
                             imageVector = Icons.Default.Check,
-                            contentDescription = "Success checkmark icon",
+                            contentDescription = "Icône de succès",
                             tint = Color(0xFF0F1724),
                             modifier = Modifier.size(48.dp)
                         )
@@ -2620,7 +2620,7 @@ fun PasswordResetSuccessView(onBackToLogin: () -> Unit) {
                     ) {
                         Icon(
                             imageVector = Icons.Default.Check,
-                            contentDescription = "Success checkmark icon",
+                            contentDescription = "Icône de succès",
                             tint = Color(0xFF0F1724),
                             modifier = Modifier.size(48.dp)
                         )

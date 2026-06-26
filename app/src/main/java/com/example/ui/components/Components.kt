@@ -1074,6 +1074,24 @@ fun MenuIconWithBadge(
     }
 }
 
+// ==================== USER AVATAR ====================
+@Composable
+fun UserAvatar(
+    name: String,
+    modifier: Modifier = Modifier,
+    size: Dp = 40.dp,
+    backgroundColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    textColor: Color = MaterialTheme.colorScheme.onPrimaryContainer
+) {
+    val initials = name.split(" ").mapNotNull { it.firstOrNull() }.take(2).joinToString("").uppercase()
+    Box(
+        modifier = modifier.size(size).clip(CircleShape).background(backgroundColor),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = initials, color = textColor, fontWeight = FontWeight.Bold, fontSize = (size.value * 0.4).sp)
+    }
+}
+
 // ==================== SOCIAL ICON BUTTON ====================
 @Composable
 fun SocialIconButton(

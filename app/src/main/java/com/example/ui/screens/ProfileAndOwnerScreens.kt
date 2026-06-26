@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import android.content.Intent
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.data.model.ReceivedReservation
@@ -123,6 +124,11 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
     val isOwnerMode by viewModel.isOwnerMode.collectAsState()
     val snackbarMessage by viewModel.snackbarMessage.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    BackHandler(enabled = subScreen != "main") {
+        subScreen = "main"
+    }
+
     LaunchedEffect(snackbarMessage) {
         snackbarMessage?.let {
             snackbarHostState.showSnackbar(it)
@@ -363,17 +369,11 @@ fun ProfileMainScreen(
                 ) {
                     // Profile Photo with badge overlay
                     Box(modifier = Modifier.size(72.dp)) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data("https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80")
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = "User profile picture",
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(CircleShape)
-                                .border(2.dp, PrimaryGreen, CircleShape),
-                            contentScale = ContentScale.Crop
+                        UserAvatar(
+                            name = userName,
+                            size = 64.dp,
+                            backgroundColor = PrimaryGreen,
+                            textColor = BrandNavy
                         )
                         Row(
                             modifier = Modifier
@@ -4121,6 +4121,8 @@ fun EditProfileScreen(
     val currentPhone by viewModel.userPhone.collectAsState()
     var name by remember { mutableStateOf(currentName) }
     var phone by remember { mutableStateOf(currentPhone) }
+
+    BackHandler { onBack() }
     
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)
@@ -5061,7 +5063,6 @@ fun SettingsScreen(
     onBack: () -> Unit
 ) {
     var notificationsEnabled by remember { mutableStateOf(true) }
-    var darkMode by remember { mutableStateOf(true) }
     var locationEnabled by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -5116,7 +5117,7 @@ fun SettingsScreen(
                     SmoothIcon(icon = Icons.Rounded.DarkMode, tint = Color(0xFF4FC3F7), backgroundColor = Color(0xFF4FC3F7).copy(alpha = 0.12f))
                     Column { Text("Mode Sombre", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold); Text("Thème sombre de l'application", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp) }
                 }
-                Switch(checked = darkMode, onCheckedChange = { darkMode = it }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
+                Switch(checked = isDarkMode, onCheckedChange = { isDarkMode = it }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
             }
         }
 

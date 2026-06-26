@@ -305,27 +305,47 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         _reviews.value = initialReviews
 
         viewModelScope.launch {
-            repository.seedDatabase()
+            try {
+                repository.seedDatabase()
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
         }
 
 
 
         // Simulate loading delays for skeleton screens
         viewModelScope.launch {
-            delay(1200)
-            _isHomeLoading.value = false
+            try {
+                delay(1200)
+                _isHomeLoading.value = false
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
         }
         viewModelScope.launch {
-            delay(800)
-            _isBookmarksLoading.value = false
+            try {
+                delay(800)
+                _isBookmarksLoading.value = false
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
         }
         viewModelScope.launch {
-            delay(1000)
-            _isBookingsLoading.value = false
+            try {
+                delay(1000)
+                _isBookingsLoading.value = false
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
         }
         viewModelScope.launch {
-            delay(600)
-            _isInboxLoading.value = false
+            try {
+                delay(600)
+                _isInboxLoading.value = false
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
         }
     }
 
@@ -334,7 +354,11 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         _searchQuery.value = query
         if (query.isNotBlank()) {
             viewModelScope.launch {
-                repository.insertSearchHistory(SearchHistoryEntry(query = query))
+                try {
+                    repository.insertSearchHistory(SearchHistoryEntry(query = query))
+                } catch (e: Exception) {
+                    showSnackbar("Une erreur est survenue: ${e.message}")
+                }
             }
         }
     }
@@ -438,21 +462,25 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         _profileProfession.value = profession
         _profileCity.value = city
         viewModelScope.launch {
-            repository.upsertUserProfile(
-                UserProfile(
-                    fullName = "Marie-Claire Nzamba",
-                    phone = "+241 77 12 34 56",
-                    dob = dob,
-                    gender = gender,
-                    profession = profession,
-                    city = city,
-                    language = _profileLanguage.value,
-                    isOwnerMode = _isOwnerMode.value,
-                    isPhoneVerified = _isPhoneVerified.value,
-                    isSocialLinked = _isSocialLinked.value,
-                    identityStatus = _identityVerificationStatus.value
+            try {
+                repository.upsertUserProfile(
+                    UserProfile(
+                        fullName = "Marie-Claire Nzamba",
+                        phone = "+241 77 12 34 56",
+                        dob = dob,
+                        gender = gender,
+                        profession = profession,
+                        city = city,
+                        language = _profileLanguage.value,
+                        isOwnerMode = _isOwnerMode.value,
+                        isPhoneVerified = _isPhoneVerified.value,
+                        isSocialLinked = _isSocialLinked.value,
+                        identityStatus = _identityVerificationStatus.value
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
         }
     }
 
@@ -517,13 +545,17 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     // ==================== BOOKMARK ====================
     fun toggleBookmark(item: RentalItem) {
         viewModelScope.launch {
-            repository.updateBookmarkStatus(item.id, !item.isBookmarked)
-            if (_selectedItem.value?.id == item.id) {
-                _selectedItem.value = _selectedItem.value?.copy(isBookmarked = !item.isBookmarked)
+            try {
+                repository.updateBookmarkStatus(item.id, !item.isBookmarked)
+                if (_selectedItem.value?.id == item.id) {
+                    _selectedItem.value = _selectedItem.value?.copy(isBookmarked = !item.isBookmarked)
+                }
+                showSnackbar(
+                    if (!item.isBookmarked) "Ajouté aux favoris" else "Retiré des favoris"
+                )
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
             }
-            showSnackbar(
-                if (!item.isBookmarked) "Ajouté aux favoris" else "Retiré des favoris"
-            )
         }
     }
 
@@ -535,13 +567,17 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         phoneInput: String
     ) {
         viewModelScope.launch {
-            _paymentState.value = PaymentState.Processing("Initialisation de la transaction pour " + rentalItem.title + "...")
-            delay(1500)
-            _paymentState.value = PaymentState.Processing(
-                "Demande de paiement de " + (rentalItem.pricePerDay * days) + " F CFA envoyée à " + paymentMethod + " (" + phoneInput + ")."
-            )
-            delay(1500)
-            _paymentState.value = PaymentState.AwaitingPin(rentalItem, days, paymentMethod, phoneInput)
+            try {
+                _paymentState.value = PaymentState.Processing("Initialisation de la transaction pour " + rentalItem.title + "...")
+                delay(1500)
+                _paymentState.value = PaymentState.Processing(
+                    "Demande de paiement de " + (rentalItem.pricePerDay * days) + " F CFA envoyée à " + paymentMethod + " (" + phoneInput + ")."
+                )
+                delay(1500)
+                _paymentState.value = PaymentState.AwaitingPin(rentalItem, days, paymentMethod, phoneInput)
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
         }
     }
 
@@ -553,36 +589,48 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         pinCode: String
     ) {
         viewModelScope.launch {
-            _paymentState.value = PaymentState.Processing("Validation du code PIN et sécurisation des fonds de caution...")
-            delay(2000)
-            val totalPrice = rentalItem.pricePerDay * days
-            val newBooking = Booking(
-                rentalItemId = rentalItem.id,
-                rentalItemTitle = rentalItem.title,
-                rentalItemCategory = rentalItem.category,
-                pricePerDay = rentalItem.pricePerDay,
-                days = days,
-                totalPrice = totalPrice,
-                paymentMethod = paymentMethod,
-                paymentPhone = phoneInput,
-                status = "Payé"
-            )
-            repository.insertBooking(newBooking)
-            _paymentState.value = PaymentState.Success(newBooking)
+            try {
+                _paymentState.value = PaymentState.Processing("Validation du code PIN et sécurisation des fonds de caution...")
+                delay(2000)
+                val totalPrice = rentalItem.pricePerDay * days
+                val newBooking = Booking(
+                    rentalItemId = rentalItem.id,
+                    rentalItemTitle = rentalItem.title,
+                    rentalItemCategory = rentalItem.category,
+                    pricePerDay = rentalItem.pricePerDay,
+                    days = days,
+                    totalPrice = totalPrice,
+                    paymentMethod = paymentMethod,
+                    paymentPhone = phoneInput,
+                    status = "Payé"
+                )
+                repository.insertBooking(newBooking)
+                _paymentState.value = PaymentState.Success(newBooking)
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
         }
     }
 
     fun cancelBooking(bookingId: Int, reason: String) {
         viewModelScope.launch {
-            repository.updateBookingStatus(bookingId, "Annulé", reason)
-            showSnackbar("Réservation annulée")
+            try {
+                repository.updateBookingStatus(bookingId, "Annulé", reason)
+                showSnackbar("Réservation annulée")
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
         }
     }
 
     fun updateBookingStatus(bookingId: Int, newStatus: String) {
         viewModelScope.launch {
-            repository.updateBookingStatus(bookingId, newStatus, null)
-            showSnackbar("Réservation ${newStatus.lowercase()} !")
+            try {
+                repository.updateBookingStatus(bookingId, newStatus, null)
+                showSnackbar("Réservation ${newStatus.lowercase()} !")
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
         }
     }
 
@@ -670,15 +718,19 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     fun openChatFor(item: RentalItem) {
         _activeChatRentalId.value = item.id
         viewModelScope.launch {
-            val currentMsgs = repository.getChatMessagesForRental(item.id).first()
-            if (currentMsgs.isEmpty()) {
-                repository.insertChatMessage(
-                    ChatMessage(
-                        rentalItemId = item.id,
-                        sender = "Owner",
-                        messageText = "Bonjour, je suis ${item.ownerName}, propriétaire de l'offre [${item.title}]. En quoi puis-je vous aider aujourd'hui ? Le bien est disponible sur ${item.city} (${item.neighborhood})."
+            try {
+                val currentMsgs = repository.getChatMessagesForRental(item.id).first()
+                if (currentMsgs.isEmpty()) {
+                    repository.insertChatMessage(
+                        ChatMessage(
+                            rentalItemId = item.id,
+                            sender = "Owner",
+                            messageText = "Bonjour, je suis ${item.ownerName}, propriétaire de l'offre [${item.title}]. En quoi puis-je vous aider aujourd'hui ? Le bien est disponible sur ${item.city} (${item.neighborhood})."
+                        )
                     )
-                )
+                }
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
             }
         }
     }
@@ -686,36 +738,40 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     fun sendChatMessage(rentalId: Int, messageText: String, ownerName: String) {
         if (messageText.isBlank()) return
         viewModelScope.launch {
-            repository.insertChatMessage(
-                ChatMessage(
-                    rentalItemId = rentalId,
-                    sender = "User",
-                    messageText = messageText
+            try {
+                repository.insertChatMessage(
+                    ChatMessage(
+                        rentalItemId = rentalId,
+                        sender = "User",
+                        messageText = messageText
+                    )
                 )
-            )
 
-            delay(1500)
-            val responseText = when {
-                messageText.contains("disponible", ignoreCase = true) || messageText.contains("dispo", ignoreCase = true) -> {
-                    "Absolument! L'offre est entièrement disponible. Vous pouvez effectuer la réservation directement sur LocAll avec Airtel Money ou Moov Money pour bloquer les dates!"
+                delay(1500)
+                val responseText = when {
+                    messageText.contains("disponible", ignoreCase = true) || messageText.contains("dispo", ignoreCase = true) -> {
+                        "Absolument! L'offre est entièrement disponible. Vous pouvez effectuer la réservation directement sur LocAll avec Airtel Money ou Moov Money pour bloquer les dates!"
+                    }
+                    messageText.contains("prix", ignoreCase = true) || messageText.contains("tarif", ignoreCase = true) || messageText.contains("reduction", ignoreCase = true) -> {
+                        "Le tarif est fixé à la journée. Si vous louez pour plus d'une semaine, je peux vous faire un geste commercial. N'hésitez pas à lancer la réservation pour en discuter."
+                    }
+                    messageText.contains("visite", ignoreCase = true) || messageText.contains("voir", ignoreCase = true) -> {
+                        "Bien sûr, la visite est tout à fait possible. Dites-moi quand vous seriez disponible !"
+                    }
+                    else -> {
+                        "Merci pour votre message ! C'est noté. Que souhaitez-vous savoir d'autre sur cette location pour finaliser notre accord ?"
+                    }
                 }
-                messageText.contains("prix", ignoreCase = true) || messageText.contains("tarif", ignoreCase = true) || messageText.contains("reduction", ignoreCase = true) -> {
-                    "Le tarif est fixé à la journée. Si vous louez pour plus d'une semaine, je peux vous faire un geste commercial. N'hésitez pas à lancer la réservation pour en discuter."
-                }
-                messageText.contains("visite", ignoreCase = true) || messageText.contains("voir", ignoreCase = true) -> {
-                    "Bien sûr, la visite est tout à fait possible. Dites-moi quand vous seriez disponible !"
-                }
-                else -> {
-                    "Merci pour votre message ! C'est noté. Que souhaitez-vous savoir d'autre sur cette location pour finaliser notre accord ?"
-                }
-            }
-            repository.insertChatMessage(
-                ChatMessage(
-                    rentalItemId = rentalId,
-                    sender = "Owner",
-                    messageText = responseText
+                repository.insertChatMessage(
+                    ChatMessage(
+                        rentalItemId = rentalId,
+                        sender = "Owner",
+                        messageText = responseText
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
         }
     }
 
@@ -732,46 +788,58 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         imageUrl: String
     ) {
         viewModelScope.launch {
-            val img = if (imageUrl.isBlank()) {
-                when (category) {
-                    "Immobilier" -> "https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80"
-                    "Véhicules" -> "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80"
-                    else -> "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80"
-                }
-            } else imageUrl
+            try {
+                val img = if (imageUrl.isBlank()) {
+                    when (category) {
+                        "Immobilier" -> "https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80"
+                        "Véhicules" -> "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80"
+                        else -> "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80"
+                    }
+                } else imageUrl
 
-            val newItem = RentalItem(
-                title = title,
-                description = description,
-                category = category,
-                pricePerDay = price,
-                city = city,
-                neighborhood = neighborhood,
-                ownerName = ownerName,
-                ownerPhone = ownerPhone,
-                ownerRating = 5.0f,
-                imageUrl = img,
-                isVerified = true
-            )
-            repository.insertRentalItem(newItem)
-            showSnackbar("Annonce publiée avec succès !")
+                val newItem = RentalItem(
+                    title = title,
+                    description = description,
+                    category = category,
+                    pricePerDay = price,
+                    city = city,
+                    neighborhood = neighborhood,
+                    ownerName = ownerName,
+                    ownerPhone = ownerPhone,
+                    ownerRating = 5.0f,
+                    imageUrl = img,
+                    isVerified = true
+                )
+                repository.insertRentalItem(newItem)
+                showSnackbar("Annonce publiée avec succès !")
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
         }
     }
 
     fun deleteListing(itemId: Int) {
         viewModelScope.launch {
-            repository.deleteRentalItem(itemId)
-            showSnackbar("Annonce supprimée")
+            try {
+                repository.deleteRentalItem(itemId)
+                showSnackbar("Annonce supprimée")
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
         }
     }
 
     fun updateUserProfile(name: String, phone: String) {
         viewModelScope.launch {
-            val current = repository.getUserProfileOnce()
-            if (current != null) {
-                repository.upsertUserProfile(current.copy(fullName = name, phone = phone))
-            } else {
-                repository.upsertUserProfile(UserProfile(id = 1, fullName = name, phone = phone, dob = "", gender = "", city = "", profession = ""))
+            try {
+                val current = repository.getUserProfileOnce()
+                if (current != null) {
+                    repository.upsertUserProfile(current.copy(fullName = name, phone = phone))
+                } else {
+                    repository.upsertUserProfile(UserProfile(id = 1, fullName = name, phone = phone, dob = "", gender = "", city = "", profession = ""))
+                }
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
             }
         }
         _userName.value = name

@@ -15,6 +15,7 @@ import com.example.ui.screens.AuthNavigator
 import com.example.ui.screens.MainDashboardView
 import com.example.ui.screens.OnboardingNavigator
 import com.example.ui.theme.MyApplicationTheme
+import com.example.ui.theme.isDarkMode
 import com.example.ui.viewmodel.RentalViewModel
 import com.example.ui.viewmodel.RentalViewModelFactory
 
@@ -32,7 +33,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         
         setContent {
-            MyApplicationTheme {
+            MyApplicationTheme(darkTheme = isDarkMode) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
