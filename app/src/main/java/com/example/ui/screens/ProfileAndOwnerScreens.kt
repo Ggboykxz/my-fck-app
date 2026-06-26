@@ -294,9 +294,11 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
                     onBack = { subScreen = "main" }
                 )
                 "dispute" -> DisputeScreen(
+                    viewModel = viewModel,
                     onBack = { subScreen = "main" }
                 )
                 "insurance" -> InsuranceScreen(
+                    viewModel = viewModel,
                     onBack = { subScreen = "main" }
                 )
                 "digital_deposit" -> DigitalDepositScreen(
@@ -845,6 +847,11 @@ fun OwnerDashboardScreen(
 ) {
     val balance by viewModel.withdrawableBalance.collectAsState()
     val isLoading by viewModel.isHomeLoading.collectAsState()
+    val bookings by viewModel.bookings.collectAsState()
+    val earnings by viewModel.earnings.collectAsState()
+    val activeListings = bookings.count { it.status == "Confirmé" || it.status == "Payé" }
+    val cancellationRate = if (bookings.isNotEmpty()) (bookings.count { it.status == "Annulé" } * 100 / bookings.size) else 0
+    val totalRevenue = earnings.filter { it.status == "Versé" }.sumOf { it.amount }
 
     LazyColumn(
         modifier = Modifier
@@ -952,14 +959,14 @@ fun OwnerDashboardScreen(
                 StatPillCard(
                     modifier = Modifier.weight(1f),
                     title = "Locations Actives",
-                    value = "4 loués",
+                    value = "${activeListings} loués",
                     icon = Icons.Rounded.CheckCircle,
                     color = PrimaryGreen
                 )
                 StatPillCard(
                     modifier = Modifier.weight(1f),
                     title = "Annulation",
-                    value = "0 %",
+                    value = "${cancellationRate} %",
                     icon = Icons.Rounded.Close,
                     color = Color.Red
                 )
@@ -4102,8 +4109,10 @@ fun EditProfileScreen(
     onBack: () -> Unit,
     onSave: () -> Unit
 ) {
-    var name by remember { mutableStateOf("Jean Dupont") }
-    var phone by remember { mutableStateOf("+241 77 12 34 56") }
+    val currentName by viewModel.userName.collectAsState()
+    val currentPhone by viewModel.userPhone.collectAsState()
+    var name by remember { mutableStateOf(currentName) }
+    var phone by remember { mutableStateOf(currentPhone) }
     
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)
@@ -5769,6 +5778,7 @@ fun RewardsCouponsScreen(
 // ==================== DISPUTE SCREEN ====================
 @Composable
 fun DisputeScreen(
+    viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
     var disputeType by remember { mutableStateOf("Dommage") }
@@ -5828,7 +5838,10 @@ fun DisputeScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(
-            onClick = { showSent = true },
+            onClick = {
+                viewModel.addDispute(description, disputeType)
+                showSent = true
+            },
             enabled = description.isNotBlank(),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
             shape = RoundedCornerShape(14.dp),
@@ -5857,10 +5870,12 @@ fun DisputeScreen(
 // ==================== INSURANCE OPTIONS SCREEN ====================
 @Composable
 fun InsuranceScreen(
+    viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
-    var selectedPlan by remember { mutableStateOf("basic") }
-    var showSubscribed by remember { mutableStateOf(false) }
+    val activeInsurancePlan by viewModel.activeInsurancePlan.collectAsState()
+    var selectedPlan by remember { mutableStateOf(activeInsurancePlan ?: "basic") }
+    val showSubscribed = activeInsurancePlan != null
     val plans = listOf(
         Triple("basic", "Essentiel", "7 500 F CFA/jour"),
         Triple("standard", "Confort", "12 500 F CFA/jour"),
@@ -5935,7 +5950,8 @@ fun InsuranceScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
-            onClick = { showSubscribed = true },
+            onClick = { viewModel.subscribeInsurance(selectedPlan) },
+            enabled = activeInsurancePlan == null,
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth().height(52.dp).padding(bottom = 16.dp)

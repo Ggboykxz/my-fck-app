@@ -126,7 +126,7 @@ fun MainDashboardView(viewModel: RentalViewModel) {
                             ChatRoomScreen(
                                 item = item,
                                 viewModel = viewModel,
-                                onBack = { viewModel.navigateTo("home") }
+                                onBack = { viewModel.navigateTo("messages") }
                             )
                         } else {
                             ExploreScreen(viewModel)

@@ -99,6 +99,9 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     private val _userName = MutableStateFlow("Marie-Claire Nzamba")
     val userName: StateFlow<String> = _userName.asStateFlow()
 
+    private val _userPhone = MutableStateFlow("+241 77 12 34 56")
+    val userPhone: StateFlow<String> = _userPhone.asStateFlow()
+
     private val _isOwnerMode = MutableStateFlow(false)
     val isOwnerMode: StateFlow<Boolean> = _isOwnerMode.asStateFlow()
 
@@ -190,6 +193,10 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         DisputeEntry("LIT-002", "Annulation tardive Pack Sono", "Résolu", "15/06/2026", "Annulation", "Annulation moins de 24h avant l'événement", 50000)
     ))
     val disputes: StateFlow<List<DisputeEntry>> = _disputes.asStateFlow()
+
+    // Insurance state
+    private val _activeInsurancePlan = MutableStateFlow<String?>(null)
+    val activeInsurancePlan: StateFlow<String?> = _activeInsurancePlan.asStateFlow()
 
     // Payment history data
     private val _paymentHistory = MutableStateFlow(listOf(
@@ -753,7 +760,32 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
             }
         }
         _userName.value = name
+        _userPhone.value = phone
         showSnackbar("Profil mis à jour avec succès")
+    }
+
+    fun addDispute(description: String, type: String) {
+        val newDispute = DisputeEntry(
+            id = "LIT-${System.currentTimeMillis() % 10000}",
+            title = "$type - $type",
+            status = "En cours",
+            date = "Aujourd'hui",
+            type = type,
+            description = description,
+            claimAmount = 0
+        )
+        _disputes.value = listOf(newDispute) + _disputes.value
+
+        // Also create a mediation thread
+        _mediationMessages.value = listOf(
+            MediationMessage("Système", "Nouveau litige '$type' ouvert", "Maintenant", true),
+            MediationMessage("Vous", description, "Maintenant")
+        ) + _mediationMessages.value
+    }
+
+    fun subscribeInsurance(plan: String) {
+        _activeInsurancePlan.value = plan
+        showSnackbar("Assurance $plan souscrite !")
     }
 
     // ==================== SORT ====================
