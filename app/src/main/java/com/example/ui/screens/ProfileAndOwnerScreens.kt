@@ -283,6 +283,7 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
                     onBack = { subScreen = "main" }
                 )
                 "flash_offers" -> FlashOffersScreen(
+                    viewModel = viewModel,
                     onBack = { subScreen = "main" }
                 )
                 "loyalty_redeem" -> LoyaltyRedeemScreen(
@@ -324,6 +325,7 @@ fun ProfileMainScreen(
     val isOwnerMode by viewModel.isOwnerMode.collectAsState()
     val verifStatus by viewModel.identityVerificationStatus.collectAsState()
     val language by viewModel.profileLanguage.collectAsState()
+    val userName by viewModel.userName.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     LazyColumn(
@@ -385,7 +387,7 @@ fun ProfileMainScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(
-                                "Marie-Claire Nzamba",
+                                userName,
                                 color = Color.White,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
@@ -1879,7 +1881,7 @@ fun ReceivedBookingsScreen(
         // Display reservations matching tab
         val statusFilter = when (tabIndex) {
             0 -> "En attente"
-            1 -> "Confirmé"
+            1 -> "Confirmée"
             else -> "Terminé"
         }
 
@@ -1976,7 +1978,7 @@ fun ReceivedBookingsScreen(
                                         Text("Refuser", fontWeight = FontWeight.Bold)
                                     }
                                 }
-                            } else if (res.status == "Confirmé") {
+                            } else if (res.status == "Confirmée") {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -5583,6 +5585,7 @@ fun AchievementsScreen(
 // ==================== FLASH OFFERS SCREEN ====================
 @Composable
 fun FlashOffersScreen(
+    viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
     val flashOffers = listOf(
@@ -5629,7 +5632,13 @@ fun FlashOffersScreen(
                             Text(timer, color = Color(0xFFFF6F00), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                         }
                         Button(
-                            onClick = {},
+                            onClick = {
+                                val matchedItem = viewModel.rawRentalItems.value.find { it.title == title }
+                                if (matchedItem != null) {
+                                    viewModel.selectItem(matchedItem)
+                                    viewModel.navigateTo("details")
+                                }
+                            },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF6F00), contentColor = Color.White),
                             shape = RoundedCornerShape(10.dp),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
@@ -6111,6 +6120,21 @@ fun InteractiveCalendarScreen(
     val bookedDates = listOf(5, 6, 7, 12, 13, 19, 20, 21, 27, 28)
     val availableDates = listOf(1, 2, 3, 4, 8, 9, 10, 11, 14, 15, 16, 17, 18, 22, 23, 24, 25, 26, 29, 30, 31)
     var selectedDate by remember { mutableIntStateOf(0) }
+    var showBookingConfirm by remember { mutableStateOf(false) }
+
+    if (showBookingConfirm) {
+        AlertDialog(
+            onDismissRequest = { showBookingConfirm = false },
+            containerColor = Color(0xFF162133),
+            title = { Text("Réserver le $selectedDate juillet 2026 ?", color = Color.White) },
+            text = { Text("Cette fonctionnalité sera disponible prochainement. Vous serez notifié quand le propriétaire confirmtera.", color = Color.White.copy(alpha = 0.7f)) },
+            confirmButton = {
+                Button(onClick = { showBookingConfirm = false }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)) {
+                    Text("OK", color = BrandNavy)
+                }
+            }
+        )
+    }
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(modifier = Modifier.height(24.dp))
@@ -6201,7 +6225,7 @@ fun InteractiveCalendarScreen(
 
         if (selectedDate > 0) {
             Spacer(modifier = Modifier.height(16.dp))
-            Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.08f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
+            Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.08f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f)), modifier = Modifier.clickable { showBookingConfirm = true }) {
                 Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Icon(Icons.Rounded.EventAvailable, contentDescription = null, tint = PrimaryGreen)
                     Column {

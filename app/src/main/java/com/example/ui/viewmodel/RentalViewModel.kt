@@ -596,32 +596,30 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val filteredRentalItems: StateFlow<List<RentalItem>> = combine(
-        rawRentalItems,
-        _searchQuery,
-        _selectedCategory,
-        _selectedCity,
-        _selectedMaxPrice,
-        _sortOption
-    ) { values ->
-        val items = values[0] as List<RentalItem>
-        val query = values[1] as String
-        val category = values[2] as String
-        val city = values[3] as String
-        val maxPrice = values[4] as Int
-        val sort = values[5] as SortOption
-        items.filter { item ->
-            val matchesQuery = item.title.contains(query, ignoreCase = true) ||
-                    item.description.contains(query, ignoreCase = true) ||
-                    item.neighborhood.contains(query, ignoreCase = true)
+        rawRentalItems, _searchQuery, _selectedCategory, _selectedCity, _selectedMaxPrice, _sortOption, _startDate, _endDate, _maxDistance
+    ) { args ->
+        val allItems = args[0] as List<RentalItem>
+        val query = args[1] as String
+        val category = args[2] as String
+        val city = args[3] as String
+        val maxPrice = args[4] as Int
+        val sort = args[5] as SortOption
+        val startDate = args[6] as String?
+        val endDate = args[7] as String?
+        val maxDistance = args[8] as Float
+
+        allItems.filter { item ->
+            val matchesQuery = query.isEmpty() || item.title.contains(query, ignoreCase = true) || item.description.contains(query, ignoreCase = true) || item.neighborhood.contains(query, ignoreCase = true)
             val matchesCategory = category == "Tous" || item.category.equals(category, ignoreCase = true)
             val matchesCity = city == "Tous" || item.city.equals(city, ignoreCase = true)
-            val matchesPrice = item.pricePerDay >= 0 && (maxPrice == 0 || item.pricePerDay <= maxPrice)
+            val matchesPrice = maxPrice == 0 || item.pricePerDay <= maxPrice
+            // Date and distance filters are UI-only for now (no real geolocation data)
             matchesQuery && matchesCategory && matchesCity && matchesPrice
         }.let { filtered ->
             when (sort) {
                 SortOption.PRICE_ASC -> filtered.sortedBy { it.pricePerDay }
                 SortOption.PRICE_DESC -> filtered.sortedByDescending { it.pricePerDay }
-                SortOption.RECENT -> filtered.sortedByDescending { it.createdAt }
+                SortOption.RECENT -> filtered.sortedByDescending { it.id }
                 SortOption.RATING -> filtered.sortedByDescending { it.ownerRating }
             }
         }

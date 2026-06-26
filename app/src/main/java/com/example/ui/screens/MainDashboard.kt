@@ -67,6 +67,7 @@ fun MainDashboardView(viewModel: RentalViewModel) {
     val currentScreen by viewModel.currentScreen.collectAsState()
     val selectedItem by viewModel.selectedItem.collectAsState()
     val unreadCount by viewModel.unreadMessageCount.collectAsState()
+    val bookings by viewModel.bookings.collectAsState()
 
     // Main Layout Scaffold with M3 Bottom Navigation
     Scaffold(
@@ -75,7 +76,8 @@ fun MainDashboardView(viewModel: RentalViewModel) {
                 DashboardBottomBar(
                     currentScreen = currentScreen,
                     onNavigate = { screen -> viewModel.navigateTo(screen) },
-                    unreadCount = unreadCount
+                    unreadCount = unreadCount,
+                    bookingCount = bookings.size
                 )
             }
         }
@@ -140,7 +142,8 @@ fun MainDashboardView(viewModel: RentalViewModel) {
 fun DashboardBottomBar(
     currentScreen: Screen,
     onNavigate: (String) -> Unit,
-    unreadCount: Int = 0
+    unreadCount: Int = 0,
+    bookingCount: Int = 0
 ) {
     NavigationBar(
         containerColor = BrandNavy,
@@ -233,7 +236,17 @@ fun DashboardBottomBar(
             onClick = { onNavigate("profile") },
             icon = {
                 val isSel = currentScreen is Screen.Profile
-                SmoothIcon(Icons.Rounded.Person, contentDescription = "Profil", tint = if (isSel) BrandNavy else Color.White.copy(alpha = 0.45f), backgroundColor = if (isSel) PrimaryGreen else Color.White.copy(alpha = 0.08f), modifier = Modifier.size(32.dp), iconSize = 18.dp)
+                BadgedBox(
+                    badge = {
+                        if (bookingCount > 0) {
+                            Badge(containerColor = PrimaryGreen) {
+                                Text("$bookingCount", fontSize = 9.sp, color = BrandNavy)
+                            }
+                        }
+                    }
+                ) {
+                    SmoothIcon(Icons.Rounded.Person, contentDescription = "Profil", tint = if (isSel) BrandNavy else Color.White.copy(alpha = 0.45f), backgroundColor = if (isSel) PrimaryGreen else Color.White.copy(alpha = 0.08f), modifier = Modifier.size(32.dp), iconSize = 18.dp)
+                }
             },
             label = { Text("Profil", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
             colors = NavigationBarItemDefaults.colors(
@@ -666,7 +679,8 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     Triple("Tous", Icons.Rounded.Apps, "Tous"),
                     Triple("Immobilier", Icons.Rounded.Home, "Immobilier"),
                     Triple("Véhicules", Icons.Rounded.DirectionsCar, "Véhicules"),
-                    Triple("Équipements", Icons.Rounded.Build, "Équipements")
+                    Triple("Équipements", Icons.Rounded.Build, "Équipements"),
+                    Triple("Événementiel", Icons.Rounded.Celebration, "Événementiel")
                 )
 
                 LazyRow(
@@ -3243,7 +3257,8 @@ fun PostListingScreen(viewModel: RentalViewModel) {
     val categoryIcons = mapOf(
         "Immobilier" to Icons.Rounded.Home,
         "Véhicules" to Icons.Rounded.DirectionsCar,
-        "Équipements" to Icons.Rounded.Build
+        "Équipements" to Icons.Rounded.Build,
+        "Événementiel" to Icons.Rounded.Celebration
     )
 
     LazyColumn(
@@ -3369,7 +3384,7 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("CATÉGORIE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        listOf("Immobilier", "Véhicules", "Équipements").forEach { cat ->
+                        listOf("Immobilier", "Véhicules", "Équipements", "Événementiel").forEach { cat ->
                             val isSelected = category == cat
                             Card(
                                 modifier = Modifier.weight(1f).clickable { category = cat },
