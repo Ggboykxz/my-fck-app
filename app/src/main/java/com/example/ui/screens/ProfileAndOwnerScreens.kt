@@ -308,6 +308,7 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
                     onBack = { subScreen = "main" }
                 )
                 "interactive_calendar" -> InteractiveCalendarScreen(
+                    viewModel = viewModel,
                     onBack = { subScreen = "main" }
                 )
             }
@@ -1014,14 +1015,21 @@ fun OwnerDashboardScreen(
                         }
 
                         // Coordinates for points representing monthly revenue
-                        val points = listOf(
-                            Offset(w * 0.05f, h * 0.85f), // Sep
-                            Offset(w * 0.23f, h * 0.70f), // Oct
-                            Offset(w * 0.41f, h * 0.75f), // Nov
-                            Offset(w * 0.59f, h * 0.50f), // Dec
-                            Offset(w * 0.77f, h * 0.30f), // Jan
-                            Offset(w * 0.95f, h * 0.15f)  // Feb
+                        val chartPoints = listOf(
+                            totalRevenue.toFloat().coerceAtLeast(0f),
+                            (totalRevenue * 0.7f).coerceAtLeast(0f),
+                            (totalRevenue * 0.9f).coerceAtLeast(0f),
+                            totalRevenue.toFloat().coerceAtLeast(0f),
+                            (totalRevenue * 1.1f).coerceAtLeast(0f),
+                            totalRevenue.toFloat().coerceAtLeast(0f)
                         )
+                        val maxVal = chartPoints.max().coerceAtLeast(1f)
+                        val points = chartPoints.mapIndexed { i, v ->
+                            Offset(
+                                w * (0.05f + i * 0.19f),
+                                h * (1f - (v / maxVal) * 0.75f)
+                            )
+                        }
 
                         // Draw path under line with gradient fill
                         val fillPath = Path().apply {
@@ -4994,6 +5002,31 @@ fun AdvancedSearchScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        if (searchQuery.isBlank()) {
+            val searchHistory by viewModel.searchHistory.collectAsState()
+            if (searchHistory.isNotEmpty()) {
+                Text("Recherches récentes", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                searchHistory.take(5).forEach { entry ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                searchQuery = entry.query
+                                viewModel.setSearchQuery(entry.query)
+                            }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Icon(Icons.Rounded.History, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(18.dp))
+                        Text(entry.query, color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
+
         Text("${items.size} résultat(s) trouvé(s)", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp)
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -6131,10 +6164,14 @@ fun RealTimeVerificationScreen(
 // ==================== INTERACTIVE CALENDAR SCREEN ====================
 @Composable
 fun InteractiveCalendarScreen(
+    viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
-    val bookedDates = listOf(5, 6, 7, 12, 13, 19, 20, 21, 27, 28)
-    val availableDates = listOf(1, 2, 3, 4, 8, 9, 10, 11, 14, 15, 16, 17, 18, 22, 23, 24, 25, 26, 29, 30, 31)
+    val bookings by viewModel.bookings.collectAsState()
+    val bookedDates = bookings.map { booking ->
+        java.util.Calendar.getInstance().apply { timeInMillis = booking.bookingTimestamp }.get(java.util.Calendar.DAY_OF_MONTH)
+    }.distinct()
+    val availableDates = (1..31).filter { it !in bookedDates }
     var selectedDate by remember { mutableIntStateOf(0) }
     var showBookingConfirm by remember { mutableStateOf(false) }
 

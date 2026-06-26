@@ -301,7 +301,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Bienvenue au Gabon",
                         fontSize = 14.sp,
@@ -314,6 +314,20 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
+                }
+                BadgedBox(
+                    badge = {
+                        val unreadCount = viewModel.unreadNotificationCount()
+                        if (unreadCount > 0) {
+                            Badge(containerColor = Color.Red, contentColor = Color.White) {
+                                Text("$unreadCount", fontSize = 9.sp)
+                            }
+                        }
+                    }
+                ) {
+                    IconButton(onClick = { viewModel.navigateTo("profile") }) {
+                        Icon(Icons.Rounded.Notifications, "Notifications", tint = Color.White.copy(alpha = 0.7f))
+                    }
                 }
             }
         }
@@ -2552,6 +2566,7 @@ fun BookingsScreen(viewModel: RentalViewModel) {
     val bookings by viewModel.bookings.collectAsState()
     val isLoading by viewModel.isBookingsLoading.collectAsState()
     var showCancelDialog by remember { mutableStateOf<Booking?>(null) }
+    var selectedBooking by remember { mutableStateOf<Booking?>(null) }
 
     Column(
         modifier = Modifier
@@ -2606,7 +2621,8 @@ fun BookingsScreen(viewModel: RentalViewModel) {
                 items(bookings) { booking ->
                     BookingItemCard(
                         booking = booking,
-                        onCancelClick = { showCancelDialog = booking }
+                        onCancelClick = { showCancelDialog = booking },
+                        onItemClick = { selectedBooking = booking }
                     )
                 }
             }
@@ -2626,12 +2642,68 @@ fun BookingsScreen(viewModel: RentalViewModel) {
             isDestructive = true
         )
     }
+
+    selectedBooking?.let { booking ->
+        AlertDialog(
+            onDismissRequest = { selectedBooking = null },
+            containerColor = Color(0xFF162133),
+            title = {
+                Text("Détails de la réservation", color = Color.White, fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(booking.rentalItemTitle, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Statut", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp)
+                        Text(booking.status, color = when(booking.status) { "Confirmé" -> Color(0xFF4FC3F7); "Annulé" -> Color.Red; else -> PrimaryGreen }, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Période", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp)
+                        Text("${booking.days} jours", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Paiement", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp)
+                        Text(booking.paymentMethod, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Total", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp)
+                        Text(formatPriceCfa(booking.totalPrice), color = PrimaryGreen, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                    }
+                    if (booking.status == "Payé") {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Button(
+                            onClick = {
+                                viewModel.updateBookingStatus(booking.id, "Confirmé")
+                                selectedBooking = null
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Confirmer", color = BrandNavy, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { selectedBooking = null }) {
+                    Text("Fermer", color = Color.White.copy(alpha = 0.6f))
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun BookingItemCard(booking: Booking, onCancelClick: () -> Unit = {}) {
+fun BookingItemCard(booking: Booking, onCancelClick: () -> Unit = {}, onItemClick: () -> Unit = {}) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (booking.status != "Annulé") Modifier.clickable { onItemClick() } else Modifier
+            ),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))

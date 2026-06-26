@@ -142,9 +142,19 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     private val _paymentState = MutableStateFlow<PaymentState>(PaymentState.Idle)
     val paymentState: StateFlow<PaymentState> = _paymentState.asStateFlow()
 
-    // Unread messages count
-    private val _unreadMessageCount = MutableStateFlow(3)
-    val unreadMessageCount: StateFlow<Int> = _unreadMessageCount.asStateFlow()
+    // Unread messages count (derived from chat data)
+    private val allChats: StateFlow<List<ChatMessage>> = repository.getAllChatMessages()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val unreadMessageCount: StateFlow<Int> = allChats.map { chats ->
+        val counts = mutableMapOf<String, Int>()
+        for (chat in chats) {
+            if (chat.sender != "me" && chat.sender != "User") {
+                counts[chat.sender] = (counts[chat.sender] ?: 0) + 1
+            }
+        }
+        counts.size.coerceAtMost(99)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     // Referral system
     private val _referralCount = MutableStateFlow(3)
@@ -298,12 +308,7 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
             repository.seedDatabase()
         }
 
-        // Compute unread count from actual chat conversations
-        viewModelScope.launch {
-            delay(500) // Wait for seed
-            val chatCounts = repository.getAllChatMessages().first().groupBy { it.rentalItemId }
-            _unreadMessageCount.value = chatCounts.size.coerceAtMost(99)
-        }
+
 
         // Simulate loading delays for skeleton screens
         viewModelScope.launch {
@@ -574,6 +579,13 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    fun updateBookingStatus(bookingId: Int, newStatus: String) {
+        viewModelScope.launch {
+            repository.updateBookingStatus(bookingId, newStatus, null)
+            showSnackbar("Réservation ${newStatus.lowercase()} !")
+        }
+    }
+
     fun resetPaymentState() {
         _paymentState.value = PaymentState.Idle
     }
@@ -593,6 +605,9 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     fun reviewsFor(itemId: Int): Flow<List<RentalReview>> = _reviews.map { map -> map[itemId] ?: emptyList() }
 
     // ==================== REACTIVE DATA ====================
+    val searchHistory: StateFlow<List<SearchHistoryEntry>> = repository.searchHistory
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val rawRentalItems: StateFlow<List<RentalItem>> = repository.allRentalItems
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
