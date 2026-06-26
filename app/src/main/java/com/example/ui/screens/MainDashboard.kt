@@ -266,16 +266,13 @@ fun ExploreScreen(viewModel: RentalViewModel) {
     var showBookingFromModal by remember { mutableStateOf<RentalItem?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var isRefreshing by remember { mutableStateOf(false) }
+    val isOwnerMode by viewModel.isOwnerMode.collectAsState()
 
     LaunchedEffect(Unit) { delay(1500); isLoading = false }
     LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(1500); isRefreshing = false } }
 
-    val sortedItems = when (sortOption) {
-        SortOption.PRICE_ASC -> items.sortedBy { it.pricePerDay }
-        SortOption.PRICE_DESC -> items.sortedByDescending { it.pricePerDay }
-        SortOption.RECENT -> items.sortedByDescending { it.id }
-        SortOption.RATING -> items
-    }
+    val sortedItems = items
+    val displayItems = if (isOwnerMode) sortedItems.filter { it.ownerName == "Vous" || it.ownerName == "User" } else sortedItems
 
     LazyColumn(
         modifier = Modifier
@@ -702,7 +699,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
             items(3) { SkeletonCard() }
         } else if (isRefreshing) {
             items(3) { SkeletonCard() }
-        } else if (sortedItems.isEmpty()) {
+        } else if (displayItems.isEmpty()) {
             item {
                 Box(
                     modifier = Modifier
@@ -748,7 +745,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     }
                 }
             }
-            items(sortedItems) { item ->
+            items(displayItems) { item ->
                 RentalCard(
                     item = item,
                     onSelect = {

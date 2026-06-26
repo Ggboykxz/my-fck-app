@@ -96,6 +96,9 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     private val _profilePhotoEnabled = MutableStateFlow(true)
     val profilePhotoEnabled: StateFlow<Boolean> = _profilePhotoEnabled.asStateFlow()
 
+    private val _userName = MutableStateFlow("Marie-Claire Nzamba")
+    val userName: StateFlow<String> = _userName.asStateFlow()
+
     private val _isOwnerMode = MutableStateFlow(false)
     val isOwnerMode: StateFlow<Boolean> = _isOwnerMode.asStateFlow()
 
@@ -743,7 +746,16 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun updateUserProfile(name: String, phone: String) {
-        showSnackbar("Profil mis à jour")
+        viewModelScope.launch {
+            val current = repository.getUserProfileOnce()
+            if (current != null) {
+                repository.upsertUserProfile(current.copy(fullName = name, phone = phone))
+            } else {
+                repository.upsertUserProfile(UserProfile(id = 1, fullName = name, phone = phone, dob = "", gender = "", city = "", profession = ""))
+            }
+        }
+        _userName.value = name
+        showSnackbar("Profil mis à jour avec succès")
     }
 
     // ==================== SORT ====================

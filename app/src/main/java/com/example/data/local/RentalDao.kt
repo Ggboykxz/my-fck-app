@@ -63,6 +63,9 @@ interface RentalDao {
     @Query("SELECT * FROM user_profile WHERE id = 1")
     fun getUserProfile(): Flow<UserProfile?>
 
+    @Query("SELECT * FROM user_profile WHERE id = 1")
+    suspend fun getUserProfileOnce(): UserProfile?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSearchHistory(entry: SearchHistoryEntry)
 

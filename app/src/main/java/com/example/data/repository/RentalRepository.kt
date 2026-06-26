@@ -13,6 +13,10 @@ class RentalRepository(private val rentalDao: RentalDao) {
     val userProfile: Flow<UserProfile?> = rentalDao.getUserProfile()
     val searchHistory: Flow<List<SearchHistoryEntry>> = rentalDao.getSearchHistory()
 
+    suspend fun getUserProfileOnce(): UserProfile? {
+        return rentalDao.getUserProfileOnce()
+    }
+
     fun getRentalItemsByCategory(category: String): Flow<List<RentalItem>> =
         rentalDao.getRentalItemsByCategory(category)
 

@@ -257,6 +257,7 @@ fun ProfileNavigator(viewModel: RentalViewModel) {
                     onBack = { subScreen = "main" }
                 )
                 "rating" -> RatingScreen(
+                    viewModel = viewModel,
                     rentalItemTitle = viewModel.selectedItem.value?.title ?: "Annonce",
                     onBack = { subScreen = "main" },
                     onSubmitted = { subScreen = "main" }
@@ -3167,11 +3168,11 @@ fun NotificationsScreen(
     val unreadCount = notifications.count { !it.isRead }
 
     fun markAsRead(id: Int) {
-        // Notifications are managed via ViewModel
+        viewModel.markNotificationRead(id)
     }
 
     fun markAllAsRead() {
-        // Notifications are managed via ViewModel
+        viewModel.markAllNotificationsRead()
     }
 
     fun notificationIcon(type: String) = when (type) {
@@ -5197,6 +5198,7 @@ fun InviteFriendScreen(
 // ==================== RATING SCREEN ====================
 @Composable
 fun RatingScreen(
+    viewModel: RentalViewModel,
     rentalItemTitle: String,
     onBack: () -> Unit,
     onSubmitted: () -> Unit
@@ -5268,7 +5270,7 @@ fun RatingScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { if (rating > 0) { submitted = true; onSubmitted() } },
+                onClick = { if (rating > 0) { viewModel.addReview(viewModel.selectedItem.value?.id ?: 1, rating, comment); submitted = true; onSubmitted() } },
                 modifier = Modifier.fillMaxWidth().height(54.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = if (rating > 0) PrimaryGreen else Color.White.copy(alpha = 0.1f), contentColor = BrandNavy),
                 shape = RoundedCornerShape(16.dp)

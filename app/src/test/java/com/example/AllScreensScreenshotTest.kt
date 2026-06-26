@@ -560,7 +560,7 @@ class AllScreensScreenshotTest {
     fun screenshot_49_rating() {
         composeTestRule.setContent {
             MyApplicationTheme {
-                RatingScreen(rentalItemTitle = "Villa de Luxe - La Sablière", onBack = {}, onSubmitted = {})
+                RatingScreen(viewModel = viewModel, rentalItemTitle = "Villa de Luxe - La Sablière", onBack = {}, onSubmitted = {})
             }
         }
         screenshot("49_rating")
