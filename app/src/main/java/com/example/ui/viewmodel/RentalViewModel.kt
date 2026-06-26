@@ -426,7 +426,8 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         _receivedBookings.value = _receivedBookings.value.map { if (it.id == id) it.copy(status = "Refusée") else it }
     }
 
-    fun unreadNotificationCount(): Int = _notifications.value.count { !it.isRead }
+    val unreadNotificationCount: StateFlow<Int> = _notifications.map { list -> list.count { !it.isRead } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     fun showSnackbar(message: String) {
         _snackbarMessage.value = message

@@ -320,7 +320,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
 
                 BadgedBox(
                     badge = {
-                        val unreadCount = viewModel.unreadNotificationCount()
+                        val unreadCount by viewModel.unreadNotificationCount.collectAsState()
                         if (unreadCount > 0) {
                             Badge(containerColor = Color.Red, contentColor = Color.White) {
                                 Text("$unreadCount", fontSize = 9.sp)
