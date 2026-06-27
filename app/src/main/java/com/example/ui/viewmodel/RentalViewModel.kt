@@ -516,10 +516,6 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     // ==================== NAVIGATION ====================
-    fun navigateTo(screen: Screen) {
-        _currentScreen.value = screen
-    }
-
     fun navigateTo(screen: String) {
         _currentScreen.value = when (screen) {
             "home" -> Screen.Home

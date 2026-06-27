@@ -56,42 +56,6 @@ fun OnboardingNavigator(
     OnboardingNavHost(navController = navController, viewModel = viewModel, onFinished = onFinished)
 }
 
-// Legacy OnboardingNavigator (for tests)
-@Composable
-fun OnboardingNavigatorLegacy(
-    viewModel: RentalViewModel,
-    onFinished: () -> Unit
-) {
-    val step by viewModel.onboardingStep.collectAsState()
-
-    AnimatedContent(
-        targetState = step,
-        transitionSpec = {
-            slideInHorizontally { width -> width } + fadeIn() togetherWith
-                    slideOutHorizontally { width -> -width } + fadeOut()
-        },
-        label = "OnboardingScreenTransition"
-    ) { currentStep ->
-        when (currentStep) {
-            0 -> SplashScreenView(onNext = { viewModel.nextOnboarding() })
-            1 -> WelcomeOnboardingScreen(
-                onNext = { viewModel.nextOnboarding() },
-                onSkip = { viewModel.skipOnboarding() }
-            )
-            2 -> PaymentsOnboardingScreen(
-                onNext = { viewModel.nextOnboarding() },
-                onSkip = { viewModel.skipOnboarding() }
-            )
-            3 -> TrustOnboardingScreen(
-                onStart = {
-                    viewModel.nextOnboarding()
-                    onFinished()
-                }
-            )
-        }
-    }
-}
-
 @Composable
 fun SplashScreenView(onNext: () -> Unit) {
     LaunchedEffect(Unit) {
