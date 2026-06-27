@@ -43,9 +43,22 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.ui.viewmodel.RentalViewModel
 import kotlinx.coroutines.delay
+import androidx.navigation.compose.rememberNavController
+import com.example.ui.navigation.OnboardingNavHost
 
+// NavHost-based OnboardingNavigator (production)
 @Composable
 fun OnboardingNavigator(
+    viewModel: RentalViewModel,
+    onFinished: () -> Unit
+) {
+    val navController = rememberNavController()
+    OnboardingNavHost(navController = navController, viewModel = viewModel, onFinished = onFinished)
+}
+
+// Legacy OnboardingNavigator (for tests)
+@Composable
+fun OnboardingNavigatorLegacy(
     viewModel: RentalViewModel,
     onFinished: () -> Unit
 ) {

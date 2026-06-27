@@ -39,9 +39,43 @@ import com.example.ui.components.*
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
 import kotlinx.coroutines.delay
+import androidx.navigation.compose.rememberNavController
+import com.example.ui.navigation.AuthNavHost
 
+// NavHost-based AuthNavigator (production)
 @Composable
 fun AuthNavigator(viewModel: RentalViewModel) {
+    val navController = rememberNavController()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF0B1526))
+    ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = 100.dp, y = (-80).dp)
+                .size(350.dp)
+                .clip(CircleShape)
+                .background(Brush.radialGradient(listOf(Color(0xFF13EC5B).copy(alpha = 0.12f), Color.Transparent)))
+                .blur(80.dp)
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .offset(x = (-100).dp, y = 100.dp)
+                .size(350.dp)
+                .clip(CircleShape)
+                .background(Brush.radialGradient(listOf(Color(0xFF2563EB).copy(alpha = 0.05f), Color.Transparent)))
+                .blur(100.dp)
+        )
+        AuthNavHost(navController = navController, viewModel = viewModel)
+    }
+}
+
+// Legacy AuthNavigator (for tests)
+@Composable
+fun AuthNavigatorLegacy(viewModel: RentalViewModel) {
     val authState by viewModel.authState.collectAsState()
 
     Box(
