@@ -341,7 +341,7 @@ fun ChatRoomScreen(
                                             Icon(Icons.Rounded.LocationOn, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(18.dp))
                                         }
                                         Column {
-                                            Text("📍 Position partagée", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                            Text("Position partagée", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                             Text(displayText, color = Color.White.copy(alpha = 0.6f), fontSize = 10.sp)
                                         }
                                     }

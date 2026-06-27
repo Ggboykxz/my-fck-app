@@ -267,7 +267,7 @@ fun LeaderboardScreen(
                         }
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(rating, color = PrimaryGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
-                            Text("⭐", fontSize = 12.sp)
+                            Icon(Icons.Rounded.Star, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(12.dp))
                         }
                     }
                 }
@@ -452,7 +452,7 @@ fun LoyaltyRedeemScreen(
 
         Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.1f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
             Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("⭐", fontSize = 32.sp)
+                Icon(Icons.Rounded.Star, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(32.dp))
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("${points / 1000} 000", color = PrimaryGreen, fontSize = 32.sp, fontWeight = FontWeight.ExtraBold)
                 Text("points disponibles", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
