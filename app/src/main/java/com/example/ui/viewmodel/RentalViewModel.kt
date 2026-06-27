@@ -118,6 +118,20 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     private val _currentScreen = MutableStateFlow<Screen>(Screen.Home)
     val currentScreen: StateFlow<Screen> = _currentScreen.asStateFlow()
 
+    // Profile navigation state (passed between screens)
+    private val _selectedDisputeId = MutableStateFlow<String?>(null)
+    val selectedDisputeId: StateFlow<String?> = _selectedDisputeId.asStateFlow()
+
+    private val _activeDamageSelection = MutableStateFlow<com.example.data.model.ReceivedReservation?>(null)
+    val activeDamageSelection: StateFlow<com.example.data.model.ReceivedReservation?> = _activeDamageSelection.asStateFlow()
+
+    private val _activeReviewSelection = MutableStateFlow<com.example.data.model.ReceivedReservation?>(null)
+    val activeReviewSelection: StateFlow<com.example.data.model.ReceivedReservation?> = _activeReviewSelection.asStateFlow()
+
+    fun setSelectedDispute(id: String) { _selectedDisputeId.value = id }
+    fun setDamageSelection(res: com.example.data.model.ReceivedReservation?) { _activeDamageSelection.value = res }
+    fun setReviewSelection(res: com.example.data.model.ReceivedReservation?) { _activeReviewSelection.value = res }
+
     // Filters (encapsulated)
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()

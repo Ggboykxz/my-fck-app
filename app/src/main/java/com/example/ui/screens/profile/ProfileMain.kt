@@ -22,12 +22,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.rememberNavController
 import com.example.ui.components.*
+import com.example.ui.navigation.ProfileNavHost
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
 
+// NavHost-based ProfileNavigator (production)
 @Composable
 fun ProfileNavigator(viewModel: RentalViewModel) {
+    val navController = rememberNavController()
+    ProfileNavHost(navController = navController, viewModel = viewModel)
+}
+
+// Legacy ProfileNavigator (for tests — keeps AnimatedContent pattern)
+@Composable
+fun ProfileNavigatorLegacy(viewModel: RentalViewModel) {
     var subScreen by remember { mutableStateOf("main") } // "main", "dashboard", "earnings", "wallet", "listings", "calendar", "bookings_received", "identity", "disputes", "tenant_bookings", "language", "security", "notifications", "help", "payment_methods", "damage", "review_tenant", "edit_profile", "about", "advanced_search", "settings", "invite_friend", "rating", "reservation_detail", "payment_history", "leaderboard", "achievements", "flash_offers", "loyalty_redeem", "rewards_coupons", "dispute", "insurance", "digital_deposit", "realtime_verification", "interactive_calendar"
     
     // Dispute state helpers
