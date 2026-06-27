@@ -12,7 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.example.ui.screens.AuthNavigator
-import com.example.ui.screens.MainDashboardView
+import com.example.ui.screens.MainDashboardViewNavHost
 import com.example.ui.screens.OnboardingNavigator
 import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.theme.isDarkMode
@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
                         AuthNavigator(viewModel = viewModel)
                     } else {
                         // Enter full LocAll explore dashboard
-                        MainDashboardView(viewModel = viewModel)
+                        MainDashboardViewNavHost(viewModel = viewModel)
                     }
                 }
             }
