@@ -600,7 +600,7 @@ fun BookingsScreen(viewModel: RentalViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(bookings) { booking ->
+                items(bookings, key = { it.id }) { booking ->
                     BookingItemCard(
                         booking = booking,
                         onCancelClick = { showCancelDialog = booking },

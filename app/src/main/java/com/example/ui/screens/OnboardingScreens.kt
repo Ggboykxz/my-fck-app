@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
+import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.ui.viewmodel.RentalViewModel
@@ -231,7 +232,9 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                             .build(),
                         contentDescription = "Immobilier Gabon",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                        error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                     )
                     Surface(
                         modifier = Modifier
@@ -282,7 +285,9 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                             .build(),
                         contentDescription = "Véhicules Gabon",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                        error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                     )
                     Surface(
                         modifier = Modifier
@@ -826,7 +831,9 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
                                 .fillMaxSize()
                                 .clip(CircleShape)
                                 .border(3.dp, Color.White.copy(alpha = 0.12f), CircleShape),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                            error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                         )
                         Icon(
                             imageVector = Icons.Rounded.CheckCircle,

@@ -55,7 +55,7 @@ fun InviteFriendScreen(
         Spacer(modifier = Modifier.height(40.dp))
 
         Box(modifier = Modifier.size(100.dp).clip(CircleShape).background(PrimaryGreen.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
-            Icon(Icons.Rounded.CardGiftcard, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(48.dp))
+            Icon(Icons.Rounded.CardGiftcard, contentDescription = "Récompenses", tint = PrimaryGreen, modifier = Modifier.size(48.dp))
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -139,7 +139,7 @@ fun RatingScreen(
         if (submitted) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(72.dp))
+                    Icon(Icons.Rounded.CheckCircle, contentDescription = "Avis envoyé", tint = PrimaryGreen, modifier = Modifier.size(72.dp))
                     Text("Merci pour votre avis !", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     Text("Votre retour aide la communauté LocAll", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
                     Button(onClick = { onSubmitted() }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy), shape = RoundedCornerShape(12.dp)) {
@@ -325,7 +325,7 @@ fun AchievementsScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(achievements) { achievement ->
+            items(achievements, key = { it.title }) { achievement ->
                 Card(
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(
@@ -342,9 +342,9 @@ fun AchievementsScreen(
                             Text(achievement.desc, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
                         }
                         if (achievement.unlocked) {
-                            Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(22.dp))
+                            Icon(Icons.Rounded.CheckCircle, contentDescription = "Débloqué", tint = PrimaryGreen, modifier = Modifier.size(22.dp))
                         } else {
-                            Icon(Icons.Rounded.Lock, contentDescription = null, tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.Lock, contentDescription = "Verrouillé", tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(20.dp))
                         }
                     }
                 }
@@ -392,7 +392,7 @@ fun FlashOffersScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(flashOffers) { (title, discount, timer) ->
+            items(flashOffers, key = { it.first }) { (title, discount, timer) ->
                 Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)), border = BorderStroke(1.dp, Color(0xFFFF6F00).copy(alpha = 0.2f))) {
                     Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFFFF6F00).copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
@@ -452,7 +452,7 @@ fun LoyaltyRedeemScreen(
 
         Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.1f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
             Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Rounded.Star, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(32.dp))
+                Icon(Icons.Rounded.Star, contentDescription = "Points", tint = PrimaryGreen, modifier = Modifier.size(32.dp))
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("${points / 1000} 000", color = PrimaryGreen, fontSize = 32.sp, fontWeight = FontWeight.ExtraBold)
                 Text("points disponibles", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
@@ -465,7 +465,7 @@ fun LoyaltyRedeemScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(rewards) { (title, cost, icon) ->
+            items(rewards, key = { it.first }) { (title, cost, icon) ->
                 val canAfford = points >= 5000
                 Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
                     Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -519,11 +519,11 @@ fun RewardsCouponsScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(coupons) { (code, description, expiry) ->
+            items(coupons, key = { it.first }) { (code, description, expiry) ->
                 Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.2f))) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Icon(Icons.Rounded.LocalOffer, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.LocalOffer, contentDescription = "Coupon", tint = PrimaryGreen, modifier = Modifier.size(20.dp))
                             Text(code, color = PrimaryGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
                         }
                         Spacer(modifier = Modifier.height(8.dp))

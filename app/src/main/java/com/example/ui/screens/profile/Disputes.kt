@@ -98,7 +98,7 @@ fun DisputesHistoryScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(52.dp))
+                    Icon(Icons.Rounded.CheckCircle, contentDescription = "Succès", tint = PrimaryGreen, modifier = Modifier.size(52.dp))
                     Text("Litige Soumis !", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
                     Text("Votre dossier a été enregistré sous le numéro de suivi ${trackingCodeSubmit}. Un médiateur LocAll va se mettre en relation avec vous sous 4 heures.", fontSize = 13.sp, color = Color.Gray, textAlign = TextAlign.Center)
                     Button(onClick = { trackingCodeSubmit = null }, colors = ButtonDefaults.buttonColors(containerColor = BrandNavy)) {
@@ -147,7 +147,7 @@ fun DisputesHistoryScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp),
             modifier = Modifier.weight(1f)
         ) {
-            items(disputes) { disp ->
+            items(disputes, key = { it.id }) { disp ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -373,7 +373,7 @@ fun MediationDetailsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (isSettledSuccess) {
-                    Icon(Icons.Rounded.Handshake, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(48.dp))
+                    Icon(Icons.Rounded.Handshake, contentDescription = "Accord conclu", tint = PrimaryGreen, modifier = Modifier.size(48.dp))
                     Text(
                         "ACCORD GAGNANT-GAGNANT CONCLU !",
                         color = PrimaryGreen,
@@ -498,7 +498,7 @@ fun DisputeScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Icon(Icons.Rounded.Gavel, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(48.dp))
+        Icon(Icons.Rounded.Gavel, contentDescription = "Litige", tint = Color(0xFFFFB300), modifier = Modifier.size(48.dp))
         Spacer(modifier = Modifier.height(12.dp))
         Text("Décrivez votre problème", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         Text("Un médiateur LocAll examinera votre dossier sous 24-48h.", color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp, textAlign = TextAlign.Center)

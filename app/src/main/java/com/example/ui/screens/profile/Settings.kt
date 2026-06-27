@@ -26,6 +26,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import android.content.Context
+import androidx.activity.compose.BackHandler
+import androidx.compose.ui.platform.LocalContext
 import com.example.ui.components.*
 import com.example.ui.components.SmoothIcon
 import com.example.ui.components.StatusBadge
@@ -158,7 +161,7 @@ fun NotificationsScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Notifications,
-                        contentDescription = null,
+                        contentDescription = "Aucune notification",
                         tint = Color.White.copy(alpha = 0.25f),
                         modifier = Modifier.size(64.dp)
                     )
@@ -220,7 +223,7 @@ fun NotificationsScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                items(notifications) { notif ->
+                items(notifications, key = { it.id }) { notif ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -324,7 +327,7 @@ fun SecuritySettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.padding(16.dp)
                 ) {
-                    Icon(Icons.Rounded.CloudDone, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(48.dp))
+                    Icon(Icons.Rounded.CloudDone, contentDescription = "Mot de passe mis à jour", tint = PrimaryGreen, modifier = Modifier.size(48.dp))
                     Text("Mot de passe mis à jour !", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
                     Text("Votre mot de passe de connexion confidentiel a été mis à jour avec succès.", fontSize = 13.sp, color = Color.Gray, textAlign = TextAlign.Center)
                     Button(onClick = { isSuccess = false; onBack() }, colors = ButtonDefaults.buttonColors(containerColor = BrandNavy)) {
@@ -426,6 +429,7 @@ fun SecuritySettingsScreen(
 fun SettingsScreen(
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     var notificationsEnabled by remember { mutableStateOf(true) }
     var locationEnabled by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -481,7 +485,7 @@ fun SettingsScreen(
                     SmoothIcon(icon = Icons.Rounded.DarkMode, tint = Color(0xFF4FC3F7), backgroundColor = Color(0xFF4FC3F7).copy(alpha = 0.12f))
                     Column { Text("Mode Sombre", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold); Text("Thème sombre de l'application", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp) }
                 }
-                Switch(checked = isDarkMode, onCheckedChange = { isDarkMode = it }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
+                Switch(checked = isDarkMode, onCheckedChange = { isDarkMode = it; DarkModeHelper.saveDarkMode(context, it) }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
             }
         }
 
@@ -771,7 +775,7 @@ fun PaymentMethodsScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(Icons.Rounded.Info, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+                Icon(Icons.Rounded.Info, contentDescription = "Information", tint = PrimaryGreen, modifier = Modifier.size(20.dp))
                 Column {
                     Text("Frais de transaction", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     Text("2.5%", color = PrimaryGreen, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
@@ -815,7 +819,7 @@ fun PaymentHistoryScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(payments) { payment ->
+            items(payments, key = { it.id }) { payment ->
                 Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
                     Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(Color.White.copy(alpha = 0.05f)), contentAlignment = Alignment.Center) {

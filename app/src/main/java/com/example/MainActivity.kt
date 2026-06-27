@@ -16,6 +16,7 @@ import com.example.ui.screens.MainDashboardViewNavHost
 import com.example.ui.screens.OnboardingNavigator
 import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.theme.isDarkMode
+import com.example.ui.theme.DarkModeHelper
 import com.example.ui.viewmodel.RentalViewModel
 import com.example.ui.viewmodel.RentalViewModelFactory
 
@@ -31,6 +32,9 @@ class MainActivity : ComponentActivity() {
         
         // Edge to edge immersive design framework
         enableEdgeToEdge()
+        
+        // Load persisted dark mode preference
+        isDarkMode = DarkModeHelper.loadDarkMode(this)
         
         setContent {
             MyApplicationTheme(darkTheme = isDarkMode) {

@@ -55,7 +55,7 @@ fun ReceivedBookingsScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Icon(Icons.Rounded.Handshake, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(48.dp))
+                    Icon(Icons.Rounded.Handshake, contentDescription = "Gestion de la remise", tint = PrimaryGreen, modifier = Modifier.size(48.dp))
                     
                     Text("Gestion de la Remise", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
                     Text("Vous êtes sur le point de confirmer la remise du bien clé en main avec le locataire ${activeHandoverCheck?.tenantName}.", fontSize = 13.sp, color = Color.Gray, textAlign = TextAlign.Center)
@@ -92,7 +92,7 @@ fun ReceivedBookingsScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Icon(Icons.Rounded.CloudDone, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(48.dp))
+                    Icon(Icons.Rounded.CloudDone, contentDescription = "Remise validée", tint = PrimaryGreen, modifier = Modifier.size(48.dp))
                     Text("Remise Validée !", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
                     Text("Le statut de la réservation est désormais 'En Cours'. L'assurance LocAll couvre désormais les transactions.", fontSize = 13.sp, color = Color.Gray, textAlign = TextAlign.Center)
                     Button(onClick = { isHandoverConfirmed = false }, colors = ButtonDefaults.buttonColors(containerColor = BrandNavy)) {
@@ -174,7 +174,7 @@ fun ReceivedBookingsScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                items(filtered) { res ->
+                items(filtered, key = { it.id }) { res ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp),
@@ -351,13 +351,13 @@ fun TenantBookingsScreen(
         if (bookings.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Icon(imageVector = Icons.Rounded.Task, contentDescription = null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
+                    Icon(imageVector = Icons.Rounded.Task, contentDescription = "Aucune réservation", tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
                     Text("Aucune réservation à venir pour l'instant.", color = Color.White.copy(alpha = 0.4f), fontSize = 13.sp)
                 }
             }
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.weight(1f)) {
-                items(bookings) { b ->
+                items(bookings, key = { it.id }) { b ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp),
@@ -448,7 +448,7 @@ fun ReservationDetailScreen(
 
         Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = statusColor.copy(alpha = 0.1f)), border = BorderStroke(1.dp, statusColor.copy(alpha = 0.3f))) {
             Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Rounded.Receipt, contentDescription = null, tint = statusColor, modifier = Modifier.size(40.dp))
+                Icon(Icons.Rounded.Receipt, contentDescription = "Détails de réservation", tint = statusColor, modifier = Modifier.size(40.dp))
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(booking.status, color = statusColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Text("Réservation #${booking.id}", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)

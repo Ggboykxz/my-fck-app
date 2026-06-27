@@ -36,7 +36,9 @@ fun DashboardNavHost(
         navController = navController,
         startDestination = startRoute,
         enterTransition = { fadeIn(tween(300)) },
-        exitTransition = { fadeOut(tween(300)) }
+        exitTransition = { fadeOut(tween(300)) },
+        popEnterTransition = { fadeIn(tween(300)) },
+        popExitTransition = { fadeOut(tween(300)) }
     ) {
         // ─── Bottom nav screens ───
 

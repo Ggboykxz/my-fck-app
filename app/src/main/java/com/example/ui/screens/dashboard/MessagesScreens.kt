@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.offset
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.model.RentalItem
@@ -79,7 +80,7 @@ fun InboxScreen(viewModel: RentalViewModel) {
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 val showItems = items
-                items(showItems) { item ->
+                items(showItems, key = { it.id }) { item ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -107,7 +108,9 @@ fun InboxScreen(viewModel: RentalViewModel) {
                                 contentDescription = item.ownerName,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .clip(CircleShape)
+                                    .clip(CircleShape),
+                                placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                                error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                             )
                         }
 
@@ -202,7 +205,9 @@ fun ChatRoomScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(CircleShape)
-                            .border(2.dp, PrimaryGreen.copy(alpha = 0.3f), CircleShape)
+                            .border(2.dp, PrimaryGreen.copy(alpha = 0.3f), CircleShape),
+                        placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                        error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                     )
                 }
 
@@ -271,7 +276,7 @@ fun ChatRoomScreen(
                 }
             }
 
-            items(messages) { message ->
+            items(messages, key = { it.id }) { message ->
                 val isMe = message.sender == "User"
                 val isImage = message.messageText.startsWith("[image]")
                 val isLocation = message.messageText.startsWith("[location]")
@@ -326,7 +331,9 @@ fun ChatRoomScreen(
                                         .build(),
                                     contentDescription = "Image partagée",
                                     modifier = Modifier.fillMaxWidth().height(160.dp).clip(RoundedCornerShape(10.dp)),
-                                    contentScale = ContentScale.Crop
+                                    contentScale = ContentScale.Crop,
+                                    placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                                    error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text("📷 Photo partagée", fontSize = 11.sp, color = Color.White.copy(alpha = 0.5f))

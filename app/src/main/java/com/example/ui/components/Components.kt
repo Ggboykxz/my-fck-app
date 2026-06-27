@@ -239,7 +239,7 @@ fun EmptyState(
             ) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = null,
+                    contentDescription = "Aucun résultat",
                     tint = Color.White.copy(alpha = 0.35f),
                     modifier = Modifier.size(40.dp)
                 )
@@ -427,7 +427,7 @@ fun RatingStars(
     ) {
         Icon(
             imageVector = Icons.Rounded.Star,
-            contentDescription = null,
+            contentDescription = "Étoile",
             tint = Color(0xFFFFB300),
             modifier = Modifier.size(starSize.dp)
         )
@@ -572,7 +572,7 @@ fun QuickReplyChips(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(replies) { reply ->
+        items(replies, key = { it }) { reply ->
             Surface(
                 onClick = { onReply(reply) },
                 color = PrimaryGreen.copy(alpha = 0.12f),
@@ -767,7 +767,7 @@ fun AnimatedEmptyState(
                     .background(Color.White.copy(alpha = 0.06f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, contentDescription = null, tint = Color.White.copy(alpha = 0.35f), modifier = Modifier.size(40.dp))
+                Icon(icon, contentDescription = "Aucun résultat", tint = Color.White.copy(alpha = 0.35f), modifier = Modifier.size(40.dp))
             }
             Text(title, color = Color.White.copy(alpha = 0.7f), fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
             Text(subtitle, color = Color.White.copy(alpha = 0.4f), fontSize = 13.sp, textAlign = TextAlign.Center)
@@ -882,7 +882,7 @@ fun PointsChip(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Icon(Icons.Rounded.Star, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(14.dp))
+            Icon(Icons.Rounded.Star, contentDescription = "Points", tint = Color(0xFFFFB300), modifier = Modifier.size(14.dp))
             Text("$points pts", color = Color(0xFFFFB300), fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
     }
@@ -925,6 +925,7 @@ fun SmoothIconButton(
     size: Dp = 44.dp,
     iconSize: Dp = 20.dp,
     borderColor: Color = Color.White.copy(alpha = 0.1f),
+    contentDescription: String? = null,
     modifier: Modifier = Modifier
 ) {
     IconButton(
@@ -937,7 +938,7 @@ fun SmoothIconButton(
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = null,
+            contentDescription = contentDescription,
             tint = tint,
             modifier = Modifier.size(iconSize)
         )
@@ -976,7 +977,7 @@ fun CategoryIcon(
                     .background(iconColor.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(20.dp))
+                Icon(icon, contentDescription = label, tint = iconColor, modifier = Modifier.size(20.dp))
             }
             Text(label, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = textColor)
         }
@@ -1017,6 +1018,7 @@ fun FloatingActionIcon(
     backgroundColor: Color = PrimaryGreen,
     iconColor: Color = BrandNavy,
     size: Dp = 56.dp,
+    contentDescription: String? = null,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -1027,7 +1029,7 @@ fun FloatingActionIcon(
         shadowElevation = 8.dp
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(26.dp))
+            Icon(icon, contentDescription = contentDescription, tint = iconColor, modifier = Modifier.size(26.dp))
         }
     }
 }
@@ -1040,6 +1042,7 @@ fun MenuIconWithBadge(
     iconColor: Color = Color.White,
     backgroundColor: Color = Color(0xFF162133),
     size: Dp = 48.dp,
+    contentDescription: String? = null,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.size(size)) {
@@ -1051,7 +1054,7 @@ fun MenuIconWithBadge(
                 .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(14.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(22.dp))
+            Icon(icon, contentDescription = contentDescription, tint = iconColor, modifier = Modifier.size(22.dp))
         }
         if (badgeCount > 0) {
             Box(

@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.ui.components.*
@@ -210,7 +211,7 @@ fun AdvancedSearchScreen(
         Text("${items.size} résultat(s) trouvé(s)", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp)
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(items) { item ->
+            items(items, key = { it.id }) { item ->
                 Card(
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
@@ -221,7 +222,9 @@ fun AdvancedSearchScreen(
                             model = ImageRequest.Builder(LocalContext.current).data(item.imageUrl).crossfade(true).build(),
                             contentDescription = item.title,
                             modifier = Modifier.size(60.dp).clip(RoundedCornerShape(10.dp)),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                            error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                         )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(item.title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)

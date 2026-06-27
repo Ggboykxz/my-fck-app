@@ -51,7 +51,7 @@ fun DamageReportingScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.padding(16.dp)
                 ) {
-                    Icon(Icons.Rounded.CloudDone, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(52.dp))
+                    Icon(Icons.Rounded.CloudDone, contentDescription = "Problème soumis", tint = PrimaryGreen, modifier = Modifier.size(52.dp))
                     Text("Problème Soumis !", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
                     Text("Votre rapport de dommage a été transmis au département de médiation de LocAll Gabon. Nous étudierons les preuves fournies.", fontSize = 13.sp, color = Color.Gray, textAlign = TextAlign.Center)
                     Button(onClick = { isSubmittedSuccess = false; onSubmitted() }, colors = ButtonDefaults.buttonColors(containerColor = BrandNavy)) {
@@ -135,10 +135,10 @@ fun DamageReportingScreen(
         ) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 if (photoTaken) {
-                    Icon(Icons.Rounded.LinkedCamera, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(36.dp))
+                    Icon(Icons.Rounded.LinkedCamera, contentDescription = "Caméra", tint = PrimaryGreen, modifier = Modifier.size(36.dp))
                 } else {
                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(Icons.Rounded.AddAPhoto, contentDescription = null, tint = PrimaryGreen)
+                        Icon(Icons.Rounded.AddAPhoto, contentDescription = "Prendre une photo", tint = PrimaryGreen)
                         Text("Prendre une photo du sinistre", color = Color.White.copy(alpha = 0.4f), fontSize = 12.sp)
                     }
                 }
@@ -186,7 +186,7 @@ fun TenantReviewScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.padding(16.dp)
                 ) {
-                    Icon(Icons.Rounded.SentimentSatisfiedAlt, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(52.dp))
+                    Icon(Icons.Rounded.SentimentSatisfiedAlt, contentDescription = "Avis publié", tint = PrimaryGreen, modifier = Modifier.size(52.dp))
                     Text("Avis publié !", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
                     Text("Votre recommandation a été enregistrée sur le profil de ${reservation?.tenantName}.", fontSize = 13.sp, color = Color.Gray, textAlign = TextAlign.Center)
                     Button(onClick = { isSubmittedSuccess = false; onSubmitted() }, colors = ButtonDefaults.buttonColors(containerColor = BrandNavy)) {

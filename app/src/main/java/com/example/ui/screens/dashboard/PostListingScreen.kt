@@ -22,6 +22,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.ui.components.*
@@ -73,7 +74,7 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                         verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         Box(modifier = Modifier.size(64.dp).clip(CircleShape).background(PrimaryGreen.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(36.dp))
+                            Icon(Icons.Rounded.CheckCircle, contentDescription = "Annonce publiée", tint = PrimaryGreen, modifier = Modifier.size(36.dp))
                         }
                         Text("Annonce publiée !", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 20.sp)
                         Text(
@@ -121,7 +122,9 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                             model = ImageRequest.Builder(LocalContext.current).data(imageUrl).crossfade(true).build(),
                             contentDescription = "Aperçu",
                             modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                            error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                         )
                     }
                 } else {
@@ -361,13 +364,13 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (photoTaken) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(32.dp))
+                                Icon(Icons.Rounded.CheckCircle, contentDescription = "Photo capturée", tint = PrimaryGreen, modifier = Modifier.size(32.dp))
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text("Photo capturée !", color = PrimaryGreen, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                             }
                         } else {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Rounded.AddAPhoto, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(32.dp))
+                                Icon(Icons.Rounded.AddAPhoto, contentDescription = "Prendre une photo", tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(32.dp))
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text("Appuyez pour simuler une prise de photo", color = Color.White.copy(alpha = 0.4f), fontSize = 12.sp)
                             }
@@ -403,7 +406,7 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                 item {
                     Card(colors = CardDefaults.cardColors(containerColor = Color.Red.copy(alpha = 0.1f)), shape = RoundedCornerShape(12.dp)) {
                         Row(modifier = Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.Warning, contentDescription = null, tint = Color.Red, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Rounded.Warning, contentDescription = "Erreur", tint = Color.Red, modifier = Modifier.size(18.dp))
                             Text("Remplissez les champs obligatoires (Titre, Prix, Quartier, Description).", color = Color.Red, fontSize = 12.sp)
                         }
                     }

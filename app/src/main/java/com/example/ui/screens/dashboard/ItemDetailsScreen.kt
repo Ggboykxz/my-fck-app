@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.model.RentalItem
@@ -89,7 +90,9 @@ fun ItemDetailsScreen(
                             .build(),
                         contentDescription = "${item.title} - Photo ${page + 1}",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                        error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                     )
                 }
 
@@ -367,7 +370,9 @@ fun ItemDetailsScreen(
                                     .fillMaxSize()
                                     .clip(CircleShape)
                                     .border(2.dp, PrimaryGreen.copy(alpha = 0.3f), CircleShape),
-                                contentScale = ContentScale.Crop
+                                contentScale = ContentScale.Crop,
+                                placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                                error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                             )
                         }
 
@@ -494,7 +499,7 @@ fun ItemDetailsScreen(
                     SectionHeader(title = "Annonces similaires")
                     Spacer(modifier = Modifier.height(12.dp))
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        items(similarItems) { simItem ->
+                        items(similarItems, key = { it.id }) { simItem ->
                             Card(
                                 modifier = Modifier.width(160.dp).clickable { viewModel.selectItem(simItem); viewModel.navigateTo("details") },
                                 shape = RoundedCornerShape(16.dp),
@@ -505,7 +510,9 @@ fun ItemDetailsScreen(
                                         model = ImageRequest.Builder(LocalContext.current).data(simItem.imageUrl).crossfade(true).build(),
                                         contentDescription = simItem.title,
                                         modifier = Modifier.fillMaxWidth().height(100.dp).clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-                                        contentScale = ContentScale.Crop
+                                        contentScale = ContentScale.Crop,
+                                        placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                                        error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                                     )
                                     Column(modifier = Modifier.padding(8.dp)) {
                                         Text(simItem.title, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)

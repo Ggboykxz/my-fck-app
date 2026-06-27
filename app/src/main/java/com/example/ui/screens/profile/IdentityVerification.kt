@@ -170,7 +170,7 @@ fun IdentityVerificationScreen(
                                     .background(PrimaryGreen.copy(alpha = 0.15f)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(28.dp))
+                                Icon(Icons.Rounded.CheckCircle, contentDescription = "Succès du scan", tint = PrimaryGreen, modifier = Modifier.size(28.dp))
                             }
                             Text("CNI de NGUEMA Pierre scannée avec succès !", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                             Text("ID: " + inputDocNumber.ifBlank { "CNI-84729" } + " | OCR Valide", color = PrimaryGreen, fontSize = 11.sp)
@@ -282,7 +282,7 @@ fun IdentityVerificationScreen(
                             .background(Color(0xFF4A3515)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Rounded.Shield, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(40.dp))
+                        Icon(Icons.Rounded.Shield, contentDescription = "En cours d'examen", tint = Color(0xFFFFB300), modifier = Modifier.size(40.dp))
                     }
 
                     Text("Dossier en cours d'examen", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
@@ -358,7 +358,7 @@ fun IdentityVerificationScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Icon(Icons.Rounded.Verified, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(80.dp))
+                    Icon(Icons.Rounded.Verified, contentDescription = "Vérifié", tint = PrimaryGreen, modifier = Modifier.size(80.dp))
                     Text("Compte Entièrement Vérifié !", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     Text("Vous avez validé toutes les étapes d'identité de haut niveau.", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp, textAlign = TextAlign.Center)
                     Button(onClick = onBack, colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy)) {
@@ -621,7 +621,7 @@ fun RealTimeVerificationScreen(
 
         Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
             Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Icon(Icons.Rounded.Info, contentDescription = null, tint = Color(0xFF4FC3F7), modifier = Modifier.size(20.dp))
+                Icon(Icons.Rounded.Info, contentDescription = "Information", tint = Color(0xFF4FC3F7), modifier = Modifier.size(20.dp))
                 Text("La vérification complète débloque le badge Vérifié et augmente votre confiance de 40%.", color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp)
             }
         }

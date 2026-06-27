@@ -2,7 +2,10 @@ package com.example.ui.navigation
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -19,6 +22,7 @@ fun ProfileNavHost(
     val activeDamageSelection by viewModel.activeDamageSelection.collectAsState()
     val activeReviewSelection by viewModel.activeReviewSelection.collectAsState()
 
+    Box(modifier = Modifier.statusBarsPadding()) {
     NavHost(
         navController = navController,
         startDestination = RouteProfileMain,
@@ -298,6 +302,7 @@ fun ProfileNavHost(
                 onBack = { navController.popBackStack() }
             )
         }
+    }
     }
 }
 

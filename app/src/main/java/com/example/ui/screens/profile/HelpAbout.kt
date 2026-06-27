@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -197,7 +198,7 @@ fun HelpAndSupportScreen(
                                 .background(PrimaryGreen.copy(alpha = 0.15f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Rounded.SupportAgent, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(32.dp))
+                            Icon(Icons.Rounded.SupportAgent, contentDescription = "Support client", tint = PrimaryGreen, modifier = Modifier.size(32.dp))
                         }
 
                         Text("Toujours besoin de réponses ?", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
@@ -219,7 +220,7 @@ fun HelpAndSupportScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(Icons.Rounded.Forum, contentDescription = null)
+                                Icon(Icons.Rounded.Forum, contentDescription = "Forum")
                                 Text("Lancer le Chatbot en direct", fontWeight = FontWeight.Bold)
                             }
                         }
@@ -240,7 +241,7 @@ fun HelpAndSupportScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                         contentPadding = PaddingValues(bottom = 12.dp)
                     ) {
-                        items(chatMessages) { msg ->
+                        itemsIndexed(chatMessages, key = { index, _ -> index }) { index, msg ->
                             val isBot = msg.sender == "Bot"
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -321,7 +322,7 @@ fun HelpAndSupportScreen(
                         .padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    items(quickQuestions) { q ->
+                    items(quickQuestions, key = { it }) { q ->
                         LocalInquiryChip(text = q, onClick = { handleSend(q) })
                     }
                 }
@@ -642,7 +643,7 @@ fun AboutScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Icon(Icons.Rounded.Gavel, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.Gavel, contentDescription = "CGU", tint = PrimaryGreen, modifier = Modifier.size(20.dp))
                             Text("Conditions Générales d'Utilisation", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                         Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White.copy(alpha = 0.3f))
@@ -662,7 +663,7 @@ fun AboutScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Icon(Icons.Rounded.Shield, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.Shield, contentDescription = "Confidentialité", tint = PrimaryGreen, modifier = Modifier.size(20.dp))
                             Text("Politique de Confidentialité", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                         Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White.copy(alpha = 0.3f))
@@ -682,7 +683,7 @@ fun AboutScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Icon(Icons.Rounded.Code, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.Code, contentDescription = "Licences", tint = PrimaryGreen, modifier = Modifier.size(20.dp))
                             Text("Licences open-source", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                         Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White.copy(alpha = 0.3f))

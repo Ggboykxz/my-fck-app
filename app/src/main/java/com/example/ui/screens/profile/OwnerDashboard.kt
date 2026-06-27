@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.ui.components.*
@@ -327,7 +328,7 @@ fun OwnerDashboardScreen(
                             .background(Color.Red),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Rounded.NotificationsActive, contentDescription = null, tint = Color.White)
+                        Icon(Icons.Rounded.NotificationsActive, contentDescription = "Notifications", tint = Color.White)
                     }
 
                     Column(modifier = Modifier.weight(1f)) {
@@ -412,7 +413,7 @@ fun EarningsHistoryScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.weight(1f)
         ) {
-            items(earnings) { tx ->
+            items(earnings, key = { it.id }) { tx ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -506,7 +507,7 @@ fun WalletAndWithdrawalScreen(
                             .background(Color(0xFFE9F5EC)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Rounded.CloudDone, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(36.dp))
+                        Icon(Icons.Rounded.CloudDone, contentDescription = "Succès", tint = PrimaryGreen, modifier = Modifier.size(36.dp))
                     }
 
                     Text(
@@ -753,7 +754,7 @@ fun OwnerListingsScreen(
         // Display listings
         if (selectedItemIndex == 0) {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.weight(1f)) {
-                items(listings.take(5)) { item ->
+                items(listings.take(5), key = { it.id }) { item ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
@@ -773,7 +774,9 @@ fun OwnerListingsScreen(
                                 modifier = Modifier
                                     .size(76.dp)
                                     .clip(RoundedCornerShape(10.dp)),
-                                contentScale = ContentScale.Crop
+                                contentScale = ContentScale.Crop,
+                                placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                                error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                             )
 
                             Column(modifier = Modifier.weight(1f)) {
@@ -842,7 +845,9 @@ fun OwnerListingsScreen(
                         modifier = Modifier
                             .size(76.dp)
                             .clip(RoundedCornerShape(10.dp)),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                        error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                     )
 
                     Column(modifier = Modifier.weight(1f)) {

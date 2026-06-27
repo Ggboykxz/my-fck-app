@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.model.RentalItem
@@ -188,7 +189,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    items(popularTags) { tag ->
+                    items(popularTags, key = { it }) { tag ->
                         Surface(
                             onClick = {
                                 if (tag == "Moins cher") {
@@ -262,7 +263,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth().testTag("cities_filter_row")
             ) {
-                items(cities) { city ->
+                items(cities, key = { it }) { city ->
                     val isSelected = selectedCity == city
                     Box(
                         modifier = Modifier
@@ -304,7 +305,9 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                             .build(),
                         contentDescription = "Belles locations au Gabon",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                        error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                     )
 
                     // Overlay gradient
@@ -372,7 +375,9 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                                     .build(),
                                 contentDescription = featuredItem.title,
                                 modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
+                                contentScale = ContentScale.Crop,
+                                placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                                error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                             )
                             Box(
                                 modifier = Modifier
@@ -473,7 +478,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier.fillMaxWidth().testTag("categories_row")
                 ) {
-                    items(categoriesWithIcons) { (catName, icon, label) ->
+                    items(categoriesWithIcons, key = { it.first }) { (catName, icon, label) ->
                         val isSelected = selectedCat == catName
                         val count = if (catName == "Tous") {
                             rawItems.size
@@ -513,7 +518,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Info,
-                            contentDescription = null,
+                            contentDescription = "Aucun résultat",
                             tint = Color.Gray,
                             modifier = Modifier.size(48.dp)
                         )
@@ -545,7 +550,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     }
                 }
             }
-            items(displayItems) { item ->
+            items(displayItems, key = { it.id }) { item ->
                 RentalCard(
                     item = item,
                     onSelect = {
@@ -626,7 +631,9 @@ fun RentalCard(
                         .build(),
                     contentDescription = item.title,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                    error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                 )
 
                 // Top Floating row
@@ -860,7 +867,9 @@ fun RentalDetailModalDialog(
                                 .build(),
                             contentDescription = item.title,
                             modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                            error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                         )
 
                         // Top Gradient Overlay
@@ -1077,7 +1086,9 @@ fun RentalDetailModalDialog(
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .clip(CircleShape),
-                                        contentScale = ContentScale.Crop
+                                        contentScale = ContentScale.Crop,
+                                        placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                                        error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                                     )
                                 }
 

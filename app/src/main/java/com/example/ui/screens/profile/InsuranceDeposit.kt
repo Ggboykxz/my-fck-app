@@ -52,7 +52,7 @@ fun InsuranceScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Icon(Icons.Rounded.Shield, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(48.dp))
+        Icon(Icons.Rounded.Shield, contentDescription = "Assurance", tint = PrimaryGreen, modifier = Modifier.size(48.dp))
         Spacer(modifier = Modifier.height(12.dp))
         Text("Protégez votre location", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         Text("Choisissez une couverture adaptée à vos besoins", color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp, textAlign = TextAlign.Center)

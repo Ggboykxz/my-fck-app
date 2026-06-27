@@ -66,7 +66,7 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(items) { item ->
+                items(items, key = { it.id }) { item ->
                     RentalCard(
                         item = item,
                         onSelect = {
