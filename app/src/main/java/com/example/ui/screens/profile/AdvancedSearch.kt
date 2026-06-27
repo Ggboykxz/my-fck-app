@@ -26,6 +26,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.ui.components.*
 import com.example.ui.theme.*
+import com.example.ui.model.RentalCategory
 import com.example.ui.viewmodel.RentalViewModel
 
 // ==================== ADVANCED SEARCH SCREEN ====================
@@ -85,7 +86,7 @@ fun AdvancedSearchScreen(
         Text("CATÉGORIE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
         Spacer(modifier = Modifier.height(8.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Tous", "Immobilier", "Véhicules", "Équipements").forEach { cat ->
+            (listOf("Tous") + RentalCategory.allDisplayNames).forEach { cat ->
                 val isSelected = selectedCategory == cat
                 Surface(
                     onClick = { selectedCategory = cat; viewModel.setSelectedCategory(cat) },

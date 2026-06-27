@@ -26,13 +26,14 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.ui.components.*
 import com.example.ui.theme.*
+import com.example.ui.model.RentalCategory
 import com.example.ui.viewmodel.RentalViewModel
 
 @Composable
 fun PostListingScreen(viewModel: RentalViewModel) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("Immobilier") }
+    var category by remember { mutableStateOf(RentalCategory.IMMOBILIER.displayName) }
     var priceStr by remember { mutableStateOf("") }
     var city by remember { mutableStateOf("Libreville") }
     var neighborhood by remember { mutableStateOf("") }
@@ -43,12 +44,7 @@ fun PostListingScreen(viewModel: RentalViewModel) {
     var isSuccessPost by remember { mutableStateOf(false) }
     var showErrorField by remember { mutableStateOf(false) }
 
-    val categoryIcons = mapOf(
-        "Immobilier" to Icons.Rounded.Home,
-        "Véhicules" to Icons.Rounded.DirectionsCar,
-        "Équipements" to Icons.Rounded.Build,
-        "Événementiel" to Icons.Rounded.Celebration
-    )
+    val categoryIcons = RentalCategory.entries.associate { it.displayName to it.icon }
 
     LazyColumn(
         modifier = Modifier
@@ -173,7 +169,8 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("CATÉGORIE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        listOf("Immobilier", "Véhicules", "Équipements", "Événementiel").forEach { cat ->
+                        RentalCategory.entries.forEach { catEntry ->
+                        val cat = catEntry.displayName
                             val isSelected = category == cat
                             Card(
                                 modifier = Modifier.weight(1f).clickable { category = cat },

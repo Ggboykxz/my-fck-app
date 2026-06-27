@@ -9,6 +9,7 @@ import com.example.data.local.AppDatabase
 import com.example.data.model.*
 import com.example.data.repository.RentalRepository
 import com.example.ui.components.SortOption
+import com.example.ui.model.RentalCategory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.first
@@ -801,10 +802,18 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             try {
                 val img = if (imageUrl.isBlank()) {
-                    when (category) {
-                        "Immobilier" -> "https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80"
-                        "Véhicules" -> "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80"
-                        else -> "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80"
+                    val rentalCat = RentalCategory.fromString(category)
+                    when (rentalCat) {
+                        RentalCategory.IMMOBILIER -> "https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80"
+                        RentalCategory.VEHICULES -> "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80"
+                        RentalCategory.EQUIPEMENTS -> "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=800&q=80"
+                        RentalCategory.EVENEMENTIEL -> "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80"
+                        RentalCategory.MODE_BEAUTE -> "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80"
+                        RentalCategory.SERVICES -> "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=800&q=80"
+                        RentalCategory.ESPACES -> "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80"
+                        RentalCategory.MATERIEL_PRO -> "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80"
+                        RentalCategory.MARINE_FLUVIAL -> "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80"
+                        RentalCategory.SPORT_LOISIRS -> "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80"
                     }
                 } else imageUrl
 

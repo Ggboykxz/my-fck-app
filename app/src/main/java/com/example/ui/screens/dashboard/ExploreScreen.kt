@@ -32,6 +32,7 @@ import coil.request.ImageRequest
 import com.example.data.model.RentalItem
 import com.example.ui.components.*
 import com.example.ui.theme.*
+import com.example.ui.model.RentalCategory
 import com.example.ui.viewmodel.RentalViewModel
 import kotlinx.coroutines.delay
 
@@ -465,12 +466,8 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                 SectionHeader(title = "Rechercher par Catégorie")
 
                 val categoriesWithIcons = listOf(
-                    Triple("Tous", Icons.Rounded.Apps, "Tous"),
-                    Triple("Immobilier", Icons.Rounded.Home, "Immobilier"),
-                    Triple("Véhicules", Icons.Rounded.DirectionsCar, "Véhicules"),
-                    Triple("Équipements", Icons.Rounded.Build, "Équipements"),
-                    Triple("Événementiel", Icons.Rounded.Celebration, "Événementiel")
-                )
+                    Triple("Tous", Icons.Rounded.Apps, "Tous")
+                ) + RentalCategory.entries.map { Triple(it.displayName, it.icon, it.displayName) }
 
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),

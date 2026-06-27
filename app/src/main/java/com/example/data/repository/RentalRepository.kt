@@ -396,6 +396,195 @@ class RentalRepository(private val rentalDao: RentalDao) {
                     ownerRating = 4.2f,
                     imageUrl = "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?auto=format&fit=crop&w=800&q=80",
                     isVerified = false
+                ),
+                // ─── Événementiel ───
+                RentalItem(
+                    title = "Pack Sono JBL PartyBox - Événement",
+                    description = "Système sonore JBL PartyBox 1000 complet avec 2 enceintes, mixeur, micros sans fil et câbles. Parfaite pour mariages, anniversaires et soirées. Livraison et montage inclus à Libreville.",
+                    category = "Événementiel",
+                    pricePerDay = 75000,
+                    city = "Libreville",
+                    neighborhood = "Nzeng-Ayong",
+                    ownerName = "DJ Afro Sound",
+                    ownerPhone = "066112233",
+                    ownerRating = 4.8f,
+                    imageUrl = "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                RentalItem(
+                    title = "Décoration Mariage Premium - Tout Compris",
+                    description = "Service complet de décoration pour mariages et événements : fleurs, nappes, chaises, arcs, éclairage LED, tente blanche 10x20m. Équipe professionnelle avec 10 ans d'expérience au Gabon.",
+                    category = "Événementiel",
+                    pricePerDay = 250000,
+                    city = "Libreville",
+                    neighborhood = "Batterie IV",
+                    ownerName = "Élégance Events Gabon",
+                    ownerPhone = "077445566",
+                    ownerRating = 4.9f,
+                    imageUrl = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                // ─── Mode & Beauté ───
+                RentalItem(
+                    title = "Robe Wax Premium - Cérémonie",
+                    description = "Robe longue en tissu wax hollandais authentique, coupe évasée, broderies main. Taille unique (ajustable). Parfaite pour mariages, baptêmes et cérémonies officielles.",
+                    category = "Mode & Beauté",
+                    pricePerDay = 25000,
+                    city = "Libreville",
+                    neighborhood = "Marché du Nord",
+                    ownerName = "Fashion Gabon Studio",
+                    ownerPhone = "066778899",
+                    ownerRating = 4.6f,
+                    imageUrl = "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=800&q=80",
+                    isVerified = false
+                ),
+                RentalItem(
+                    title = "Kit Coiffure Afro Complet - Barbecue",
+                    description = "Kit de coiffure professionnel : défrisage, tresses, tissages, extensions. Produits bio inclus. Déplacement à domicile possible. Spécialiste cheveux crépus et Afro.",
+                    category = "Mode & Beauté",
+                    pricePerDay = 15000,
+                    city = "Port-Gentil",
+                    neighborhood = "Siane",
+                    ownerName = "Beauté d'Afrique",
+                    ownerPhone = "077112233",
+                    ownerRating = 4.4f,
+                    imageUrl = "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80",
+                    isVerified = false
+                ),
+                // ─── Services ───
+                RentalItem(
+                    title = "Traiteur Africain Premium - 100 personnes",
+                    description = "Service traiteur complet pour événements : poisson braisé, poulet DG, riz, sauce arachide, banane plantain. Livraison chaude avec personnel de service. Minimum 50 personnes.",
+                    category = "Services",
+                    pricePerDay = 180000,
+                    city = "Libreville",
+                    neighborhood = "Oloumi",
+                    ownerName = "Saveurs du Gabon",
+                    ownerPhone = "066334455",
+                    ownerRating = 4.7f,
+                    imageUrl = "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                RentalItem(
+                    title = "Photographe Professionnel - Événements",
+                    description = "Photographe spécialisé mariages et corporate. Matériel Canon Pro, drone DJI, retouche numérique incluse. Livraison des photos en 48h. Portfolio disponible.",
+                    category = "Services",
+                    pricePerDay = 120000,
+                    city = "Libreville",
+                    neighborhood = "Louis",
+                    ownerName = "Studio Photo Gabon",
+                    ownerPhone = "077667788",
+                    ownerRating = 4.8f,
+                    imageUrl = "https://images.unsplash.com/photo-1554048612-b6a482bc67e5?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                // ─── Espaces ───
+                RentalItem(
+                    title = "Salle de Conférence - 50 places",
+                    description = "Salle de conférence moderne climatisée avec écran projeteur, tableau interactif, micros sans fil et wifi fibre. Idéale pour réunions d'entreprise, séminaires et formations.",
+                    category = "Espaces",
+                    pricePerDay = 150000,
+                    city = "Libreville",
+                    neighborhood = "Centre Ville",
+                    ownerName = "Espace Coworking Libreville",
+                    ownerPhone = "066556677",
+                    ownerRating = 4.5f,
+                    imageUrl = "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                RentalItem(
+                    title = "Terrain Nu - Port-Gentil",
+                    description = "Terrain clôturé de 500m² à Port-Gentil, accès route bitumée, eau et électricité disponibles. Idéal pour entrepôt, parking ou projet immobilier. Titre foncier disponible.",
+                    category = "Espaces",
+                    pricePerDay = 50000,
+                    city = "Port-Gentil",
+                    neighborhood = "Siano",
+                    ownerName = "Immo Port-Gentil",
+                    ownerPhone = "077889900",
+                    ownerRating = 4.3f,
+                    imageUrl = "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80",
+                    isVerified = false
+                ),
+                // ─── Matériel Pro ───
+                RentalItem(
+                    title = "Groupe Électrogène 50kVA - Chantier",
+                    description = "Groupe électrogène diesel 50kVA, démarrage automatique, silencieux. Idéal pour chantiers, événements et sites isolés. Carburant à la charge du locataire. Livraison possible.",
+                    category = "Matériel Pro",
+                    pricePerDay = 45000,
+                    city = "Libreville",
+                    neighborhood = "Awendjé",
+                    ownerName = "Location Pro Gabon",
+                    ownerPhone = "066990011",
+                    ownerRating = 4.6f,
+                    imageUrl = "https://images.unsplash.com/photo-1504222490345-c075b6008014?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                RentalItem(
+                    title = "Caméra Vidéo Sony A7III - Professionnelle",
+                    description = "Boîtier Sony A7III + objectif 24-70mm f/2.8 + trépied + carte 128Go. Parfait pour tournages vidéo, clips et documentaires. Support technique inclus.",
+                    category = "Matériel Pro",
+                    pricePerDay = 35000,
+                    city = "Libreville",
+                    neighborhood = "Glass",
+                    ownerName = "TechRent Gabon",
+                    ownerPhone = "077223344",
+                    ownerRating = 4.7f,
+                    imageUrl = "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
+                ),
+                // ─── Marine & Fluvial ───
+                RentalItem(
+                    title = "Pirogue Motorisée 7m - Pêche",
+                    description = "Pirogue en bois verni de 7m, moteur Yamaha 15CV, réservoir 50L. Équipement de pêche de base inclus. Départ du port de Libreville. Capacité 4 personnes.",
+                    category = "Marine & Fluvial",
+                    pricePerDay = 40000,
+                    city = "Libreville",
+                    neighborhood = "Port Autonome",
+                    ownerName = "Pêche & Loisirs Gabon",
+                    ownerPhone = "066445566",
+                    ownerRating = 4.4f,
+                    imageUrl = "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80",
+                    isVerified = false
+                ),
+                RentalItem(
+                    title = "Kayak Biplace - Estuaire du Komo",
+                    description = "Kayak de mer biplace, stable et léger, pagaies et gilets de sauvetage inclus. Exploration de l'estuaire du Komo et mangroves. Guide local possible en option.",
+                    category = "Marine & Fluvial",
+                    pricePerDay = 20000,
+                    city = "Libreville",
+                    neighborhood = "Nouveau Gabon",
+                    ownerName = "Aventure Aquatique",
+                    ownerPhone = "077556677",
+                    ownerRating = 4.5f,
+                    imageUrl = "https://images.unsplash.com/photo-1440778303588-435521a205bc?auto=format&fit=crop&w=800&q=80",
+                    isVerified = false
+                ),
+                // ─── Sport & Loisirs ───
+                RentalItem(
+                    title = "VTT Tout-Terrain - Forêt de Lopé",
+                    description = "Vélo tout-terrain Trek Marlin 7, 29 pouces, suspension avant. Parfait pour sentiers de la Lopé et balades en forêt. Casque et gants inclus. Guide disponible.",
+                    category = "Sport & Loisirs",
+                    pricePerDay = 12000,
+                    city = "Makokou",
+                    neighborhood = "Centre",
+                    ownerName = "Outdoor Gabon Adventures",
+                    ownerPhone = "077001122",
+                    ownerRating = 4.6f,
+                    imageUrl = "https://images.unsplash.com/photo-1544191696-102dbdaeeaa0?auto=format&fit=crop&w=800&q=80",
+                    isVerified = false
+                ),
+                RentalItem(
+                    title = "Matériel Plongée Complet - 2 plongeurs",
+                    description = "Kit plongée complet : combinaison, détendeur, bloc 12L, poids. Certifié AOW minimum. Sites : Pointe Denis, Île Evans. Guide moniteur inclus.",
+                    category = "Sport & Loisirs",
+                    pricePerDay = 50000,
+                    city = "Libreville",
+                    neighborhood = "Pointe Denis",
+                    ownerName = "Dive Gabon Club",
+                    ownerPhone = "066889900",
+                    ownerRating = 4.8f,
+                    imageUrl = "https://images.unsplash.com/photo-1544551763-77932a6c692c?auto=format&fit=crop&w=800&q=80",
+                    isVerified = true
                 )
             )
             for (item in seedItems) {
