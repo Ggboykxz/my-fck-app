@@ -36,7 +36,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import coil.size.Size
 import com.example.ui.components.*
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
@@ -413,7 +415,7 @@ fun EarningsHistoryScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.weight(1f)
         ) {
-            items(earnings, key = { it.id }) { tx ->
+            items(earnings, key = { it.id }, contentType = { "earnings" }) { tx ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -754,7 +756,7 @@ fun OwnerListingsScreen(
         // Display listings
         if (selectedItemIndex == 0) {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.weight(1f)) {
-                items(listings.take(5), key = { it.id }) { item ->
+                items(listings.take(5), key = { it.id }, contentType = { "rental" }) { item ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
@@ -769,6 +771,9 @@ fun OwnerListingsScreen(
                                 model = ImageRequest.Builder(LocalContext.current)
                                     .data(item.imageUrl)
                                     .crossfade(true)
+                                    .size(Size.ORIGINAL)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
                                     .build(),
                                 contentDescription = null,
                                 modifier = Modifier
@@ -840,6 +845,9 @@ fun OwnerListingsScreen(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data("https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=350&q=80")
                             .crossfade(true)
+                            .size(Size.ORIGINAL)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
                             .build(),
                         contentDescription = null,
                         modifier = Modifier

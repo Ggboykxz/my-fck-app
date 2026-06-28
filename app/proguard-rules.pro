@@ -34,3 +34,10 @@
 # General
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
+
+# Coil
+-dontwarn coil.**
+-keep class coil.** { *; }
+-keep class coil.request.** { *; }
+-keep class coil.size.** { *; }
+-keep class coil.cache.** { *; }

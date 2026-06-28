@@ -24,7 +24,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import coil.size.Size
 import com.example.ui.components.*
 import com.example.ui.theme.*
 import com.example.ui.model.RentalCategory
@@ -219,7 +221,13 @@ fun AdvancedSearchScreen(
                 ) {
                     Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current).data(item.imageUrl).crossfade(true).build(),
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(item.imageUrl)
+                                .crossfade(true)
+                                .size(Size.ORIGINAL)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                .build(),
                             contentDescription = item.title,
                             modifier = Modifier.size(60.dp).clip(RoundedCornerShape(10.dp)),
                             contentScale = ContentScale.Crop,

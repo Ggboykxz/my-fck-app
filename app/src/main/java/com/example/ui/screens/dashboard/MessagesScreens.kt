@@ -28,7 +28,9 @@ import androidx.compose.ui.unit.offset
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import coil.size.Size
 import com.example.data.model.RentalItem
 import com.example.ui.components.*
 import com.example.ui.theme.*
@@ -84,7 +86,7 @@ fun InboxScreen(viewModel: RentalViewModel) {
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 val showItems = items
-                items(showItems, key = { it.id }) { item ->
+                items(showItems, key = { it.id }, contentType = { "rental" }) { item ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -108,6 +110,9 @@ fun InboxScreen(viewModel: RentalViewModel) {
                                 model = ImageRequest.Builder(LocalContext.current)
                                     .data("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80")
                                     .crossfade(true)
+                                    .size(Size.ORIGINAL)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
                                     .build(),
                                 contentDescription = item.ownerName,
                                 modifier = Modifier
@@ -205,6 +210,9 @@ fun ChatRoomScreen(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80")
                             .crossfade(true)
+                            .size(Size.ORIGINAL)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
                             .build(),
                         contentDescription = "Contact photo avatar",
                         modifier = Modifier
@@ -281,7 +289,7 @@ fun ChatRoomScreen(
                 }
             }
 
-            items(messages, key = { it.id }) { message ->
+            items(messages, key = { it.id }, contentType = { "message" }) { message ->
                 val isMe = message.sender == "User"
                 val isImage = message.messageText.startsWith("[image]")
                 val isLocation = message.messageText.startsWith("[location]")
@@ -333,6 +341,9 @@ fun ChatRoomScreen(
                                     model = ImageRequest.Builder(LocalContext.current)
                                         .data(displayText)
                                         .crossfade(true)
+                                        .size(Size.ORIGINAL)
+                                        .diskCachePolicy(CachePolicy.ENABLED)
+                                        .memoryCachePolicy(CachePolicy.ENABLED)
                                         .build(),
                                     contentDescription = "Image partagée",
                                     modifier = Modifier.fillMaxWidth().height(160.dp).clip(RoundedCornerShape(10.dp)),

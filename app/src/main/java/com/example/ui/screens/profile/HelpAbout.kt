@@ -241,7 +241,7 @@ fun HelpAndSupportScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                         contentPadding = PaddingValues(bottom = 12.dp)
                     ) {
-                        itemsIndexed(chatMessages, key = { index, _ -> index }) { index, msg ->
+                        itemsIndexed(chatMessages, key = { index, _ -> index }, contentType = { _, msg -> if (msg.sender == "Bot") "bot_message" else "user_message" }) { index, msg ->
                             val isBot = msg.sender == "Bot"
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -322,7 +322,7 @@ fun HelpAndSupportScreen(
                         .padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    items(quickQuestions, key = { it }) { q ->
+                    items(quickQuestions, key = { it }, contentType = { "string" }) { q ->
                         LocalInquiryChip(text = q, onClick = { handleSend(q) })
                     }
                 }

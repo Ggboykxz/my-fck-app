@@ -325,7 +325,7 @@ fun AchievementsScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(achievements, key = { it.title }) { achievement ->
+            items(achievements, key = { it.title }, contentType = { "achievement" }) { achievement ->
                 Card(
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(
@@ -392,7 +392,7 @@ fun FlashOffersScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(flashOffers, key = { it.first }) { (title, discount, timer) ->
+            items(flashOffers, key = { it.first }, contentType = { "triple" }) { (title, discount, timer) ->
                 Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)), border = BorderStroke(1.dp, Color(0xFFFF6F00).copy(alpha = 0.2f))) {
                     Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFFFF6F00).copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
@@ -465,7 +465,7 @@ fun LoyaltyRedeemScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(rewards, key = { it.first }) { (title, cost, icon) ->
+            items(rewards, key = { it.first }, contentType = { "triple" }) { (title, cost, icon) ->
                 val canAfford = points >= 5000
                 Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
                     Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -519,7 +519,7 @@ fun RewardsCouponsScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(coupons, key = { it.first }) { (code, description, expiry) ->
+            items(coupons, key = { it.first }, contentType = { "triple" }) { (code, description, expiry) ->
                 Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.2f))) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

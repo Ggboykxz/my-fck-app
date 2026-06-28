@@ -6,6 +6,7 @@ import androidx.compose.runtime.*
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navDeepLink
 import com.example.ui.screens.*
 import com.example.ui.viewmodel.RentalViewModel
 import com.example.ui.viewmodel.Screen
@@ -73,9 +74,17 @@ fun DashboardNavHost(
 
         composable<RouteDetails>(
             enterTransition = { slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
-            exitTransition = { slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300)) }
-        ) {
-            val item = selectedItem
+            exitTransition = { slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300)) },
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "locall://item/{itemId}" }
+            )
+        ) { backStackEntry ->
+            val deepLinkItemId = backStackEntry.arguments?.getString("itemId")?.toIntOrNull()
+            val item = if (deepLinkItemId != null) {
+                viewModel.rawRentalItems.collectAsState().value.find { it.id == deepLinkItemId }
+            } else {
+                selectedItem
+            }
             if (item != null) {
                 ItemDetailsScreen(
                     item = item,

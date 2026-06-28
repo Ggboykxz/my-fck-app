@@ -174,7 +174,7 @@ fun ReceivedBookingsScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                items(filtered, key = { it.id }) { res ->
+                items(filtered, key = { it.id }, contentType = { "received_booking" }) { res ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp),
@@ -357,7 +357,7 @@ fun TenantBookingsScreen(
             }
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.weight(1f)) {
-                items(bookings, key = { it.id }) { b ->
+                items(bookings, key = { it.id }, contentType = { "booking" }) { b ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp),

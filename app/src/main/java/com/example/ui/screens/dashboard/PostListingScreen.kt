@@ -26,7 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import coil.size.Size
 import com.example.ui.components.*
 import com.example.ui.theme.*
 import com.example.ui.model.RentalCategory
@@ -122,7 +124,13 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))
                     ) {
                         AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current).data(imageUrl).crossfade(true).build(),
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(imageUrl)
+                                .crossfade(true)
+                                .size(Size.ORIGINAL)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                .build(),
                             contentDescription = "Aperçu",
                             modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)),
                             contentScale = ContentScale.Crop,

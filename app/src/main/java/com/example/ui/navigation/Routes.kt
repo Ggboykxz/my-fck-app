@@ -29,7 +29,7 @@ import kotlinx.serialization.Serializable
 @Serializable data object RouteBookmarks
 @Serializable data object RouteMessages
 @Serializable data object RouteProfile
-@Serializable data object RouteDetails
+@Serializable data class RouteDetails(val itemId: Int = 0)
 @Serializable data object RouteChat
 
 // ─── Profile sub-screens (35 routes) ───

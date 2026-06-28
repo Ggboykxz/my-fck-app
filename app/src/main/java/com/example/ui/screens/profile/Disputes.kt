@@ -147,7 +147,7 @@ fun DisputesHistoryScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp),
             modifier = Modifier.weight(1f)
         ) {
-            items(disputes, key = { it.id }) { disp ->
+            items(disputes, key = { it.id }, contentType = { "dispute" }) { disp ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()

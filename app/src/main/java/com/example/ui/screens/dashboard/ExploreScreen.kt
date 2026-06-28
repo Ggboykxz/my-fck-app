@@ -1,6 +1,8 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -33,7 +35,9 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import coil.size.Size
 import com.example.data.model.RentalItem
 import com.example.ui.components.*
 import com.example.ui.theme.*
@@ -63,6 +67,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
     var isRefreshing by remember { mutableStateOf(false) }
     var showCitySheet by remember { mutableStateOf(false) }
     var showFab by remember { mutableStateOf(false) }
+    var showActionsSheet by remember { mutableStateOf(false) }
     val isOwnerMode by viewModel.isOwnerMode.collectAsState()
     val appearedItems = remember { mutableStateMapOf<Int, Boolean>() }
 
@@ -71,6 +76,14 @@ fun ExploreScreen(viewModel: RentalViewModel) {
 
     val sortedItems = items
     val displayItems = if (isOwnerMode) sortedItems.filter { it.ownerName == "Vous" || it.ownerName == "User" } else sortedItems
+
+    var displayedCount by remember { mutableIntStateOf(10) }
+    val pagedItems = displayItems.take(displayedCount)
+    val canLoadMore = displayedCount < displayItems.size
+
+    LaunchedEffect(searchQuery, selectedCat, selectedCity, selectedMaxPrice) {
+        displayedCount = 10
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
     val lazyListState = rememberLazyListState()
@@ -226,7 +239,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    items(popularTags, key = { it }) { tag ->
+                    items(popularTags, key = { it }, contentType = { "string" }) { tag ->
                         Surface(
                             onClick = {
                                 if (tag == "Moins cher") {
@@ -300,7 +313,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth().testTag("cities_filter_row")
             ) {
-                items(cities, key = { it }) { city ->
+                items(cities, key = { it }, contentType = { "string" }) { city ->
                     val isSelected = selectedCity == city
                     Box(
                         modifier = Modifier
@@ -339,6 +352,9 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                         model = ImageRequest.Builder(LocalContext.current)
                             .data("https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80")
                             .crossfade(true)
+                            .size(Size.ORIGINAL)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
                             .build(),
                         contentDescription = "Belles locations au Gabon",
                         modifier = Modifier.fillMaxSize(),
@@ -409,6 +425,9 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                                 model = ImageRequest.Builder(LocalContext.current)
                                     .data(featuredItem.imageUrl)
                                     .crossfade(true)
+                                    .size(Size.ORIGINAL)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
                                     .build(),
                                 contentDescription = featuredItem.title,
                                 modifier = Modifier.fillMaxSize(),
@@ -515,7 +534,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier.fillMaxWidth().testTag("categories_row")
                 ) {
-                    items(categoriesWithIcons, key = { it.first }) { (catName, icon, label) ->
+                    items(categoriesWithIcons, key = { it.first }, contentType = { "triple" }) { (catName, icon, label) ->
                         val isSelected = selectedCat == catName
                         val count = if (catName == "Tous") {
                             rawItems.size
@@ -587,7 +606,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     }
                 }
             }
-            items(displayItems, key = { it.id }) { item ->
+            items(pagedItems, key = { it.id }, contentType = { "rental" }) { item ->
                 LaunchedEffect(item.id) {
                     delay(item.id.toLong() * 60L)
                     appearedItems[item.id] = true
@@ -605,6 +624,17 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     )
                 }
             }
+            if (canLoadMore) {
+                item {
+                    LaunchedEffect(Unit) {
+                        delay(500)
+                        displayedCount = (displayedCount + 10).coerceAtMost(displayItems.size)
+                    }
+                    Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = PrimaryGreen, strokeWidth = 2.dp)
+                    }
+                }
+            }
         }
 
         item {
@@ -620,15 +650,11 @@ fun ExploreScreen(viewModel: RentalViewModel) {
         modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
     ) {
         FloatingActionButton(
-            onClick = {
-                coroutineScope.launch {
-                    lazyListState.animateScrollToItem(0)
-                }
-            },
+            onClick = { showActionsSheet = true },
             containerColor = PrimaryGreen,
             contentColor = BrandNavy
         ) {
-            Icon(Icons.Rounded.KeyboardArrowUp, contentDescription = "Retour en haut")
+            Icon(Icons.Rounded.Menu, contentDescription = "Actions rapides")
         }
     }
     }
@@ -711,18 +737,57 @@ fun ExploreScreen(viewModel: RentalViewModel) {
             }
         }
     }
+
+    if (showActionsSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showActionsSheet = false },
+            containerColor = Color(0xFF162133),
+            contentColor = Color.White,
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text("Actions rapides", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                listOf(
+                    Triple(Icons.Rounded.Add, "Publier une annonce", { viewModel.navigateTo("post_listing") }),
+                    Triple(Icons.Rounded.Search, "Recherche avancée", { viewModel.navigateTo("advanced_search") }),
+                    Triple(Icons.Rounded.Email, "Messages", { viewModel.navigateTo("messages") }),
+                    Triple(Icons.Rounded.Person, "Mon profil", { viewModel.navigateTo("profile") })
+                ).forEach { (icon, label, action) ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { action(); showActionsSheet = false },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f))
+                    ) {
+                        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Icon(icon, contentDescription = label, tint = PrimaryGreen)
+                            Text(label, color = Color.White, fontSize = 15.sp)
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(32.dp))
+            }
+        }
+    }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RentalCard(
     item: RentalItem,
     onSelect: () -> Unit,
     onBookmarkToggle: () -> Unit
 ) {
+    var showContextMenu by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onSelect() }
+            .combinedClickable(
+                onClick = { onSelect() },
+                onLongClick = { showContextMenu = true }
+            )
             .testTag("rental_card_${item.id}"),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
@@ -740,6 +805,9 @@ fun RentalCard(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(item.imageUrl)
                         .crossfade(true)
+                        .size(Size.ORIGINAL)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
                         .build(),
                     contentDescription = item.title,
                     modifier = Modifier.fillMaxSize(),
@@ -938,6 +1006,27 @@ fun RentalCard(
                 }
             }
         }
+
+        DropdownMenu(
+            expanded = showContextMenu,
+            onDismissRequest = { showContextMenu = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Voir détails") },
+                onClick = { showContextMenu = false; onSelect() },
+                leadingIcon = { Icon(Icons.Rounded.Info, contentDescription = null) }
+            )
+            DropdownMenuItem(
+                text = { Text("Contacter") },
+                onClick = { showContextMenu = false; onBookmarkToggle() },
+                leadingIcon = { Icon(Icons.Rounded.Chat, contentDescription = null) }
+            )
+            DropdownMenuItem(
+                text = { Text("Signaler", color = Color.Red) },
+                onClick = { showContextMenu = false },
+                leadingIcon = { Icon(Icons.Rounded.Flag, contentDescription = null, tint = Color.Red) }
+            )
+        }
     }
 }
 
@@ -976,6 +1065,9 @@ fun RentalDetailModalDialog(
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data(item.imageUrl)
                                 .crossfade(true)
+                                .size(Size.ORIGINAL)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
                                 .build(),
                             contentDescription = item.title,
                             modifier = Modifier.fillMaxSize(),
@@ -1193,6 +1285,9 @@ fun RentalDetailModalDialog(
                                         model = ImageRequest.Builder(LocalContext.current)
                                             .data("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80")
                                             .crossfade(true)
+                                            .size(Size.ORIGINAL)
+                                            .diskCachePolicy(CachePolicy.ENABLED)
+                                            .memoryCachePolicy(CachePolicy.ENABLED)
                                             .build(),
                                         contentDescription = "Avatar propriétaire",
                                         modifier = Modifier

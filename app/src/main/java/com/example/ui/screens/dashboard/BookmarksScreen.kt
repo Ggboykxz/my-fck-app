@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -67,13 +68,20 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(items, key = { it.id }) { item ->
-                    RentalCard(
-                        item = item,
-                        onSelect = {
-                            selectedItemForModal = item
-                        },
-                        onBookmarkToggle = { viewModel.toggleBookmark(item) }
-                    )
+                    Box {
+                        RentalCard(
+                            item = item,
+                            onSelect = { selectedItemForModal = item },
+                            onBookmarkToggle = { viewModel.toggleBookmark(item) }
+                        )
+                        IconButton(
+                            onClick = { viewModel.toggleBookmark(item) },
+                            modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
+                                .background(Color.Red.copy(alpha = 0.8f), RoundedCornerShape(8.dp))
+                        ) {
+                            Icon(Icons.Rounded.Delete, contentDescription = "Retirer des favoris", tint = Color.White, modifier = Modifier.size(18.dp))
+                        }
+                    }
                 }
             }
         }

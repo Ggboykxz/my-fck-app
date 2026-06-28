@@ -37,7 +37,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import coil.size.Size
 import com.example.data.model.RentalItem
 import com.example.ui.components.*
 import com.example.ui.theme.*
@@ -92,6 +94,9 @@ fun ItemDetailsScreen(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(galleryImages[page])
                             .crossfade(true)
+                            .size(Size.ORIGINAL)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
                             .build(),
                         contentDescription = "${item.title} - Photo ${page + 1}",
                         modifier = Modifier.fillMaxSize(),
@@ -369,6 +374,9 @@ fun ItemDetailsScreen(
                                 model = ImageRequest.Builder(LocalContext.current)
                                     .data("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80")
                                     .crossfade(true)
+                                    .size(Size.ORIGINAL)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
                                     .build(),
                                 contentDescription = "Landlord avatar photo",
                                 modifier = Modifier
@@ -512,7 +520,13 @@ fun ItemDetailsScreen(
                             ) {
                                 Column {
                                     AsyncImage(
-                                        model = ImageRequest.Builder(LocalContext.current).data(simItem.imageUrl).crossfade(true).build(),
+                                        model = ImageRequest.Builder(LocalContext.current)
+                                            .data(simItem.imageUrl)
+                                            .crossfade(true)
+                                            .size(Size.ORIGINAL)
+                                            .diskCachePolicy(CachePolicy.ENABLED)
+                                            .memoryCachePolicy(CachePolicy.ENABLED)
+                                            .build(),
                                         contentDescription = simItem.title,
                                         modifier = Modifier.fillMaxWidth().height(100.dp).clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
                                         contentScale = ContentScale.Crop,

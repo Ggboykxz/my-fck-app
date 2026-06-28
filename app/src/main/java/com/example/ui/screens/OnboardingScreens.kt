@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.text.buildAnnotatedString
@@ -46,7 +47,9 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import coil.size.Size
 import com.example.ui.viewmodel.RentalViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -81,10 +84,26 @@ fun SplashScreenView(onNext: () -> Unit) {
         label = "SpinAngle"
     )
 
+    val gradientTransition = rememberInfiniteTransition(label = "gradient")
+    val animStart by gradientTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3000, easing = LinearEasing)
+        ),
+        label = "gradientStart"
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BrandNavy)
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(BrandNavy, PrimaryGreen.copy(alpha = 0.2f), BrandNavy),
+                    start = Offset(animStart, 0f),
+                    end = Offset(animStart + 500f, 1000f)
+                )
+            )
             .clickable { onNext() }
     ) {
         Box(
@@ -220,6 +239,9 @@ private fun WelcomeOnboardingContent() {
                         model = ImageRequest.Builder(LocalContext.current)
                             .data("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80")
                             .crossfade(true)
+                            .size(Size.ORIGINAL)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
                             .build(),
                         contentDescription = "Immobilier Gabon",
                         modifier = Modifier.fillMaxSize(),
@@ -273,6 +295,9 @@ private fun WelcomeOnboardingContent() {
                         model = ImageRequest.Builder(LocalContext.current)
                             .data("https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80")
                             .crossfade(true)
+                            .size(Size.ORIGINAL)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
                             .build(),
                         contentDescription = "Véhicules Gabon",
                         modifier = Modifier.fillMaxSize(),
@@ -702,6 +727,9 @@ private fun TrustOnboardingContent(onStart: () -> Unit) {
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80")
                                 .crossfade(true)
+                                .size(Size.ORIGINAL)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
                                 .build(),
                             contentDescription = "Contact Kofi Mensah",
                             modifier = Modifier
@@ -1067,6 +1095,9 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                         model = ImageRequest.Builder(LocalContext.current)
                             .data("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80")
                             .crossfade(true)
+                            .size(Size.ORIGINAL)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
                             .build(),
                         contentDescription = "Immobilier Gabon",
                         modifier = Modifier.fillMaxSize(),
@@ -1120,6 +1151,9 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
                         model = ImageRequest.Builder(LocalContext.current)
                             .data("https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80")
                             .crossfade(true)
+                            .size(Size.ORIGINAL)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
                             .build(),
                         contentDescription = "Véhicules Gabon",
                         modifier = Modifier.fillMaxSize(),
@@ -1663,6 +1697,9 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80")
                                 .crossfade(true)
+                                .size(Size.ORIGINAL)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
                                 .build(),
                             contentDescription = "Contact Kofi Mensah",
                             modifier = Modifier

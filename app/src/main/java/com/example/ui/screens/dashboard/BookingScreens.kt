@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -494,46 +495,83 @@ fun BookingInteractiveDialog(
                     }
 
                     is PaymentState.Success -> {
-                        Column(
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                                .padding(vertical = 12.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Rounded.CheckCircle,
-                                contentDescription = "Booking success symbol",
-                                tint = PrimaryGreen,
-                                modifier = Modifier.size(72.dp)
-                            )
-
-                            Text(
-                                "Réservation Réussie !",
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = BrandNavy
-                            )
-
-                            Text(
-                                "Votre paiement de ${formatPriceCfa(state.booking.totalPrice)} a été enregistré avec succès par ${state.booking.paymentMethod}. Retrouvez vos détails de location dans l'onglet 'Réservations'.",
-                                fontSize = 14.sp,
-                                color = Color.Gray,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = 8.dp)
-                            )
-
-                            Button(
-                                onClick = {
-                                    viewModel.resetPaymentState()
-                                    viewModel.navigateTo("bookings")
-                                    onDismiss()
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = BrandNavy),
-                                shape = RoundedCornerShape(14.dp),
-                                modifier = Modifier.fillMaxWidth().testTag("close_success_dialog")
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                Text("Voir mes réservations", color = Color.White, fontWeight = FontWeight.Bold)
+                                Icon(
+                                    imageVector = Icons.Rounded.CheckCircle,
+                                    contentDescription = "Booking success symbol",
+                                    tint = PrimaryGreen,
+                                    modifier = Modifier.size(72.dp)
+                                )
+
+                                Text(
+                                    "Réservation Réussie !",
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = BrandNavy
+                                )
+
+                                Text(
+                                    "Votre paiement de ${formatPriceCfa(state.booking.totalPrice)} a été enregistré avec succès par ${state.booking.paymentMethod}. Retrouvez vos détails de location dans l'onglet 'Réservations'.",
+                                    fontSize = 14.sp,
+                                    color = Color.Gray,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(horizontal = 8.dp)
+                                )
+
+                                Button(
+                                    onClick = {
+                                        viewModel.resetPaymentState()
+                                        viewModel.navigateTo("bookings")
+                                        onDismiss()
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = BrandNavy),
+                                    shape = RoundedCornerShape(14.dp),
+                                    modifier = Modifier.fillMaxWidth().testTag("close_success_dialog")
+                                ) {
+                                    Text("Voir mes réservations", color = Color.White, fontWeight = FontWeight.Bold)
+                                }
+                            }
+
+                            val confettiTransition = rememberInfiniteTransition(label = "confetti")
+                            val confettiColors = listOf(
+                                PrimaryGreen,
+                                Color(0xFFFFD700),
+                                Color(0xFFFF6B6B),
+                                Color(0xFF4FC3F7)
+                            )
+                            repeat(20) { index ->
+                                val xOffset by confettiTransition.animateFloat(
+                                    initialValue = 0f,
+                                    targetValue = (if (index % 2 == 0) 1f else -1f) * (50 + index * 20).toFloat(),
+                                    animationSpec = infiniteRepeatable(
+                                        animation = tween(1500 + index * 100, easing = FastOutSlowInEasing)
+                                    ),
+                                    label = "confetti_x_$index"
+                                )
+                                val yOffset by confettiTransition.animateFloat(
+                                    initialValue = -100f,
+                                    targetValue = 800f,
+                                    animationSpec = infiniteRepeatable(
+                                        animation = tween(2000 + index * 50, easing = FastOutSlowInEasing)
+                                    ),
+                                    label = "confetti_y_$index"
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .offset(x = xOffset.dp, y = yOffset.dp)
+                                        .clip(CircleShape)
+                                        .background(confettiColors[index % 4])
+                                )
                             }
                         }
                     }
@@ -600,7 +638,7 @@ fun BookingsScreen(viewModel: RentalViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(bookings, key = { it.id }) { booking ->
+                items(bookings, key = { it.id }, contentType = { "booking" }) { booking ->
                     BookingItemCard(
                         booking = booking,
                         onCancelClick = { showCancelDialog = booking },
