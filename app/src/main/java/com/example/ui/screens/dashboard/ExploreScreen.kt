@@ -2,9 +2,12 @@ package com.example.ui.screens
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -14,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -36,7 +40,10 @@ import com.example.ui.theme.*
 import com.example.ui.model.RentalCategory
 import com.example.ui.viewmodel.RentalViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExploreScreen(viewModel: RentalViewModel) {
     val items by viewModel.filteredRentalItems.collectAsState()
@@ -54,7 +61,10 @@ fun ExploreScreen(viewModel: RentalViewModel) {
     var showBookingFromModal by remember { mutableStateOf<RentalItem?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var isRefreshing by remember { mutableStateOf(false) }
+    var showCitySheet by remember { mutableStateOf(false) }
+    var showFab by remember { mutableStateOf(false) }
     val isOwnerMode by viewModel.isOwnerMode.collectAsState()
+    val appearedItems = remember { mutableStateMapOf<Int, Boolean>() }
 
     LaunchedEffect(Unit) { delay(1500); isLoading = false }
     LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(1500); isRefreshing = false } }
@@ -62,12 +72,29 @@ fun ExploreScreen(viewModel: RentalViewModel) {
     val sortedItems = items
     val displayItems = if (isOwnerMode) sortedItems.filter { it.ownerName == "Vous" || it.ownerName == "User" } else sortedItems
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+    val lazyListState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+    LaunchedEffect(lazyListState) {
+        snapshotFlow { lazyListState.firstVisibleItemIndex }
+            .collect { index -> showFab = index > 3 }
+    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (isRefreshing) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.TopCenter).padding(8.dp),
+                color = PrimaryGreen,
+                strokeWidth = 2.dp
+            )
+        }
+        LazyColumn(
+            state = lazyListState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+            contentPadding = PaddingValues(top = if (isRefreshing) 48.dp else 0.dp)
+        ) {
         // Welcome Header & Options button
         item {
             Spacer(modifier = Modifier.height(32.dp))
@@ -160,6 +187,16 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     tint = BrandNavy,
                     backgroundColor = PrimaryGreen,
                     modifier = Modifier.size(54.dp).testTag("price_filter_button"),
+                    iconSize = 22.dp
+                )
+
+                SmoothIconButton(
+                    imageVector = Icons.Rounded.LocationOn,
+                    contentDescription = "Filtre par ville",
+                    onClick = { showCitySheet = true },
+                    tint = BrandNavy,
+                    backgroundColor = Color(0xFF4FC3F7),
+                    modifier = Modifier.size(54.dp),
                     iconSize = 22.dp
                 )
 
@@ -551,19 +588,49 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                 }
             }
             items(displayItems, key = { it.id }) { item ->
-                RentalCard(
-                    item = item,
-                    onSelect = {
-                        selectedItemForModal = item
-                    },
-                    onBookmarkToggle = { viewModel.toggleBookmark(item) }
-                )
+                LaunchedEffect(item.id) {
+                    delay(item.id.toLong() * 60L)
+                    appearedItems[item.id] = true
+                }
+                AnimatedVisibility(
+                    visible = appearedItems.containsKey(item.id),
+                    enter = fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 3 }
+                ) {
+                    RentalCard(
+                        item = item,
+                        onSelect = {
+                            selectedItemForModal = item
+                        },
+                        onBookmarkToggle = { viewModel.toggleBookmark(item) }
+                    )
+                }
             }
         }
 
         item {
             Spacer(modifier = Modifier.height(32.dp))
         }
+    }
+    }
+
+    AnimatedVisibility(
+        visible = showFab,
+        enter = scaleIn() + fadeIn(),
+        exit = scaleOut() + fadeOut(),
+        modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+    ) {
+        FloatingActionButton(
+            onClick = {
+                coroutineScope.launch {
+                    lazyListState.animateScrollToItem(0)
+                }
+            },
+            containerColor = PrimaryGreen,
+            contentColor = BrandNavy
+        ) {
+            Icon(Icons.Rounded.KeyboardArrowUp, contentDescription = "Retour en haut")
+        }
+    }
     }
 
     // Modal Price Filter Dialog
@@ -598,6 +665,51 @@ fun ExploreScreen(viewModel: RentalViewModel) {
             viewModel = viewModel,
             onDismiss = { showBookingFromModal = null }
         )
+    }
+
+    if (showCitySheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showCitySheet = false },
+            containerColor = Color(0xFF162133),
+            contentColor = Color.White,
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
+            ) {
+                Text("Choisir une ville", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(16.dp))
+                val cities = listOf("Tous", "Libreville", "Port-Gentil", "Franceville", "Oyem", "Akanda")
+                cities.forEach { city ->
+                    val isSelected = selectedCity == city
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .clickable { viewModel.setSelectedCity(city); showCitySheet = false },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected) PrimaryGreen.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.05f)
+                        ),
+                        border = if (isSelected) BorderStroke(1.dp, PrimaryGreen) else null
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(Icons.Rounded.LocationOn, contentDescription = city, tint = if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.5f))
+                            Text(city, color = if (isSelected) PrimaryGreen else Color.White, fontSize = 15.sp, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
+                            Spacer(modifier = Modifier.weight(1f))
+                            if (isSelected) Icon(Icons.Rounded.CheckCircle, contentDescription = "Sélectionné", tint = PrimaryGreen)
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(32.dp))
+            }
+        }
     }
 }
 

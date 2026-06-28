@@ -3,6 +3,7 @@ package com.example.ui.screens
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.icons.filled.Email
@@ -110,7 +111,29 @@ fun MainDashboardViewNavHost(viewModel: RentalViewModel) {
     val isOverlay = currentRoute == RouteDetails::class.qualifiedName ||
             currentRoute == RouteChat::class.qualifiedName
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val snackbarMessage by viewModel.snackbarMessage.collectAsState()
+
+    LaunchedEffect(snackbarMessage) {
+        snackbarMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.dismissSnackbar()
+        }
+    }
+
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = PrimaryGreen,
+                    contentColor = BrandNavy,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        },
         bottomBar = {
             if (!isOverlay) {
                 DashboardBottomBar(

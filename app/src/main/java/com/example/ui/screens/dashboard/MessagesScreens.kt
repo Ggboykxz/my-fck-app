@@ -39,7 +39,11 @@ import kotlinx.coroutines.delay
 fun InboxScreen(viewModel: RentalViewModel) {
     val items by viewModel.rawRentalItems.collectAsState()
     val isLoading by viewModel.isInboxLoading.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
 
+    LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(1500); isRefreshing = false } }
+
+    Box(modifier = Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -143,6 +147,7 @@ fun InboxScreen(viewModel: RentalViewModel) {
             }
         }
         }
+    }
     }
 }
 

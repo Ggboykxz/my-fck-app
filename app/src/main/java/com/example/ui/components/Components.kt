@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,10 +41,20 @@ fun SkeletonCard(modifier: Modifier = Modifier) {
         Color.White.copy(alpha = 0.12f),
         Color.White.copy(alpha = 0.06f)
     )
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmerTranslate"
+    )
     val shimmerBrush = Brush.linearGradient(
         colors = shimmerColors,
-        start = Offset(0f, 0f),
-        end = Offset(1000f, 0f)
+        start = Offset(translateAnim - 200f, 0f),
+        end = Offset(translateAnim, 0f)
     )
 
     Card(
@@ -95,10 +107,20 @@ fun SkeletonChatItem(modifier: Modifier = Modifier) {
         Color.White.copy(alpha = 0.12f),
         Color.White.copy(alpha = 0.06f)
     )
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmerTranslate"
+    )
     val shimmerBrush = Brush.linearGradient(
         colors = shimmerColors,
-        start = Offset(0f, 0f),
-        end = Offset(1000f, 0f)
+        start = Offset(translateAnim - 200f, 0f),
+        end = Offset(translateAnim, 0f)
     )
 
     Card(
@@ -152,10 +174,20 @@ fun SkeletonBookingItem(modifier: Modifier = Modifier) {
         Color.White.copy(alpha = 0.12f),
         Color.White.copy(alpha = 0.06f)
     )
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmerTranslate"
+    )
     val shimmerBrush = Brush.linearGradient(
         colors = shimmerColors,
-        start = Offset(0f, 0f),
-        end = Offset(1000f, 0f)
+        start = Offset(translateAnim - 200f, 0f),
+        end = Offset(translateAnim, 0f)
     )
 
     Card(
@@ -535,6 +567,7 @@ fun AnimatedHeartButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val hapticFeedback = LocalHapticFeedback.current
     var animScale by remember { mutableStateOf(1f) }
     val scale by animateFloatAsState(
         targetValue = animScale,
@@ -549,7 +582,11 @@ fun AnimatedHeartButton(
         }
     }
     IconButton(
-        onClick = { onClick(); animScale = 1.4f },
+        onClick = {
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+            onClick()
+            animScale = 1.4f
+        },
         modifier = modifier.scale(scale)
     ) {
         Icon(
@@ -751,6 +788,15 @@ fun AnimatedEmptyState(
         ),
         label = "floatY"
     )
+    val scaleAnim by infiniteTransition.animateFloat(
+        initialValue = 0.9f,
+        targetValue = 1.1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "emptyScale"
+    )
     Box(
         modifier = modifier.fillMaxWidth().padding(vertical = 48.dp),
         contentAlignment = Alignment.Center
@@ -764,7 +810,8 @@ fun AnimatedEmptyState(
                     .offset(y = offsetY.dp)
                     .size(80.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.06f)),
+                    .background(Color.White.copy(alpha = 0.06f))
+                    .scale(scaleAnim),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(icon, contentDescription = "Aucun résultat", tint = Color.White.copy(alpha = 0.35f), modifier = Modifier.size(40.dp))

@@ -4,6 +4,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
@@ -53,6 +55,7 @@ fun ItemDetailsScreen(
 ) {
     val context = LocalContext.current
     var showBookingDialog by remember { mutableStateOf(false) }
+    val lazyListState = rememberLazyListState()
 
     BackHandler { onBack() }
 
@@ -62,7 +65,8 @@ fun ItemDetailsScreen(
             .background(BrandNavy)
     ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        state = lazyListState
     ) {
         // Picture header with horizontal pager gallery
         item {
@@ -70,6 +74,7 @@ fun ItemDetailsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1.5f)
+                    .offset(y = with(LocalDensity.current) { -(lazyListState.firstVisibleItemScrollOffset * 0.4f).toDp() })
             ) {
                 val galleryImages = remember(item.imageUrl) {
                     listOfNotNull(item.imageUrl) + listOf(
