@@ -4,6 +4,9 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -22,6 +25,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
@@ -49,8 +54,6 @@ fun PostListingScreen(viewModel: RentalViewModel) {
     var isSuccessPost by remember { mutableStateOf(false) }
     var showErrorField by remember { mutableStateOf(false) }
     val hapticFeedback = LocalHapticFeedback.current
-
-    val categoryIcons = RentalCategory.entries.associate { it.displayName to it.icon }
 
     LazyColumn(
         modifier = Modifier
@@ -182,31 +185,51 @@ fun PostListingScreen(viewModel: RentalViewModel) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("CATÉGORIE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        RentalCategory.entries.forEach { catEntry ->
-                        val cat = catEntry.displayName
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        modifier = Modifier.heightIn(max = 400.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(RentalCategory.entries.toList(), key = { it.name }) { catEntry ->
+                            val cat = catEntry.displayName
                             val isSelected = category == cat
                             Card(
-                                modifier = Modifier.weight(1f).clickable { category = cat },
-                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth().clickable { category = cat },
+                                shape = RoundedCornerShape(14.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = if (isSelected) PrimaryGreen.copy(alpha = 0.15f) else Color(0xFF162133)
+                                    containerColor = if (isSelected) catEntry.color.copy(alpha = 0.2f) else Color(0xFF162133)
                                 ),
-                                border = BorderStroke(1.dp, if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.08f))
+                                border = BorderStroke(1.5.dp, if (isSelected) catEntry.color else Color.White.copy(alpha = 0.08f))
                             ) {
                                 Column(
-                                    modifier = Modifier.padding(vertical = 14.dp),
+                                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    SmoothIcon(
-                                        icon = categoryIcons[cat] ?: Icons.Rounded.Category,
-                                        tint = if (isSelected) BrandNavy else PrimaryGreen,
-                                        backgroundColor = if (isSelected) PrimaryGreen else PrimaryGreen.copy(alpha = 0.12f),
-                                        size = 36.dp,
-                                        iconSize = 18.dp
+                                    Box(
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .clip(CircleShape)
+                                            .background(if (isSelected) catEntry.color else catEntry.color.copy(alpha = 0.12f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = catEntry.icon,
+                                            contentDescription = cat,
+                                            tint = if (isSelected) Color.White else catEntry.color,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
+                                    Text(
+                                        cat,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isSelected) catEntry.color else Color.White.copy(alpha = 0.6f),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        textAlign = TextAlign.Center
                                     )
-                                    Text(cat, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.6f))
                                 }
                             }
                         }

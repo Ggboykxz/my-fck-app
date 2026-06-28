@@ -44,6 +44,7 @@ import com.example.data.model.RentalItem
 import com.example.ui.components.*
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
+import com.example.ui.model.RentalCategory
 import java.text.NumberFormat
 import java.util.*
 import android.content.Intent
@@ -354,6 +355,41 @@ fun ItemDetailsScreen(
                     lineHeight = 22.sp,
                     textAlign = TextAlign.Justify
                 )
+
+                // Category-specific specs
+                val categoryEnum = RentalCategory.fromString(item.category)
+                if (categoryEnum.specs.isNotEmpty()) {
+                    SectionHeader(title = "Caractéristiques ${item.category}")
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            categoryEnum.specs.chunked(2).forEach { rowSpecs ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    rowSpecs.forEach { spec ->
+                                        Column(modifier = Modifier.weight(1f).padding(vertical = 6.dp)) {
+                                            Text(spec.label, fontSize = 11.sp, color = Color.White.copy(alpha = 0.4f), fontWeight = FontWeight.Medium)
+                                            Text(spec.sampleValue, fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                    // Fill remaining space if odd number
+                                    if (rowSpecs.size < 2) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
+                                }
+                                if (rowSpecs != categoryEnum.specs.chunked(2).last()) {
+                                    HorizontalDivider(color = Color.White.copy(alpha = 0.06f), modifier = Modifier.padding(vertical = 4.dp))
+                                }
+                            }
+                        }
+                    }
+                }
 
                 // Landlord contact row
                 SectionHeader(title = "Annonceur")
