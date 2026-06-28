@@ -44,7 +44,6 @@ import com.example.ui.theme.*
 import com.example.ui.model.RentalCategory
 import com.example.ui.viewmodel.RentalViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,22 +56,19 @@ fun ExploreScreen(viewModel: RentalViewModel) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedMaxPrice by viewModel.selectedMaxPrice.collectAsState()
 
-    val hasActiveFilters = searchQuery.isNotEmpty() || selectedCat != "Tous" || selectedCity != "Tous" || selectedMaxPrice != 0
-
     var sortOption by remember { mutableStateOf(SortOption.RECENT) }
-    var showPriceFilterDialog by remember { mutableStateOf(false) }
     var selectedItemForModal by remember { mutableStateOf<RentalItem?>(null) }
     var showBookingFromModal by remember { mutableStateOf<RentalItem?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var isRefreshing by remember { mutableStateOf(false) }
-    var showCitySheet by remember { mutableStateOf(false) }
+    var showFilterSheet by remember { mutableStateOf(false) }
     var showFab by remember { mutableStateOf(false) }
     var showActionsSheet by remember { mutableStateOf(false) }
     val isOwnerMode by viewModel.isOwnerMode.collectAsState()
     val appearedItems = remember { mutableStateMapOf<Int, Boolean>() }
 
-    LaunchedEffect(Unit) { delay(1500); isLoading = false }
-    LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(1500); isRefreshing = false } }
+    LaunchedEffect(Unit) { delay(300); isLoading = false }
+    LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(300); isRefreshing = false } }
 
     val sortedItems = items
     val displayItems = if (isOwnerMode) sortedItems.filter { it.ownerName == "Vous" || it.ownerName == "User" } else sortedItems
@@ -105,10 +101,10 @@ fun ExploreScreen(viewModel: RentalViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
             contentPadding = PaddingValues(top = if (isRefreshing) 48.dp else 0.dp)
         ) {
-        // Welcome Header & Options button
+        // Welcome Header
         item {
             Spacer(modifier = Modifier.height(32.dp))
             Row(
@@ -149,7 +145,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
             }
         }
 
-        // Custom Search Bar & Filters Trigger Click
+        // Search Bar + Filter Button
         item {
             Row(
                 modifier = Modifier
@@ -194,362 +190,54 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                 )
 
                 SmoothIconButton(
-                    imageVector = Icons.Rounded.Settings,
-                    contentDescription = "Filtres de prix",
-                    onClick = { showPriceFilterDialog = true },
+                    imageVector = Icons.Rounded.Tune,
+                    contentDescription = "Filtres",
+                    onClick = { showFilterSheet = true },
                     tint = BrandNavy,
                     backgroundColor = PrimaryGreen,
-                    modifier = Modifier.size(54.dp).testTag("price_filter_button"),
+                    modifier = Modifier.size(54.dp).testTag("filter_button"),
                     iconSize = 22.dp
                 )
-
-                SmoothIconButton(
-                    imageVector = Icons.Rounded.LocationOn,
-                    contentDescription = "Filtre par ville",
-                    onClick = { showCitySheet = true },
-                    tint = BrandNavy,
-                    backgroundColor = Color(0xFF4FC3F7),
-                    modifier = Modifier.size(54.dp),
-                    iconSize = 22.dp
-                )
-
-                SortDropdown(
-                    selected = sortOption,
-                    onSelect = { sortOption = it; viewModel.setSortOption(it) }
-                )
             }
         }
 
-        // Popular search tags and quick reset
+        // Category Grid (2 columns)
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Suggestions :",
-                    color = Color.White.copy(alpha = 0.45f),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                
-                val popularTags = listOf("Sablière", "Prado", "Piscine", "Moins cher")
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    items(popularTags, key = { it }, contentType = { "string" }) { tag ->
-                        Surface(
-                            onClick = {
-                                if (tag == "Moins cher") {
-                                    viewModel.setSelectedMaxPrice(40000)
-                                } else {
-                                    viewModel.setSearchQuery(tag)
-                                }
-                            },
-                            color = Color.White.copy(alpha = 0.05f),
-                            shape = RoundedCornerShape(20.dp),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
-                            modifier = Modifier.height(28.dp).testTag("popular_tag_$tag")
-                        ) {
-                            Box(
-                                modifier = Modifier.padding(horizontal = 10.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = tag,
-                                    color = Color.White,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        }
-                    }
-                    
-                    if (hasActiveFilters) {
-                        item {
-                            Surface(
-                                onClick = {
-                                viewModel.setSearchQuery("")
-                                viewModel.setSelectedCategory("Tous")
-                                viewModel.setSelectedCity("Tous")
-                                viewModel.setSelectedMaxPrice(0)
-                                },
-                                color = PrimaryGreen.copy(alpha = 0.15f),
-                                shape = RoundedCornerShape(20.dp),
-                                border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f)),
-                                modifier = Modifier.height(28.dp).testTag("filters_reset_tag")
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 10.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Clear,
-                                        contentDescription = "Effacer les filtres",
-                                        tint = PrimaryGreen,
-                                        modifier = Modifier.size(10.dp)
-                                    )
-                                    Text(
-                                        text = "Réinitialiser",
-                                        color = PrimaryGreen,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+            val categoriesWithIcons = listOf(
+                Triple("Tous", Icons.Rounded.Apps, "Tous")
+            ) + RentalCategory.entries.map { Triple(it.displayName, it.icon, it.displayName) }
 
-        // Horizontal Cities row
-        item {
-            val cities = listOf("Tous", "Libreville", "Port-Gentil", "Franceville", "Oyem", "Akanda")
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth().testTag("cities_filter_row")
-            ) {
-                items(cities, key = { it }, contentType = { "string" }) { city ->
-                    val isSelected = selectedCity == city
-                    Box(
-                        modifier = Modifier
-                            .testTag("city_chip_$city")
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(if (isSelected) PrimaryGreen else Color(0xFF162133))
-                            .border(
-                                1.dp,
-                                if (isSelected) Color.Transparent else Color.White.copy(alpha = 0.12f),
-                                RoundedCornerShape(12.dp)
-                            )
-                            .clickable { viewModel.setSelectedCity(city) }
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Text(
-                            text = city,
-                            fontSize = 13.sp,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) BrandNavy else Color.White.copy(alpha = 0.70f)
-                        )
-                    }
-                }
-            }
-        }
+            val rows = categoriesWithIcons.chunked(2)
 
-        // Beautiful visual Hero card banner "Louez tout partout"
-        item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(2.5f),
-                shape = RoundedCornerShape(22.dp)
-            ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data("https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80")
-                            .crossfade(true)
-                            .size(Size.ORIGINAL)
-                            .diskCachePolicy(CachePolicy.ENABLED)
-                            .memoryCachePolicy(CachePolicy.ENABLED)
-                            .build(),
-                        contentDescription = "Belles locations au Gabon",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop,
-                        placeholder = painterResource(android.R.drawable.ic_menu_gallery),
-                        error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
-                    )
-
-                    // Overlay gradient
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.horizontalGradient(
-                                    colors = listOf(
-                                        BrandNavy.copy(alpha = 0.9f),
-                                        BrandNavy.copy(alpha = 0.4f),
-                                        Color.Transparent
-                                    )
-                                )
-                            )
-                    )
-
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            "Offres Vérifiées 🌟",
-                            color = PrimaryGreen,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            "Louez en direct\nen toute sécurité",
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            lineHeight = 22.sp
-                        )
-                    }
-                }
-            }
-        }
-
-        // Annonce du jour Featured Section
-        item {
-            val featuredItem = items.firstOrNull()
-            if (featuredItem != null) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    SectionHeader(title = "Annonce du jour")
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(2f)
-                            .clickable { selectedItemForModal = featuredItem },
-                        shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
-                    ) {
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(featuredItem.imageUrl)
-                                    .crossfade(true)
-                                    .size(Size.ORIGINAL)
-                                    .diskCachePolicy(CachePolicy.ENABLED)
-                                    .memoryCachePolicy(CachePolicy.ENABLED)
-                                    .build(),
-                                contentDescription = featuredItem.title,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop,
-                                placeholder = painterResource(android.R.drawable.ic_menu_gallery),
-                                error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color.Transparent,
-                                                Color.Black.copy(alpha = 0.85f)
-                                            )
-                                        )
-                                    )
-                            )
-                            // Spotlight badge
-                            Surface(
-                                color = PrimaryGreen,
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier
-                                    .align(Alignment.TopStart)
-                                    .padding(12.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Star,
-                                        contentDescription = null,
-                                        tint = BrandNavy,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Text(
-                                        "Spotlight",
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = BrandNavy
-                                    )
-                                }
-                            }
-                            Column(
-                                modifier = Modifier
-                                    .align(Alignment.BottomStart)
-                                    .padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    text = featuredItem.title,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.LocationOn,
-                                        contentDescription = null,
-                                        tint = PrimaryGreen,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Text(
-                                        "${featuredItem.neighborhood}, ${featuredItem.city}",
-                                        fontSize = 12.sp,
-                                        color = Color.White.copy(alpha = 0.7f)
-                                    )
-                                    Spacer(modifier = Modifier.weight(1f))
-                                    Text(
-                                        formatPriceCfa(featuredItem.pricePerDay) + " / Jour",
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = PrimaryGreen
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Horizontal Category Tabs with Dynamic Counters and Icons
-        item {
             Column(
                 modifier = Modifier.fillMaxWidth().testTag("categories_section"),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                SectionHeader(title = "Rechercher par Catégorie")
+                rows.forEach { row ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        row.forEach { (catName, icon, label) ->
+                            val isSelected = selectedCat == catName
+                            val count = if (catName == "Tous") {
+                                rawItems.size
+                            } else {
+                                rawItems.count { it.category.equals(catName, ignoreCase = true) }
+                            }
 
-                val categoriesWithIcons = listOf(
-                    Triple("Tous", Icons.Rounded.Apps, "Tous")
-                ) + RentalCategory.entries.map { Triple(it.displayName, it.icon, it.displayName) }
-
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.fillMaxWidth().testTag("categories_row")
-                ) {
-                    items(categoriesWithIcons, key = { it.first }, contentType = { "triple" }) { (catName, icon, label) ->
-                        val isSelected = selectedCat == catName
-                        val count = if (catName == "Tous") {
-                            rawItems.size
-                        } else {
-                            rawItems.count { it.category.equals(catName, ignoreCase = true) }
+                            CategoryIcon(
+                                icon = icon,
+                                label = label,
+                                count = count,
+                                isSelected = isSelected,
+                                onClick = { viewModel.setSelectedCategory(catName) },
+                                modifier = Modifier.weight(1f).testTag("category_filter_$catName")
+                            )
                         }
-                        
-                        CategoryIcon(
-                            icon = icon,
-                            label = label,
-                            count = count,
-                            isSelected = isSelected,
-                            onClick = { viewModel.setSelectedCategory(catName) },
-                            modifier = Modifier.testTag("category_filter_$catName")
-                        )
+                        if (row.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
                     }
                 }
             }
@@ -588,24 +276,6 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                 }
             }
         } else {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    IconButton(
-                        onClick = {
-                            isRefreshing = true
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Refresh,
-                            contentDescription = "Rafraîchir",
-                            tint = PrimaryGreen
-                        )
-                    }
-                }
-            }
             items(pagedItems, key = { it.id }, contentType = { "rental" }) { item ->
                 LaunchedEffect(item.id) {
                     delay(item.id.toLong() * 60L)
@@ -617,10 +287,14 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                 ) {
                     RentalCard(
                         item = item,
-                        onSelect = {
-                            selectedItemForModal = item
+                        onSelect = { selectedItemForModal = item },
+                        onBookmarkToggle = { viewModel.toggleBookmark(item) },
+                        onChat = {
+                            viewModel.selectItem(item)
+                            viewModel.openChatFor(item)
+                            viewModel.navigateTo("chat")
                         },
-                        onBookmarkToggle = { viewModel.toggleBookmark(item) }
+                        onBook = { showBookingFromModal = item }
                     )
                 }
             }
@@ -654,19 +328,31 @@ fun ExploreScreen(viewModel: RentalViewModel) {
             containerColor = PrimaryGreen,
             contentColor = BrandNavy
         ) {
-            Icon(Icons.Rounded.Menu, contentDescription = "Actions rapides")
+            Icon(Icons.Rounded.Add, contentDescription = "Actions rapides")
         }
     }
     }
 
-    // Modal Price Filter Dialog
-    if (showPriceFilterDialog) {
-        PriceFilterDialog(
-            currentMaxPrice = viewModel.selectedMaxPrice.collectAsState().value,
-            onDismiss = { showPriceFilterDialog = false },
-            onApply = { maxPrice ->
+    // Unified Filter Bottom Sheet
+    if (showFilterSheet) {
+        FilterBottomSheet(
+            currentCity = selectedCity,
+            currentMaxPrice = selectedMaxPrice,
+            currentSort = sortOption,
+            onDismiss = { showFilterSheet = false },
+            onApply = { city, maxPrice, sort ->
+                viewModel.setSelectedCity(city)
                 viewModel.setSelectedMaxPrice(maxPrice)
-                showPriceFilterDialog = false
+                sortOption = sort
+                viewModel.setSortOption(sort)
+                showFilterSheet = false
+            },
+            onReset = {
+                viewModel.setSelectedCity("Tous")
+                viewModel.setSelectedMaxPrice(0)
+                sortOption = SortOption.RECENT
+                viewModel.setSortOption(SortOption.RECENT)
+                showFilterSheet = false
             }
         )
     }
@@ -691,51 +377,6 @@ fun ExploreScreen(viewModel: RentalViewModel) {
             viewModel = viewModel,
             onDismiss = { showBookingFromModal = null }
         )
-    }
-
-    if (showCitySheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showCitySheet = false },
-            containerColor = Color(0xFF162133),
-            contentColor = Color.White,
-            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp)
-            ) {
-                Text("Choisir une ville", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(16.dp))
-                val cities = listOf("Tous", "Libreville", "Port-Gentil", "Franceville", "Oyem", "Akanda")
-                cities.forEach { city ->
-                    val isSelected = selectedCity == city
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .clickable { viewModel.setSelectedCity(city); showCitySheet = false },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (isSelected) PrimaryGreen.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.05f)
-                        ),
-                        border = if (isSelected) BorderStroke(1.dp, PrimaryGreen) else null
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Icon(Icons.Rounded.LocationOn, contentDescription = city, tint = if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.5f))
-                            Text(city, color = if (isSelected) PrimaryGreen else Color.White, fontSize = 15.sp, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
-                            Spacer(modifier = Modifier.weight(1f))
-                            if (isSelected) Icon(Icons.Rounded.CheckCircle, contentDescription = "Sélectionné", tint = PrimaryGreen)
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(32.dp))
-            }
-        }
     }
 
     if (showActionsSheet) {
@@ -772,12 +413,179 @@ fun ExploreScreen(viewModel: RentalViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FilterBottomSheet(
+    currentCity: String,
+    currentMaxPrice: Int,
+    currentSort: SortOption,
+    onDismiss: () -> Unit,
+    onApply: (city: String, maxPrice: Int, sort: SortOption) -> Unit,
+    onReset: () -> Unit
+) {
+    var city by remember { mutableStateOf(currentCity) }
+    var maxPrice by remember { mutableIntStateOf(currentMaxPrice) }
+    var sort by remember { mutableStateOf(currentSort) }
+
+    val cities = listOf("Tous", "Libreville", "Port-Gentil", "Franceville", "Oyem", "Akanda")
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = Color(0xFF162133),
+        contentColor = Color.White,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            Text("Filtres", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+
+            // City selection
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Ville", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(cities, key = { it }, contentType = { "string" }) { c ->
+                        val isSelected = city == c
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.06f))
+                                .border(
+                                    1.dp,
+                                    if (isSelected) Color.Transparent else Color.White.copy(alpha = 0.12f),
+                                    RoundedCornerShape(12.dp)
+                                )
+                                .clickable { city = c }
+                                .padding(horizontal = 16.dp, vertical = 10.dp)
+                        ) {
+                            Text(
+                                text = c,
+                                fontSize = 13.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) BrandNavy else Color.White.copy(alpha = 0.70f)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Price range
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    "Prix max",
+                    color = Color.White.copy(alpha = 0.6f),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = if (maxPrice == 0) "Aucune limite" else "Maximum: " + formatPriceCfa(maxPrice) + " / Jour",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (maxPrice == 0) Color.White.copy(alpha = 0.5f) else PrimaryGreen
+                )
+                Slider(
+                    value = if (maxPrice == 0) 160000f else maxPrice.toFloat(),
+                    onValueChange = {
+                        val v = it.toInt()
+                        maxPrice = if (v >= 15500) v else 0
+                    },
+                    valueRange = 10000f..150000f,
+                    colors = SliderDefaults.colors(
+                        thumbColor = PrimaryGreen,
+                        activeTrackColor = PrimaryGreen,
+                        inactiveTrackColor = Color.White.copy(alpha = 0.15f)
+                    )
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf(30000, 60000, 100000).forEach { preset ->
+                        OutlinedButton(
+                            onClick = { maxPrice = preset },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, if (maxPrice == preset) PrimaryGreen else Color.White.copy(alpha = 0.15f))
+                        ) {
+                            Text(
+                                "${preset / 1000}K",
+                                fontSize = 11.sp,
+                                color = if (maxPrice == preset) PrimaryGreen else Color.White.copy(alpha = 0.6f),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Sort selection
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Tri par", color = Color.White.copy(alpha = 0.6f), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(SortOption.entries, key = { it.name }, contentType = { "sort" }) { option ->
+                        val isSelected = sort == option
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.06f))
+                                .border(
+                                    1.dp,
+                                    if (isSelected) Color.Transparent else Color.White.copy(alpha = 0.12f),
+                                    RoundedCornerShape(12.dp)
+                                )
+                                .clickable { sort = option }
+                                .padding(horizontal = 16.dp, vertical = 10.dp)
+                        ) {
+                            Text(
+                                text = option.label,
+                                fontSize = 13.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) BrandNavy else Color.White.copy(alpha = 0.70f)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Action buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onReset,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
+                ) {
+                    Text("Réinitialiser", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
+                }
+
+                Button(
+                    onClick = { onApply(city, maxPrice, sort) },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Appliquer", color = BrandNavy, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RentalCard(
     item: RentalItem,
     onSelect: () -> Unit,
-    onBookmarkToggle: () -> Unit
+    onBookmarkToggle: () -> Unit,
+    onChat: () -> Unit,
+    onBook: () -> Unit
 ) {
     var showContextMenu by remember { mutableStateOf(false) }
 
@@ -800,7 +608,6 @@ fun RentalCard(
                     .fillMaxWidth()
                     .aspectRatio(16f / 9f)
             ) {
-                // Item photo image
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(item.imageUrl)
@@ -816,7 +623,6 @@ fun RentalCard(
                     error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                 )
 
-                // Top Floating row
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -824,7 +630,6 @@ fun RentalCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Category Chip + Badge stickers
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Surface(
                             color = Color.Black.copy(alpha = 0.7f),
@@ -838,7 +643,6 @@ fun RentalCard(
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                             )
                         }
-                        // Badge: Nouveau (for items with id >= 10)
                         if (item.id >= 10) {
                             Surface(
                                 color = Color(0xFF4FC3F7).copy(alpha = 0.9f),
@@ -853,7 +657,6 @@ fun RentalCard(
                                 )
                             }
                         }
-                        // Badge: Populaire (for items with rating >= 4.8)
                         if (item.ownerRating >= 4.8f) {
                             Surface(
                                 color = Color(0xFFFFB300).copy(alpha = 0.9f),
@@ -870,7 +673,6 @@ fun RentalCard(
                         }
                     }
 
-                    // Bookmark heart button custom styled
                     AnimatedHeartButton(
                         isFavorite = item.isBookmarked,
                         onClick = onBookmarkToggle,
@@ -881,7 +683,6 @@ fun RentalCard(
                     )
                 }
 
-                // Verified sticker tag overlay on picture
                 if (item.isVerified) {
                     Surface(
                         color = PrimaryGreen,
@@ -897,7 +698,7 @@ fun RentalCard(
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.CheckCircle,
-                                contentDescription = null,
+                                contentDescription = "Profil vérifié",
                                 tint = BrandNavy,
                                 modifier = Modifier.size(12.dp)
                             )
@@ -912,7 +713,6 @@ fun RentalCard(
                 }
             }
 
-            // Description and details block bottom
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -940,7 +740,7 @@ fun RentalCard(
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Star,
-                            contentDescription = null,
+                            contentDescription = "Note",
                             tint = Color(0xFFFFB300),
                             modifier = Modifier.size(14.dp)
                         )
@@ -953,14 +753,13 @@ fun RentalCard(
                     }
                 }
 
-                // Neighborhood and city row
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.LocationOn,
-                        contentDescription = null,
+                        contentDescription = "Localisation",
                         tint = PrimaryGreen,
                         modifier = Modifier.size(14.dp)
                     )
@@ -976,7 +775,6 @@ fun RentalCard(
 
                 HorizontalDivider(color = Color.White.copy(alpha = 0.12f), thickness = 1.dp)
 
-                // Price display in CFA
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -997,12 +795,21 @@ fun RentalCard(
                         )
                     }
 
-                    Text(
-                        text = "Louer",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryGreen
-                    )
+                    Surface(
+                        onClick = onBook,
+                        color = PrimaryGreen.copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f)),
+                        modifier = Modifier.testTag("rental_book_button_${item.id}")
+                    ) {
+                        Text(
+                            text = "Louer",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PrimaryGreen,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                        )
+                    }
                 }
             }
         }
@@ -1018,7 +825,7 @@ fun RentalCard(
             )
             DropdownMenuItem(
                 text = { Text("Contacter") },
-                onClick = { showContextMenu = false; onBookmarkToggle() },
+                onClick = { showContextMenu = false; onChat() },
                 leadingIcon = { Icon(Icons.Rounded.Chat, contentDescription = null) }
             )
             DropdownMenuItem(
@@ -1054,7 +861,6 @@ fun RentalDetailModalDialog(
                     .fillMaxSize()
                     .background(BrandNavy)
             ) {
-                // Header with photo and buttons
                 item {
                     Box(
                         modifier = Modifier
@@ -1076,7 +882,6 @@ fun RentalDetailModalDialog(
                             error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                         )
 
-                        // Top Gradient Overlay
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -1090,7 +895,6 @@ fun RentalDetailModalDialog(
                                 )
                         )
 
-                        // Buttons upper row
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1132,7 +936,6 @@ fun RentalDetailModalDialog(
                     }
                 }
 
-                // Content
                 item {
                     Column(
                         modifier = Modifier
@@ -1140,7 +943,6 @@ fun RentalDetailModalDialog(
                             .padding(20.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // Category and validation status
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
@@ -1185,7 +987,6 @@ fun RentalDetailModalDialog(
                             }
                         }
 
-                        // Title
                         Text(
                             text = item.title,
                             fontSize = 22.sp,
@@ -1196,7 +997,6 @@ fun RentalDetailModalDialog(
                             overflow = TextOverflow.Ellipsis
                         )
 
-                        // Location
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -1217,7 +1017,6 @@ fun RentalDetailModalDialog(
 
                         HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
-                        // Price
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -1255,7 +1054,6 @@ fun RentalDetailModalDialog(
 
                         HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
-                        // Description
                         SectionHeader(title = "Description")
                         Text(
                             text = item.description,
@@ -1266,7 +1064,6 @@ fun RentalDetailModalDialog(
 
                         HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
-                        // Landlord
                         SectionHeader(title = "Propriétaire")
 
                         Card(
@@ -1361,7 +1158,6 @@ fun RentalDetailModalDialog(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Book now button inside modal!
                         Button(
                             onClick = onBookNow,
                             colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
@@ -1383,108 +1179,6 @@ fun RentalDetailModalDialog(
 
                 item {
                     Spacer(modifier = Modifier.height(40.dp))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun PriceFilterDialog(
-    currentMaxPrice: Int,
-    onDismiss: () -> Unit,
-    onApply: (Int) -> Unit
-) {
-    var filterValue by remember { mutableStateOf(currentMaxPrice) }
-
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            border = BorderStroke(1.dp, Color(0xFFEEEEEE))
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                Text(
-                    text = "Filtrer par Prix Max",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = BrandNavy
-                )
-
-                Text(
-                    text = if (filterValue == 0) "Aucune limite de prix" else "Maximum: " + formatPriceCfa(filterValue) + " / Jour",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = if (filterValue == 0) Color.Gray else PrimaryGreen
-                )
-
-                // Slider
-                Slider(
-                    value = if (filterValue == 0) 160000f else filterValue.toFloat(),
-                    onValueChange = {
-                        val v = it.toInt()
-                        filterValue = if (v >= 15500) v else 0 // snap to 0 at bottom
-                    },
-                    valueRange = 10000f..150000f,
-                    colors = SliderDefaults.colors(
-                        thumbColor = BrandNavy,
-                        activeTrackColor = PrimaryGreen,
-                        inactiveTrackColor = Color.LightGray.copy(alpha = 0.3f)
-                    )
-                )
-
-                // Choices quick selections
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    val presets = listOf(30000, 60000, 100000)
-                    presets.forEach { preset ->
-                        OutlinedButton(
-                            onClick = { filterValue = preset },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp),
-                            border = BorderStroke(1.dp, if (filterValue == preset) PrimaryGreen else Color.LightGray)
-                        ) {
-                            Text(
-                                preset.toString().substring(0, preset.toString().length-3) + "K",
-                                fontSize = 11.sp,
-                                color = BrandNavy,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-
-                // CTA Rows
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = { onApply(0) },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Reset", color = Color.Gray, fontSize = 14.sp)
-                    }
-
-                    Button(
-                        onClick = { onApply(filterValue) },
-                        modifier = Modifier
-                            .weight(1f)
-                            .testTag("apply_filter_button"),
-                        colors = ButtonDefaults.buttonColors(containerColor = BrandNavy),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Appliquer", color = Color.White, fontSize = 14.sp)
-                    }
                 }
             }
         }

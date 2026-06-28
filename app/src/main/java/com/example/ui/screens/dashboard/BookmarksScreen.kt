@@ -72,7 +72,13 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
                         RentalCard(
                             item = item,
                             onSelect = { selectedItemForModal = item },
-                            onBookmarkToggle = { viewModel.toggleBookmark(item) }
+                            onBookmarkToggle = { viewModel.toggleBookmark(item) },
+                            onChat = {
+                                viewModel.selectItem(item)
+                                viewModel.openChatFor(item)
+                                viewModel.navigateTo("chat")
+                            },
+                            onBook = {}
                         )
                         IconButton(
                             onClick = { viewModel.toggleBookmark(item) },
