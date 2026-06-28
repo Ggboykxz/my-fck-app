@@ -14,6 +14,22 @@
 # Kotlin Serialization
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.AnnotationsKt
+-keepclassmembers class * {
+    *** Companion;
+}
+-keepclasseswithmembers class * {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class com.example.**$$serializer { *; }
+-keepclassmembers class com.example.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.example.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# Navigation Compose serialized routes
+-keep class com.example.ui.navigation.Route* { *; }
 
 # General
 -keepattributes SourceFile,LineNumberTable
