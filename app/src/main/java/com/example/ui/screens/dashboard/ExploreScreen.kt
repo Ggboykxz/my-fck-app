@@ -201,38 +201,87 @@ fun ExploreScreen(viewModel: RentalViewModel) {
             }
         }
 
-        // Category Grid (2 columns)
+        // Category Grid (2 columns, color-coded)
         item {
-            val categoriesWithIcons = listOf(
-                Triple("Tous", Icons.Rounded.Apps, "Tous")
-            ) + RentalCategory.entries.map { Triple(it.displayName, it.icon, it.displayName) }
-
-            val rows = categoriesWithIcons.chunked(2)
+            val allCats = RentalCategory.entries
+            val rows = allCats.chunked(2)
 
             Column(
                 modifier = Modifier.fillMaxWidth().testTag("categories_section"),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // "Tous" card - special style, full width
+                val isTousSelected = selectedCat == "Tous"
+                val tousCount = rawItems.size
+                val tousScale by animateFloatAsState(
+                    targetValue = if (isTousSelected) 1.02f else 1f,
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                    label = "tous_scale"
+                )
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .scale(tousScale)
+                        .clickable { viewModel.setSelectedCategory("Tous") }
+                        .testTag("category_filter_Tous"),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isTousSelected) PrimaryGreen else PrimaryGreen.copy(alpha = 0.12f)
+                    ),
+                    border = BorderStroke(1.5.dp, if (isTousSelected) PrimaryGreen else PrimaryGreen.copy(alpha = 0.3f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(if (isTousSelected) Color.White.copy(alpha = 0.2f) else PrimaryGreen.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Rounded.Apps,
+                                contentDescription = "Toutes catégories",
+                                tint = if (isTousSelected) Color.White else PrimaryGreen,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Toutes les catégories",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isTousSelected) Color.White else Color.White.copy(alpha = 0.8f)
+                            )
+                            Text(
+                                "Voir tout le catalogue",
+                                fontSize = 11.sp,
+                                color = if (isTousSelected) Color.White.copy(alpha = 0.7f) else Color.White.copy(alpha = 0.4f)
+                            )
+                        }
+                        AnimatedCounter(count = tousCount, color = if (isTousSelected) Color.White else PrimaryGreen)
+                    }
+                }
+
+                // Category rows
                 rows.forEach { row ->
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        row.forEach { (catName, icon, label) ->
-                            val isSelected = selectedCat == catName
-                            val count = if (catName == "Tous") {
-                                rawItems.size
-                            } else {
-                                rawItems.count { it.category.equals(catName, ignoreCase = true) }
-                            }
+                        row.forEach { cat ->
+                            val isSelected = selectedCat == cat.displayName
+                            val count = rawItems.count { it.category.equals(cat.displayName, ignoreCase = true) }
 
-                            CategoryIcon(
-                                icon = icon,
-                                label = label,
+                            ExploreCategoryCard(
+                                cat = cat,
                                 count = count,
                                 isSelected = isSelected,
-                                onClick = { viewModel.setSelectedCategory(catName) },
-                                modifier = Modifier.weight(1f).testTag("category_filter_$catName")
+                                onClick = { viewModel.setSelectedCategory(cat.displayName) },
+                                modifier = Modifier.weight(1f).testTag("category_filter_${cat.displayName}")
                             )
                         }
                         if (row.size == 1) {
@@ -1182,5 +1231,88 @@ fun RentalDetailModalDialog(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ExploreCategoryCard(
+    cat: RentalCategory,
+    count: Int,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val scale by animateFloatAsState(
+        targetValue = if (isSelected) 1.03f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "explore_cat_scale_${cat.name}"
+    )
+    val bgColor by animateColorAsState(
+        targetValue = if (isSelected) cat.color.copy(alpha = 0.2f) else Color(0xFF162133),
+        animationSpec = tween(300),
+        label = "explore_cat_bg_${cat.name}"
+    )
+
+    Card(
+        modifier = modifier
+            .scale(scale)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = bgColor),
+        border = BorderStroke(1.5.dp, if (isSelected) cat.color else Color.White.copy(alpha = 0.1f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(if (isSelected) cat.color else cat.color.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = cat.icon,
+                    contentDescription = cat.displayName,
+                    tint = if (isSelected) Color.White else cat.color,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = cat.displayName,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isSelected) cat.color else Color.White.copy(alpha = 0.8f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            AnimatedCounter(count = count, color = if (isSelected) cat.color else Color.White.copy(alpha = 0.5f))
+        }
+    }
+}
+
+@Composable
+private fun AnimatedCounter(count: Int, color: Color) {
+    val animatedCount by animateIntAsState(
+        targetValue = count,
+        animationSpec = tween(400),
+        label = "counter"
+    )
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(color.copy(alpha = 0.12f))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = "$animatedCount",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = color
+        )
     }
 }
