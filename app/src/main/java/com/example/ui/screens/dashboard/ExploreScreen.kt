@@ -64,6 +64,9 @@ fun ExploreScreen(viewModel: RentalViewModel) {
     var showFilterSheet by remember { mutableStateOf(false) }
     var showFab by remember { mutableStateOf(false) }
     var showActionsSheet by remember { mutableStateOf(false) }
+    var isGridMode by remember { mutableStateOf(true) }
+    var recentSearches by remember { mutableStateOf(listOf<String>()) }
+    var showRecentSearches by remember { mutableStateOf(false) }
     val isOwnerMode by viewModel.isOwnerMode.collectAsState()
     val appearedItems = remember { mutableStateMapOf<Int, Boolean>() }
 
@@ -145,7 +148,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
             }
         }
 
-        // Search Bar + Filter Button
+        // Search Bar + Filter + Grid Toggle
         item {
             Row(
                 modifier = Modifier
@@ -157,12 +160,15 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     )
                     .background(Color.White.copy(alpha = 0.04f), RoundedCornerShape(16.dp))
                     .testTag("search_container"),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
                     value = searchQuery,
-                    onValueChange = { viewModel.setSearchQuery(it) },
+                    onValueChange = {
+                        viewModel.setSearchQuery(it)
+                        showRecentSearches = it.isEmpty() && recentSearches.isNotEmpty()
+                    },
                     placeholder = { Text("Quartier, villa, SUV...", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp) },
                     leadingIcon = { SmoothIcon(Icons.Rounded.Search, contentDescription = "Rechercher", tint = Color.White.copy(alpha = 0.5f), backgroundColor = Color.White.copy(alpha = 0.08f), modifier = Modifier.size(32.dp), iconSize = 18.dp) },
                     trailingIcon = {
@@ -189,15 +195,76 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     singleLine = true
                 )
 
+                // Grid/List toggle
+                Surface(
+                    onClick = { isGridMode = !isGridMode },
+                    color = Color.White.copy(alpha = 0.06f),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                ) {
+                    Icon(
+                        imageVector = if (isGridMode) Icons.Rounded.GridView else Icons.Rounded.ViewList,
+                        contentDescription = if (isGridMode) "Mode liste" else "Mode grille",
+                        tint = Color.White.copy(alpha = 0.6f),
+                        modifier = Modifier.padding(12.dp).size(20.dp)
+                    )
+                }
+
                 SmoothIconButton(
                     imageVector = Icons.Rounded.Tune,
                     contentDescription = "Filtres",
                     onClick = { showFilterSheet = true },
                     tint = BrandNavy,
                     backgroundColor = PrimaryGreen,
-                    modifier = Modifier.size(54.dp).testTag("filter_button"),
-                    iconSize = 22.dp
+                    modifier = Modifier.size(48.dp).testTag("filter_button"),
+                    iconSize = 20.dp
                 )
+            }
+        }
+
+        // Recent Searches (shown when search field is focused and empty)
+        if (showRecentSearches && recentSearches.isNotEmpty() && searchQuery.isEmpty()) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Recherches récentes", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f))
+                            Text(
+                                "Effacer",
+                                fontSize = 11.sp,
+                                color = PrimaryGreen,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clickable { recentSearches = listOf(); showRecentSearches = false }
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        recentSearches.take(5).forEach { search ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        viewModel.setSearchQuery(search)
+                                        showRecentSearches = false
+                                    }
+                                    .padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Icon(Icons.Rounded.History, contentDescription = null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(16.dp))
+                                Text(search, fontSize = 13.sp, color = Color.White.copy(alpha = 0.7f))
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -325,26 +392,59 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                 }
             }
         } else {
-            items(pagedItems, key = { it.id }, contentType = { "rental" }) { item ->
-                LaunchedEffect(item.id) {
-                    delay(item.id.toLong() * 60L)
-                    appearedItems[item.id] = true
+            if (isGridMode) {
+                // Grid mode - 2 columns
+                val gridItems = pagedItems.chunked(2)
+                items(gridItems.size, key = { it }, contentType = { "grid_row" }) { rowIndex ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        gridItems[rowIndex].forEach { item ->
+                            LaunchedEffect(item.id) {
+                                delay(item.id.toLong() * 60L)
+                                appearedItems[item.id] = true
+                            }
+                            AnimatedVisibility(
+                                visible = appearedItems.containsKey(item.id),
+                                enter = fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 3 },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                RentalCardCompact(
+                                    item = item,
+                                    onSelect = { selectedItemForModal = item },
+                                    onBookmarkToggle = { viewModel.toggleBookmark(item) }
+                                )
+                            }
+                        }
+                        if (gridItems[rowIndex].size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
                 }
-                AnimatedVisibility(
-                    visible = appearedItems.containsKey(item.id),
-                    enter = fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 3 }
-                ) {
-                    RentalCard(
-                        item = item,
-                        onSelect = { selectedItemForModal = item },
-                        onBookmarkToggle = { viewModel.toggleBookmark(item) },
-                        onChat = {
-                            viewModel.selectItem(item)
-                            viewModel.openChatFor(item)
-                            viewModel.navigateTo("chat")
-                        },
-                        onBook = { showBookingFromModal = item }
-                    )
+            } else {
+                // List mode - single column
+                items(pagedItems, key = { it.id }, contentType = { "rental" }) { item ->
+                    LaunchedEffect(item.id) {
+                        delay(item.id.toLong() * 60L)
+                        appearedItems[item.id] = true
+                    }
+                    AnimatedVisibility(
+                        visible = appearedItems.containsKey(item.id),
+                        enter = fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 3 }
+                    ) {
+                        RentalCard(
+                            item = item,
+                            onSelect = { selectedItemForModal = item },
+                            onBookmarkToggle = { viewModel.toggleBookmark(item) },
+                            onChat = {
+                                viewModel.selectItem(item)
+                                viewModel.openChatFor(item)
+                                viewModel.navigateTo("chat")
+                            },
+                            onBook = { showBookingFromModal = item }
+                        )
+                    }
                 }
             }
             if (canLoadMore) {
@@ -1314,5 +1414,113 @@ private fun AnimatedCounter(count: Int, color: Color) {
             fontWeight = FontWeight.ExtraBold,
             color = color
         )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun RentalCardCompact(
+    item: RentalItem,
+    onSelect: () -> Unit,
+    onBookmarkToggle: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = { onSelect() },
+                onLongClick = {}
+            )
+            .testTag("rental_card_compact_${item.id}"),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1.2f)
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(item.imageUrl)
+                        .crossfade(true)
+                        .size(Size.ORIGINAL)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .build(),
+                    contentDescription = item.title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                    error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
+                )
+
+                // Category badge
+                Surface(
+                    color = Color.Black.copy(alpha = 0.7f),
+                    shape = RoundedCornerShape(6.dp),
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Text(
+                        text = item.category,
+                        color = Color.White,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                    )
+                }
+
+                // Bookmark button
+                AnimatedHeartButton(
+                    isFavorite = item.isBookmarked,
+                    onClick = onBookmarkToggle,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .size(28.dp)
+                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                )
+            }
+
+            Column(
+                modifier = Modifier.padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = item.title,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Icon(
+                        Icons.Rounded.LocationOn,
+                        contentDescription = null,
+                        tint = PrimaryGreen,
+                        modifier = Modifier.size(10.dp)
+                    )
+                    Text(
+                        text = item.neighborhood,
+                        fontSize = 10.sp,
+                        color = Color.White.copy(alpha = 0.5f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Text(
+                    text = formatPriceCfa(item.pricePerDay) + " / J",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = PrimaryGreen
+                )
+            }
+        }
     }
 }
