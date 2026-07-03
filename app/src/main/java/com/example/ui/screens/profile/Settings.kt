@@ -306,6 +306,8 @@ fun NotificationsScreen(
     }
 }
 
+// ==================== SECURITY SETTINGS SCREEN ====================
+
 @Composable
 fun SecuritySettingsScreen(
     onBack: () -> Unit
@@ -433,6 +435,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     var notificationsEnabled by remember { mutableStateOf(true) }
     var locationEnabled by remember { mutableStateOf(false) }
+    var dataSavingEnabled by remember { mutableStateOf(DarkModeHelper.loadDataSavingMode(context)) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     if (showDeleteDialog) {
@@ -505,6 +508,18 @@ fun SettingsScreen(
             }
         }
 
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SmoothIcon(icon = Icons.Rounded.DataSaverOn, tint = Color(0xFFAB47BC), backgroundColor = Color(0xFFAB47BC).copy(alpha = 0.12f))
+                    Column { Text("Mode économie données", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold); Text("Réduire le chargement des images", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp) }
+                }
+                Switch(checked = dataSavingEnabled, onCheckedChange = { dataSavingEnabled = it; DarkModeHelper.saveDataSavingMode(context, it) }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         Text("COMPTE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
@@ -534,7 +549,8 @@ fun SettingsScreen(
 
 @Composable
 fun PaymentMethodsScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onAddPaymentMethod: () -> Unit = {}
 ) {
     var airtelIsDefault by remember { mutableStateOf(true) }
     var moovIsDefault by remember { mutableStateOf(false) }
@@ -750,7 +766,7 @@ fun PaymentMethodsScreen(
 
         // Add payment method button
         Button(
-            onClick = { },
+            onClick = { onAddPaymentMethod() },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.White.copy(alpha = 0.08f),
                 contentColor = Color.White
@@ -799,6 +815,7 @@ fun PaymentHistoryScreen(
     onBack: () -> Unit
 ) {
     val payments by viewModel.paymentHistory.collectAsState()
+    val totalSpent = payments.sumOf { it.amount }
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(modifier = Modifier.height(24.dp))
@@ -815,8 +832,8 @@ fun PaymentHistoryScreen(
         Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.1f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
             Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("TOTAL DÉPENSÉ", color = PrimaryGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                Text(formatPriceCfa(485000), color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
-                Text("sur 4 transactions", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                Text(formatPriceCfa(totalSpent), color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                Text("sur ${payments.size} transaction${if (payments.size > 1) "s" else ""}", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
             }
         }
 
@@ -838,6 +855,133 @@ fun PaymentHistoryScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+// ==================== ADD PAYMENT METHOD SCREEN ====================
+@Composable
+fun AddPaymentMethodScreen(
+    onBack: () -> Unit,
+    onAdded: () -> Unit
+) {
+    var selectedProvider by remember { mutableStateOf("Airtel Money") }
+    var phoneNumber by remember { mutableStateOf("") }
+    var phoneError by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { showSuccessDialog = false },
+            containerColor = Color(0xFF162133),
+            icon = { Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(48.dp)) },
+            title = { Text("Moyen de paiement ajouté", color = Color.White, textAlign = TextAlign.Center) },
+            text = { Text("$selectedProvider a été ajouté avec succès.", color = Color.White.copy(alpha = 0.7f), textAlign = TextAlign.Center) },
+            confirmButton = {
+                Button(onClick = { showSuccessDialog = false; onAdded() }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen), modifier = Modifier.fillMaxWidth()) {
+                    Text("Continuer", color = BrandNavy, fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(Color.White.copy(alpha = 0.08f), CircleShape)) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Ajouter un moyen de paiement", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(28.dp))
+
+        Text("CHOISIR LE FOURNISSEUR", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        listOf(
+            Triple("Airtel Money", BrandAirtel, Color(0xFF381519)),
+            Triple("Moov Money", BrandMoov, Color(0xFF0E2235))
+        ).forEach { (name, tint, bg) ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp)
+                    .clickable { selectedProvider = name },
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                border = BorderStroke(2.dp, if (selectedProvider == name) tint.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.05f))
+            ) {
+                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Box(modifier = Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(bg), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Phone, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(name, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text("Mobile Money", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                    }
+                    if (selectedProvider == name) {
+                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text("NUMÉRO DE TÉLÉPHONE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = phoneNumber,
+            onValueChange = { phoneNumber = it; phoneError = false },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            placeholder = { Text("+241 07 XX XX XX", color = Color.White.copy(alpha = 0.3f)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            isError = phoneError,
+            supportingText = if (phoneError) {{ Text("Numéro invalide (10 chiffres minimum)", color = Color(0xFFEF5350), fontSize = 11.sp) }} else null,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedBorderColor = PrimaryGreen,
+                unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                focusedContainerColor = Color(0xFF162133),
+                unfocusedContainerColor = Color(0xFF162133)
+            )
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF0F1A2A)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.2f))) {
+            Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Icon(Icons.Rounded.Info, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(18.dp))
+                Text("Un code de confirmation vous sera envoyé par SMS pour valider ce moyen de paiement.", color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp, lineHeight = 18.sp)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = {
+                if (phoneNumber.length < 9) {
+                    phoneError = true
+                } else {
+                    showSuccessDialog = true
+                }
+            },
+            modifier = Modifier.fillMaxWidth().height(54.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy)
+        ) {
+            Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Ajouter $selectedProvider", fontSize = 15.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

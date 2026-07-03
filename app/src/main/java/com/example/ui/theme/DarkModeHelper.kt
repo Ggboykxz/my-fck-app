@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 object DarkModeHelper {
     private const val PREF_NAME = "locall_prefs"
     private const val KEY_DARK_MODE = "dark_mode"
+    private const val KEY_DATA_SAVING = "data_saving"
 
     private fun prefs(context: Context): SharedPreferences =
         context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -16,5 +17,13 @@ object DarkModeHelper {
 
     fun saveDarkMode(context: Context, isDark: Boolean) {
         prefs(context).edit().putBoolean(KEY_DARK_MODE, isDark).apply()
+    }
+
+    fun loadDataSavingMode(context: Context): Boolean {
+        return prefs(context).getBoolean(KEY_DATA_SAVING, false)
+    }
+
+    fun saveDataSavingMode(context: Context, enabled: Boolean) {
+        prefs(context).edit().putBoolean(KEY_DATA_SAVING, enabled).apply()
     }
 }

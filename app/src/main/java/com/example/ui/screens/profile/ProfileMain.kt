@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
@@ -29,6 +30,8 @@ import com.example.ui.components.*
 import com.example.ui.navigation.ProfileNavHost
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
+import java.text.SimpleDateFormat
+import java.util.*
 
 // NavHost-based ProfileNavigator (production)
 @Composable
@@ -458,6 +461,14 @@ fun ProfileMainScreen(
                 onClick = { onNavigate("interactive_calendar") }
             )
             ProfileOptionRow(
+                icon = Icons.Rounded.BarChart,
+                title = "Mes Statistiques",
+                subtitle = "Réservations, dépenses & favoris",
+                containerColor = Color(0xFF4FC3F7).copy(alpha = 0.12f),
+                iconTint = Color(0xFF4FC3F7),
+                onClick = { onNavigate("personal_stats") }
+            )
+            ProfileOptionRow(
                 icon = Icons.Rounded.RateReview,
                 title = "Donner un Avis",
                 subtitle = "Évaluez une expérience de location",
@@ -751,6 +762,127 @@ fun EditProfileScreen(
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF13EC5B), contentColor = Color(0xFF0B1526))
         ) {
             Text("Enregistrer", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+// ==================== PERSONAL STATS SCREEN ====================
+@Composable
+fun PersonalStatsScreen(viewModel: RentalViewModel, onBack: () -> Unit) {
+    val bookings by viewModel.bookings.collectAsState()
+    val paymentHistory by viewModel.paymentHistory.collectAsState()
+    val bookmarkedItems by viewModel.bookmarkedItems.collectAsState()
+    val userName by viewModel.userName.collectAsState()
+
+    val totalBookings = bookings.size
+    val totalSpent = paymentHistory.sumOf { it.amount }
+    val avgRatingGiven = if (bookings.isNotEmpty()) bookings.map { 4.5f }.average().toFloat() else 0f
+    val bookmarkedCount = bookmarkedItems.size
+    val memberSince = "Janvier 2025"
+
+    BackHandler { onBack() }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Mes Statistiques", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Summary Stats Grid
+        val stats = listOf(
+            Triple(Icons.Rounded.BookOnline, "$totalBookings", "Réservations"),
+            Triple(Icons.Rounded.Payments, formatPriceCfa(totalSpent), "Total dépensé"),
+            Triple(Icons.Rounded.Star, String.format("%.1f", avgRatingGiven), "Note moyenne donnée"),
+            Triple(Icons.Rounded.Favorite, "$bookmarkedCount", "Articles favoris"),
+            Triple(Icons.Rounded.CalendarMonth, memberSince, "Membre depuis")
+        )
+
+        stats.chunked(2).forEach { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                row.forEach { (icon, value, label) ->
+                    Card(
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(PrimaryGreen.copy(alpha = 0.12f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(icon, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(18.dp))
+                            }
+                            Text(value, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                            Text(label, color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                        }
+                    }
+                }
+                if (row.size < 2) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        // Recent Bookings
+        if (bookings.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Dernières réservations", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(12.dp))
+            bookings.take(3).forEach { booking ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Color.White.copy(alpha = 0.05f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Rounded.Receipt, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(20.dp))
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(booking.rentalItemTitle, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(booking.status, color = if (booking.status == "Payé") PrimaryGreen else Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
+                        }
+                        Text(formatPriceCfa(booking.totalPrice), color = PrimaryGreen, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
         }
     }
 }

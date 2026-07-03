@@ -50,6 +50,7 @@ import kotlinx.serialization.Serializable
 @Serializable data object RouteProfileNotifications
 @Serializable data object RouteProfileHelp
 @Serializable data object RouteProfilePaymentMethods
+@Serializable data object RouteProfileAddPaymentMethod
 @Serializable data object RouteProfileDamage
 @Serializable data object RouteProfileReviewTenant
 @Serializable data object RouteProfileAbout
@@ -69,3 +70,4 @@ import kotlinx.serialization.Serializable
 @Serializable data object RouteProfileDigitalDeposit
 @Serializable data object RouteProfileRealtimeVerification
 @Serializable data object RouteProfileInteractiveCalendar
+@Serializable data object RouteProfilePersonalStats

@@ -143,4 +143,27 @@ interface RentalDao {
 
     @Query("DELETE FROM earnings")
     suspend fun deleteAllEarnings()
+
+    // Reviews
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertReview(review: ReviewEntity)
+
+    @Query("SELECT * FROM reviews WHERE rentalItemId = :itemId ORDER BY id DESC")
+    fun getReviewsForItem(itemId: Int): Flow<List<ReviewEntity>>
+
+    @Query("SELECT * FROM reviews ORDER BY id DESC")
+    fun getAllReviews(): Flow<List<ReviewEntity>>
+
+    @Query("DELETE FROM reviews")
+    suspend fun deleteAllReviews()
+
+    // Payment history
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPaymentHistory(payment: PaymentHistoryEntity)
+
+    @Query("SELECT * FROM payment_history ORDER BY id DESC")
+    fun getAllPaymentHistory(): Flow<List<PaymentHistoryEntity>>
+
+    @Query("DELETE FROM payment_history")
+    suspend fun deleteAllPaymentHistory()
 }

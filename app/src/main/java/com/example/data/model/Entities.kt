@@ -89,7 +89,9 @@ data class DisputeEntity(
     val title: String,
     val status: String,
     val date: String,
-    val type: String
+    val type: String,
+    val description: String = "",
+    val claimAmount: Int = 0
 )
 
 @Entity(tableName = "earnings")
@@ -99,6 +101,25 @@ data class EarningEntity(
     val date: String,
     val source: String,
     val status: String
+)
+
+@Entity(tableName = "reviews")
+data class ReviewEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val rentalItemId: Int,
+    val rating: Int,
+    val comment: String,
+    val author: String,
+    val date: String
+)
+
+@Entity(tableName = "payment_history")
+data class PaymentHistoryEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val amount: Int,
+    val date: String,
+    val description: String,
+    val method: String
 )
 
 data class ReceivedReservation(

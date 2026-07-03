@@ -65,11 +65,11 @@ fun BookingInteractiveDialog(
     }) {
         Card(
             shape = RoundedCornerShape(26.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp),
-            border = BorderStroke(1.dp, Color(0xFFEEEEEE))
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
         ) {
             Column(
                 modifier = Modifier
@@ -96,22 +96,22 @@ fun BookingInteractiveDialog(
                             "Détails de Réservation",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = BrandNavy
+                            color = Color.White
                         )
 
                         Text(
                             item.title,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Gray,
+                            color = Color.White.copy(alpha = 0.6f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
 
-                        HorizontalDivider()
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
 
                         // Days Selection Bar Selector
-                        Text("Durée de location (en jours)", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                        Text("Durée de location (en jours)", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -121,31 +121,31 @@ fun BookingInteractiveDialog(
                                 onClick = { if (daysCount > 1) daysCount-- },
                                 modifier = Modifier
                                     .clip(CircleShape)
-                                    .background(Color(0xFFEEEEEE))
+                                    .background(Color.White.copy(alpha = 0.1f))
                             ) {
-                                Text("-", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = BrandNavy, modifier = Modifier.padding(bottom = 2.dp))
+                                Text("-", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(bottom = 2.dp))
                             }
 
                             Text(
                                 "$daysCount Jours",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = BrandNavy
+                                color = Color.White
                             )
 
                             IconButton(
                                 onClick = { daysCount++ },
                                 modifier = Modifier
                                     .clip(CircleShape)
-                                    .background(Color(0xFFEEEEEE))
+                                    .background(Color.White.copy(alpha = 0.1f))
                             ) {
-                                Icon(Icons.Rounded.Add, contentDescription = "Increment", tint = BrandNavy)
+                                Icon(Icons.Rounded.Add, contentDescription = "Increment", tint = Color.White)
                             }
                         }
 
                         // Total sum display box
                         Card(
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9F8)),
+                            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.06f)),
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Row(
@@ -155,7 +155,7 @@ fun BookingInteractiveDialog(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Prix Total", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color.Gray)
+                                Text("Prix Total", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color.White.copy(alpha = 0.6f))
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -165,14 +165,14 @@ fun BookingInteractiveDialog(
                                         formatPriceCfa(item.pricePerDay * daysCount),
                                         fontSize = 18.sp,
                                         fontWeight = FontWeight.ExtraBold,
-                                        color = BrandNavy
+                                        color = PrimaryGreen
                                     )
                                 }
                             }
                         }
 
                         // Payment operators selection row (Airtel, Moov)
-                        Text("Moyen de paiement gabonais", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                        Text("Moyen de paiement gabonais", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -182,10 +182,10 @@ fun BookingInteractiveDialog(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(14.dp))
-                                    .background(if (selectedMethod == "Airtel Money") Color(0xFFFEECEE) else Color.Transparent)
+                                    .background(if (selectedMethod == "Airtel Money") Color(0xFF381519) else Color.Transparent)
                                     .border(
                                         width = 2.dp,
-                                        color = if (selectedMethod == "Airtel Money") BrandAirtel else Color.LightGray.copy(alpha = 0.5f),
+                                        color = if (selectedMethod == "Airtel Money") BrandAirtel else Color.White.copy(alpha = 0.15f),
                                         shape = RoundedCornerShape(14.dp)
                                     )
                                     .clickable { selectedMethod = "Airtel Money" }
@@ -202,7 +202,7 @@ fun BookingInteractiveDialog(
                                     ) {
                                         Text("A", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                                     }
-                                    Text("Airtel", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                                    Text("Airtel", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                                 }
                             }
 
@@ -211,10 +211,10 @@ fun BookingInteractiveDialog(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(14.dp))
-                                    .background(if (selectedMethod == "Moov Money") Color(0xFFE4F1FA) else Color.Transparent)
+                                    .background(if (selectedMethod == "Moov Money") Color(0xFF0E2235) else Color.Transparent)
                                     .border(
                                         width = 2.dp,
-                                        color = if (selectedMethod == "Moov Money") BrandMoov else Color.LightGray.copy(alpha = 0.5f),
+                                        color = if (selectedMethod == "Moov Money") BrandMoov else Color.White.copy(alpha = 0.15f),
                                         shape = RoundedCornerShape(14.dp)
                                     )
                                     .clickable { selectedMethod = "Moov Money" }
@@ -231,32 +231,37 @@ fun BookingInteractiveDialog(
                                     ) {
                                         Text("M", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                                     }
-                                    Text("Moov", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                                    Text("Moov", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                                 }
                             }
                         }
 
                         // Phone Number
-                        Text("Votre numéro de téléphone d'argent", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = BrandNavy)
+                        Text("Votre numéro de téléphone d'argent", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         OutlinedTextField(
                             value = phoneNumber,
                             onValueChange = {
                                 phoneNumber = it
                                 isPhoneError = false
                             },
-                            placeholder = { Text("Ex: 077123456", color = Color.LightGray, fontSize = 14.sp) },
+                            placeholder = { Text("Ex: 077123456", color = Color.White.copy(alpha = 0.3f), fontSize = 14.sp) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                             singleLine = true,
                             isError = isPhoneError,
                             modifier = Modifier.fillMaxWidth().testTag("payment_phone_input"),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = if (selectedMethod == "Airtel Money") BrandAirtel else BrandMoov
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedBorderColor = if (selectedMethod == "Airtel Money") BrandAirtel else BrandMoov,
+                                unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                                focusedContainerColor = Color(0xFF0F1A2A),
+                                unfocusedContainerColor = Color(0xFF0F1A2A)
                             ),
                             shape = RoundedCornerShape(12.dp)
                         )
 
                         if (isPhoneError) {
-                            Text("Veuillez saisir un numéro de téléphone gabonais valide.", color = Color.Red, fontSize = 11.sp)
+                            Text("Veuillez saisir un numéro de téléphone gabonais valide.", color = Color(0xFFEF5350), fontSize = 11.sp)
                         }
 
                         Spacer(modifier = Modifier.height(6.dp))
@@ -269,9 +274,10 @@ fun BookingInteractiveDialog(
                             OutlinedButton(
                                 onClick = onDismiss,
                                 modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(14.dp)
+                                shape = RoundedCornerShape(14.dp),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
                             ) {
-                                Text("Annuler", color = Color.Gray)
+                                Text("Annuler", color = Color.White.copy(alpha = 0.7f))
                             }
 
                             Button(
@@ -433,6 +439,7 @@ fun BookingInteractiveDialog(
                                     OutlinedButton(
                                         onClick = { viewModel.resetPaymentState() },
                                         shape = RoundedCornerShape(12.dp),
+                                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)),
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         Text("Rejeter", color = Color.White.copy(alpha = 0.5f))
@@ -471,7 +478,6 @@ fun BookingInteractiveDialog(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(20.dp)
                         ) {
-                            // Circular Progress Indicator corresponding to selected provider
                             CircularProgressIndicator(
                                 color = if (selectedMethod == "Airtel Money") BrandAirtel else BrandMoov,
                                 modifier = Modifier.size(54.dp)
@@ -481,13 +487,13 @@ fun BookingInteractiveDialog(
                                 "Sécurisation du Paiement",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = BrandNavy
+                                color = Color.White
                             )
 
                             Text(
                                 state.status,
                                 fontSize = 14.sp,
-                                color = Color.Gray,
+                                color = Color.White.copy(alpha = 0.6f),
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(horizontal = 8.dp)
                             )
@@ -516,13 +522,13 @@ fun BookingInteractiveDialog(
                                     "Réservation Réussie !",
                                     fontSize = 22.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = BrandNavy
+                                    color = Color.White
                                 )
 
                                 Text(
                                     "Votre paiement de ${formatPriceCfa(state.booking.totalPrice)} a été enregistré avec succès par ${state.booking.paymentMethod}. Retrouvez vos détails de location dans l'onglet 'Réservations'.",
                                     fontSize = 14.sp,
-                                    color = Color.Gray,
+                                    color = Color.White.copy(alpha = 0.6f),
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier.padding(horizontal = 8.dp)
                                 )

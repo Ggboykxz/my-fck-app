@@ -60,9 +60,14 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     private val db = AppDatabase.getDatabase(application)
     private val repository = RentalRepository(db.rentalDao())
 
-    // Reviews State
+    // Reviews wired to Room
     private val _reviews = MutableStateFlow<Map<Int, List<RentalReview>>>(emptyMap())
     val reviews: StateFlow<Map<Int, List<RentalReview>>> = _reviews.asStateFlow()
+
+    fun reviewsFor(itemId: Int): Flow<List<RentalReview>> =
+        repository.getReviewsForItem(itemId).map { entities ->
+            entities.map { e -> RentalReview(e.rentalItemId, e.rating, e.comment, e.author, e.date) }
+        }
 
     // Onboarding
     private val _onboardingStep = MutableStateFlow(0)
@@ -178,14 +183,11 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     private val _referralEarnings = MutableStateFlow(15000)
     val referralEarnings: StateFlow<Int> = _referralEarnings.asStateFlow()
 
-    // Earnings data
-    private val _earnings = MutableStateFlow(listOf(
-        EarningEntry(1, 45000, "22/06/2026", "Location Toyota Hilux - 3 jours", "Versé"),
-        EarningEntry(2, 120000, "18/06/2026", "Location Villa La Sablière - 7 jours", "Versé"),
-        EarningEntry(3, 25000, "15/06/2026", "Location Pack Sono Concert - 1 jour", "En attente"),
-        EarningEntry(4, 85000, "10/06/2026", "Location Prado Port-Gentil - 5 jours", "Versé")
-    ))
-    val earnings: StateFlow<List<EarningEntry>> = _earnings.asStateFlow()
+    // Earnings wired to Room
+    private val _earnings: StateFlow<List<EarningEntry>> = repository.earnings.map { entities ->
+        entities.map { e -> EarningEntry(e.id, e.amount, e.date, e.source, e.status) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val earnings: StateFlow<List<EarningEntry>> = _earnings
 
     // Notifications wired to Room
     private val _notifications: StateFlow<List<NotificationEntry>> = repository.notifications.map { entities ->
@@ -227,25 +229,31 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    // Disputes data
-    private val _disputes = MutableStateFlow(listOf(
-        DisputeEntry("LIT-001", "Dommage Toyota Hilux", "En cours", "20/06/2026", "Dommage", "Le pare-chocs avant a été endommagé lors de la location", 150000),
-        DisputeEntry("LIT-002", "Annulation tardive Pack Sono", "Résolu", "15/06/2026", "Annulation", "Annulation moins de 24h avant l'événement", 50000)
-    ))
-    val disputes: StateFlow<List<DisputeEntry>> = _disputes.asStateFlow()
+    // Disputes wired to Room
+    private val _disputes: StateFlow<List<DisputeEntry>> = repository.disputes.map { entities ->
+        entities.map { e ->
+            DisputeEntry(
+                id = "LIT-${e.id.toString().padStart(3, '0')}",
+                title = e.title,
+                status = e.status,
+                date = e.date,
+                type = e.type,
+                description = e.description,
+                claimAmount = e.claimAmount
+            )
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val disputes: StateFlow<List<DisputeEntry>> = _disputes
 
     // Insurance state
     private val _activeInsurancePlan = MutableStateFlow<String?>(null)
     val activeInsurancePlan: StateFlow<String?> = _activeInsurancePlan.asStateFlow()
 
-    // Payment history data
-    private val _paymentHistory = MutableStateFlow(listOf(
-        PaymentEntry(1, 45000, "22/06/2026", "Location Toyota Hilux - 3 jours", "Airtel Money"),
-        PaymentEntry(2, 120000, "18/06/2026", "Location Villa La Sablière - 7 jours", "Moov Money"),
-        PaymentEntry(3, 25000, "15/06/2026", "Location Pack Sono - 1 jour", "Carte Bancaire"),
-        PaymentEntry(4, 85000, "10/06/2026", "Location Prado - 5 jours", "Airtel Money")
-    ))
-    val paymentHistory: StateFlow<List<PaymentEntry>> = _paymentHistory.asStateFlow()
+    // Payment history wired to Room
+    private val _paymentHistory: StateFlow<List<PaymentEntry>> = repository.paymentHistory.map { entities ->
+        entities.map { e -> PaymentEntry(e.id, e.amount, e.date, e.description, e.method) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val paymentHistory: StateFlow<List<PaymentEntry>> = _paymentHistory
 
     // Received bookings (owner view)
     private val _receivedBookings = MutableStateFlow(listOf(
@@ -283,57 +291,6 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()
 
     init {
-        val initialReviews = mapOf(
-            1 to listOf(
-                RentalReview(1, 5, "Superbe villa, très propre et spacieuse. La piscine est un vrai plus. Quartier résidentiel très sécurisé, idéal pour les familles.", "Stéphane Koumba", "20/06/2026"),
-                RentalReview(1, 4, "Belle vue sur la mer, accès facile. La climatisation fonctionne parfaitement. Je recommande.", "Patricia Ndong", "15/05/2026"),
-                RentalReview(1, 5, "Séjour exceptionnel ! Le propriétaire est très arrangeant. La villa correspond exactement aux photos.", "Cécilia Mba", "01/04/2026")
-            ),
-            2 to listOf(
-                RentalReview(2, 5, "Appartement moderne avec une vue imprenable sur l'estuaire. La terrasse est magnifique au coucher du soleil.", "Rodrigue Mintsa", "18/06/2026"),
-                RentalReview(2, 4, "Bon emplacement, parking pratique. Le quartier est calme la nuit. Petit bémol sur le WiFi.", "Sylvie Obiang", "10/05/2026"),
-                RentalReview(2, 3, "L'appartement est bien mais le bruit de la route est gênant le matin. À améliorer pour l'insonorisation.", "Patrice Oyé", "20/04/2026")
-            ),
-            3 to listOf(
-                RentalReview(3, 5, "Appartement très moderne et bien climatisé. Équipements de cuisine haut de gamme. Parfait pour un court séjour.", "Inès Bongo", "22/06/2026"),
-                RentalReview(3, 4, "Studio cozy et bien équipé. La localisation près de l'aéroport est très pratique pour les voyages d'affaires.", "Bernadette Nguéma", "15/05/2026")
-            ),
-            4 to listOf(
-                RentalReview(4, 4, "Bon matériel professionnel, idéal pour de l'événementiel sur Akanda. Le son est puissant et clair.", "David Ogoula", "18/06/2026"),
-                RentalReview(4, 3, "Matériel correct mais le transport jusqu'au lieu d'événement n'est pas inclus. Prévoir un véhicule.", "Ghislain Mboumba", "01/06/2026")
-            ),
-            5 to listOf(
-                RentalReview(5, 5, "Le Prado est impeccable, très robuste pour circuler sur les routes de Port-Gentil. Consommation raisonnable.", "Marc Aubame", "10/06/2026"),
-                RentalReview(5, 4, "Véhicule propre et confortable. Bon retour de caution sans accroc. Le GPS fonctionne parfaitement.", "Yannick Mba", "02/06/2026"),
-                RentalReview(5, 2, "Le réservoir était à moitié vide à la récupération. Pour ce prix, on attend un plein complet.", "Françoise Limbaka", "15/05/2026")
-            ),
-            6 to listOf(
-                RentalReview(6, 5, "Ford Ranger solide et fiable. Parfait pour les déplacements sur chantier. Le 4x4 fonctionne à merveille.", "Alain Nzébi", "12/06/2026")
-            ),
-            9 to listOf(
-                RentalReview(9, 5, "Pack sono exceptionnel pour notre mariage ! Les invités étaient émerveillés par la qualité du son et des lumières.", "Hélène Ovono", "25/06/2026"),
-                RentalReview(9, 4, "Très bon matériel, le technicien était ponctuel et professionnel. Le montage a pris 2h comme promis.", "Aimée Mboumba", "10/06/2026")
-            ),
-            10 to listOf(
-                RentalReview(10, 4, "Piscine facile à monter, la filtration fonctionne bien. Les transats sont un peu usés mais corrects.", "Christelle Ongouma", "05/06/2026")
-            ),
-            16 to listOf(
-                RentalReview(16, 5, "Bureau spacieux et bien équipé. L'emplacement est stratégique pour recevoir des clients. Je recommande.", "Fabrice Mikala", "20/06/2026"),
-                RentalReview(16, 4, "Bon rapport qualité-prix pour un bureau meublé à Libreville. La fibre optique est un vrai plus.", "Josiane Nkoghe", "10/06/2026")
-            ),
-            17 to listOf(
-                RentalReview(17, 3, "Le terrain est bien situé mais l'accès est difficile lors de la saison des pluies. À prévoir.", "Emmanuel Mansogui", "15/05/2026")
-            ),
-            18 to listOf(
-                RentalReview(18, 5, "Camion en parfait état, la benne hydraulique fonctionne parfaitement. Le chauffeur était compétent.", "Service Mines Gabon", "08/06/2026")
-            ),
-            22 to listOf(
-                RentalReview(22, 5, "Van très confortable pour notre transfert aéroport. Le chauffeur était ponctuel et courtois.", "Tourisme Plus Gabon", "20/05/2026"),
-                RentalReview(22, 4, "Bonne prestation, le van est propre et climatisé. Seul bémol : le coffre est un peu petit pour 14 passagers.", "Organisation Loisirs", "01/05/2026")
-            )
-        )
-        _reviews.value = initialReviews
-
         viewModelScope.launch {
             try {
                 repository.seedDatabase()
@@ -656,17 +613,25 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
 
     // ==================== REVIEWS ====================
     fun addReview(rentalItemId: Int, rating: Int, comment: String) {
-        val current = _reviews.value.toMutableMap()
-        val list = current[rentalItemId]?.toMutableList() ?: mutableListOf()
         val authorName = "Visiteur Gabonais"
         val currentDate = SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE).format(Date())
-        list.add(0, RentalReview(rentalItemId, rating, comment, authorName, currentDate))
-        current[rentalItemId] = list
-        _reviews.value = current
-        showSnackbar("Avis publié avec succès")
+        viewModelScope.launch {
+            try {
+                repository.insertReview(
+                    ReviewEntity(
+                        rentalItemId = rentalItemId,
+                        rating = rating,
+                        comment = comment,
+                        author = authorName,
+                        date = currentDate
+                    )
+                )
+                showSnackbar("Avis publié avec succès")
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
     }
-
-    fun reviewsFor(itemId: Int): Flow<List<RentalReview>> = _reviews.map { map -> map[itemId] ?: emptyList() }
 
     // ==================== REACTIVE DATA ====================
     val searchHistory: StateFlow<List<SearchHistoryEntry>> = repository.searchHistory
@@ -910,22 +875,27 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun addDispute(description: String, type: String) {
-        val newDispute = DisputeEntry(
-            id = "LIT-${System.currentTimeMillis() % 10000}",
-            title = "$type - $type",
-            status = "En cours",
-            date = "Aujourd'hui",
-            type = type,
-            description = description,
-            claimAmount = 0
-        )
-        _disputes.value = listOf(newDispute) + _disputes.value
-
-        // Also create a mediation thread
-        _mediationMessages.value = listOf(
-            MediationMessage("Système", "Nouveau litige '$type' ouvert", "Maintenant", true),
-            MediationMessage("Vous", description, "Maintenant")
-        ) + _mediationMessages.value
+        viewModelScope.launch {
+            try {
+                repository.insertDispute(
+                    DisputeEntity(
+                        title = "$type - $type",
+                        status = "En cours",
+                        date = "Aujourd'hui",
+                        type = type,
+                        description = description,
+                        claimAmount = 0
+                    )
+                )
+                _mediationMessages.value = listOf(
+                    MediationMessage("Système", "Nouveau litige '$type' ouvert", "Maintenant", true),
+                    MediationMessage("Vous", description, "Maintenant")
+                ) + _mediationMessages.value
+                showSnackbar("Litige créé avec succès")
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
     }
 
     fun subscribeInsurance(plan: String) {

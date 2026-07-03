@@ -43,6 +43,7 @@ import com.example.ui.components.*
 import com.example.ui.theme.*
 import com.example.ui.model.RentalCategory
 import com.example.ui.viewmodel.RentalViewModel
+import com.example.ui.theme.DarkModeHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -68,6 +69,8 @@ fun ExploreScreen(viewModel: RentalViewModel) {
     var recentSearches by remember { mutableStateOf(listOf<String>()) }
     var showRecentSearches by remember { mutableStateOf(false) }
     val isOwnerMode by viewModel.isOwnerMode.collectAsState()
+    val context = LocalContext.current
+    val isDataSaving by remember { mutableStateOf(DarkModeHelper.loadDataSavingMode(context)) }
     val appearedItems = remember { mutableStateMapOf<Int, Boolean>() }
 
     LaunchedEffect(Unit) { delay(300); isLoading = false }
@@ -413,7 +416,8 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                                 RentalCardCompact(
                                     item = item,
                                     onSelect = { selectedItemForModal = item },
-                                    onBookmarkToggle = { viewModel.toggleBookmark(item) }
+                                    onBookmarkToggle = { viewModel.toggleBookmark(item) },
+                                    dataSavingMode = isDataSaving
                                 )
                             }
                         }
@@ -442,7 +446,8 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                                 viewModel.openChatFor(item)
                                 viewModel.navigateTo("chat")
                             },
-                            onBook = { showBookingFromModal = item }
+                            onBook = { showBookingFromModal = item },
+                            dataSavingMode = isDataSaving
                         )
                     }
                 }
@@ -734,7 +739,8 @@ fun RentalCard(
     onSelect: () -> Unit,
     onBookmarkToggle: () -> Unit,
     onChat: () -> Unit,
-    onBook: () -> Unit
+    onBook: () -> Unit,
+    dataSavingMode: Boolean = false
 ) {
     var showContextMenu by remember { mutableStateOf(false) }
 
@@ -757,6 +763,21 @@ fun RentalCard(
                     .fillMaxWidth()
                     .aspectRatio(16f / 9f)
             ) {
+                if (dataSavingMode) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFF0D2137)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Image,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.3f),
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                } else {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(item.imageUrl)
@@ -771,6 +792,7 @@ fun RentalCard(
                     placeholder = painterResource(android.R.drawable.ic_menu_gallery),
                     error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                 )
+                }
 
                 Row(
                     modifier = Modifier
@@ -1422,7 +1444,8 @@ private fun AnimatedCounter(count: Int, color: Color) {
 fun RentalCardCompact(
     item: RentalItem,
     onSelect: () -> Unit,
-    onBookmarkToggle: () -> Unit
+    onBookmarkToggle: () -> Unit,
+    dataSavingMode: Boolean = false
 ) {
     Card(
         modifier = Modifier
@@ -1442,6 +1465,21 @@ fun RentalCardCompact(
                     .fillMaxWidth()
                     .aspectRatio(1.2f)
             ) {
+                if (dataSavingMode) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFF0D2137)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Image,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.3f),
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
+                } else {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(item.imageUrl)
@@ -1456,6 +1494,7 @@ fun RentalCardCompact(
                     placeholder = painterResource(android.R.drawable.ic_menu_gallery),
                     error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
                 )
+                }
 
                 // Category badge
                 Surface(

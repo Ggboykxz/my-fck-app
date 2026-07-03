@@ -48,6 +48,8 @@ import com.example.ui.model.RentalCategory
 import java.text.NumberFormat
 import java.util.*
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 
 @Composable
@@ -166,12 +168,22 @@ fun ItemDetailsScreen(
                             icon = Icons.Rounded.Share,
                             onClick = {
                                 val shareText = "${shareListing(item.title, formatPriceCfa(item.pricePerDay))}\n\nVoir sur LocAll: https://locall.app/listing/${item.id}"
-                                val sendIntent = Intent().apply {
+                                val whatsappIntent = Intent().apply {
                                     action = Intent.ACTION_SEND
                                     putExtra(Intent.EXTRA_TEXT, shareText)
                                     type = "text/plain"
+                                    setPackage("com.whatsapp")
                                 }
-                                context.startActivity(Intent.createChooser(sendIntent, "Partager l'annonce"))
+                                if (whatsappIntent.resolveActivity(context.packageManager) != null) {
+                                    context.startActivity(whatsappIntent)
+                                } else {
+                                    val sendIntent = Intent().apply {
+                                        action = Intent.ACTION_SEND
+                                        putExtra(Intent.EXTRA_TEXT, shareText)
+                                        type = "text/plain"
+                                    }
+                                    context.startActivity(Intent.createChooser(sendIntent, "Partager l'annonce"))
+                                }
                             },
                             tint = BrandNavy,
                             backgroundColor = PrimaryGreen,
@@ -659,4 +671,18 @@ fun ItemDetailsScreen(
 fun formatPriceCfa(amount: Int): String {
     val formatter = NumberFormat.getInstance(Locale.FRANCE)
     return "${formatter.format(amount)} F"
+}
+
+fun shareViaWhatsApp(context: android.content.Context, item: RentalItem) {
+    val shareText = "${shareListing(item.title, formatPriceCfa(item.pricePerDay))}\n\nVoir sur LocAll: https://locall.app/listing/${item.id}"
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, shareText)
+        setPackage("com.whatsapp")
+    }
+    try {
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        Toast.makeText(context, "WhatsApp non installé", Toast.LENGTH_SHORT).show()
+    }
 }

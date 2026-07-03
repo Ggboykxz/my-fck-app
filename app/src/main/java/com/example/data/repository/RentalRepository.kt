@@ -120,7 +120,22 @@ class RentalRepository(private val rentalDao: RentalDao) {
         rentalDao.deleteAllNotifications()
         rentalDao.deleteAllDisputes()
         rentalDao.deleteAllEarnings()
+        rentalDao.deleteAllReviews()
+        rentalDao.deleteAllPaymentHistory()
     }
+
+    // Reviews
+    fun getReviewsForItem(itemId: Int): Flow<List<ReviewEntity>> =
+        rentalDao.getReviewsForItem(itemId)
+
+    suspend fun insertReview(review: ReviewEntity) =
+        rentalDao.insertReview(review)
+
+    // Payment history
+    val paymentHistory: Flow<List<PaymentHistoryEntity>> = rentalDao.getAllPaymentHistory()
+
+    suspend fun insertPaymentHistory(payment: PaymentHistoryEntity) =
+        rentalDao.insertPaymentHistory(payment)
 
     suspend fun seedDatabase() {
         val currentItems = allRentalItems.first()
@@ -734,6 +749,59 @@ class RentalRepository(private val rentalDao: RentalDao) {
             )
             for (notification in seedNotifications) {
                 rentalDao.insertNotification(notification)
+            }
+
+            // Seed disputes
+            val seedDisputes = listOf(
+                DisputeEntity(id = 1, title = "Dommage Toyota Hilux", status = "En cours", date = "20/06/2026", type = "Dommage", description = "Le pare-chocs avant a été endommagé lors de la location", claimAmount = 150000),
+                DisputeEntity(id = 2, title = "Annulation tardive Pack Sono", status = "Résolu", date = "15/06/2026", type = "Annulation", description = "Annulation moins de 24h avant l'événement", claimAmount = 50000)
+            )
+            for (dispute in seedDisputes) {
+                rentalDao.insertDispute(dispute)
+            }
+
+            // Seed earnings
+            val seedEarnings = listOf(
+                EarningEntity(id = 1, amount = 45000, date = "22/06/2026", source = "Location Toyota Hilux - 3 jours", status = "Versé"),
+                EarningEntity(id = 2, amount = 120000, date = "18/06/2026", source = "Location Villa La Sablière - 7 jours", status = "Versé"),
+                EarningEntity(id = 3, amount = 25000, date = "15/06/2026", source = "Location Pack Sono Concert - 1 jour", status = "En attente"),
+                EarningEntity(id = 4, amount = 85000, date = "10/06/2026", source = "Location Prado Port-Gentil - 5 jours", status = "Versé")
+            )
+            for (earning in seedEarnings) {
+                rentalDao.insertEarning(earning)
+            }
+
+            // Seed payment history
+            val seedPayments = listOf(
+                PaymentHistoryEntity(id = 1, amount = 45000, date = "22/06/2026", description = "Location Toyota Hilux - 3 jours", method = "Airtel Money"),
+                PaymentHistoryEntity(id = 2, amount = 120000, date = "18/06/2026", description = "Location Villa La Sablière - 7 jours", method = "Moov Money"),
+                PaymentHistoryEntity(id = 3, amount = 25000, date = "15/06/2026", description = "Location Pack Sono - 1 jour", method = "Carte Bancaire"),
+                PaymentHistoryEntity(id = 4, amount = 85000, date = "10/06/2026", description = "Location Prado - 5 jours", method = "Airtel Money")
+            )
+            for (payment in seedPayments) {
+                rentalDao.insertPaymentHistory(payment)
+            }
+
+            // Seed reviews
+            val seedReviews = listOf(
+                ReviewEntity(rentalItemId = 1, rating = 5, comment = "Superbe villa, très propre et spacieuse. La piscine est un vrai plus.", author = "Stéphane Koumba", date = "20/06/2026"),
+                ReviewEntity(rentalItemId = 1, rating = 4, comment = "Belle vue sur la mer, accès facile. La climatisation fonctionne parfaitement.", author = "Patricia Ndong", date = "15/05/2026"),
+                ReviewEntity(rentalItemId = 1, rating = 5, comment = "Séjour exceptionnel ! Le propriétaire est très arrangeant.", author = "Cécilia Mba", date = "01/04/2026"),
+                ReviewEntity(rentalItemId = 2, rating = 5, comment = "Appartement moderne avec une vue imprenable sur l'estuaire.", author = "Rodrigue Mintsa", date = "18/06/2026"),
+                ReviewEntity(rentalItemId = 2, rating = 4, comment = "Bon emplacement, parking pratique. Le quartier est calme.", author = "Sylvie Obiang", date = "10/05/2026"),
+                ReviewEntity(rentalItemId = 2, rating = 3, comment = "L'appartement est bien mais le bruit de la route est gênant.", author = "Patrice Oyé", date = "20/04/2026"),
+                ReviewEntity(rentalItemId = 3, rating = 5, comment = "Appartement très moderne et bien climatisé.", author = "Inès Bongo", date = "22/06/2026"),
+                ReviewEntity(rentalItemId = 3, rating = 4, comment = "Studio cozy et bien équipé. Localisation pratique.", author = "Bernadette Nguéma", date = "15/05/2026"),
+                ReviewEntity(rentalItemId = 5, rating = 5, comment = "Le Prado est impeccable, très robuste.", author = "Marc Aubame", date = "10/06/2026"),
+                ReviewEntity(rentalItemId = 5, rating = 4, comment = "Véhicule propre et confortable. Bon retour de caution.", author = "Yannick Mba", date = "02/06/2026"),
+                ReviewEntity(rentalItemId = 5, rating = 2, comment = "Le réservoir était à moitié vide à la récupération.", author = "Françoise Limbaka", date = "15/05/2026"),
+                ReviewEntity(rentalItemId = 9, rating = 5, comment = "Pack sono exceptionnel pour notre mariage !", author = "Hélène Ovono", date = "25/06/2026"),
+                ReviewEntity(rentalItemId = 9, rating = 4, comment = "Très bon matériel, le technicien était ponctuel.", author = "Aimée Mboumba", date = "10/06/2026"),
+                ReviewEntity(rentalItemId = 16, rating = 5, comment = "Bureau spacieux et bien équipé.", author = "Fabrice Mikala", date = "20/06/2026"),
+                ReviewEntity(rentalItemId = 16, rating = 4, comment = "Bon rapport qualité-prix pour un bureau meublé.", author = "Josiane Nkoghe", date = "10/06/2026")
+            )
+            for (review in seedReviews) {
+                rentalDao.insertReview(review)
             }
         }
     }

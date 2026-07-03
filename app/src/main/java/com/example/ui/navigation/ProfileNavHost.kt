@@ -10,6 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.ui.screens.*
+import com.example.ui.screens.AddPaymentMethodScreen
 import com.example.ui.viewmodel.RentalViewModel
 
 @Composable
@@ -165,7 +166,15 @@ fun ProfileNavHost(
 
         composable<RouteProfilePaymentMethods> {
             PaymentMethodsScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onAddPaymentMethod = { navController.navigate(RouteProfileAddPaymentMethod) }
+            )
+        }
+
+        composable<RouteProfileAddPaymentMethod> {
+            AddPaymentMethodScreen(
+                onBack = { navController.popBackStack() },
+                onAdded = { navController.popBackStack() }
             )
         }
 
@@ -303,6 +312,13 @@ fun ProfileNavHost(
                 onBack = { navController.popBackStack() }
             )
         }
+
+        composable<RouteProfilePersonalStats> {
+            PersonalStatsScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
     }
 }
@@ -344,6 +360,7 @@ private fun destToRoute(dest: String): String {
         "digital_deposit" -> RouteProfileDigitalDeposit::class.qualifiedName!!
         "realtime_verification" -> RouteProfileRealtimeVerification::class.qualifiedName!!
         "interactive_calendar" -> RouteProfileInteractiveCalendar::class.qualifiedName!!
+        "personal_stats" -> RouteProfilePersonalStats::class.qualifiedName!!
         else -> RouteProfileMain::class.qualifiedName!!
     }
 }

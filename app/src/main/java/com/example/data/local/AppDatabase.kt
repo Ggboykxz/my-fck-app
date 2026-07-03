@@ -15,9 +15,11 @@ import com.example.data.model.*
         SearchHistoryEntry::class,
         NotificationEntity::class,
         DisputeEntity::class,
-        EarningEntity::class
+        EarningEntity::class,
+        ReviewEntity::class,
+        PaymentHistoryEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

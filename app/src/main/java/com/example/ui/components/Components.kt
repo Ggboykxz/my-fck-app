@@ -746,6 +746,64 @@ fun TrustScore(
     }
 }
 
+// ==================== TRUST SCORE BAR ====================
+@Composable
+fun TrustScoreBar(score: Float, modifier: Modifier = Modifier) {
+    val clampedScore = score.coerceIn(0f, 100f)
+    val barColor = when {
+        clampedScore <= 30f -> Color.Red
+        clampedScore <= 60f -> Color(0xFFFF9800)
+        else -> PrimaryGreen
+    }
+    val label = when {
+        clampedScore <= 30f -> "Faible"
+        clampedScore <= 60f -> "Moyen"
+        else -> "Élevé"
+    }
+    Column(modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Score de confiance", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("${clampedScore.toInt()}% — $label", color = barColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color.White.copy(alpha = 0.1f))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(fraction = clampedScore / 100f)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(barColor)
+            )
+        }
+    }
+}
+
+fun calculateTrustScore(
+    hasProfile: Boolean,
+    hasPhone: Boolean,
+    isVerified: Boolean,
+    hasBookings: Boolean,
+    avgRating: Float
+): Float {
+    var score = 0f
+    if (hasProfile) score += 20f
+    if (hasPhone) score += 20f
+    if (isVerified) score += 25f
+    if (hasBookings) score += 15f
+    score += (avgRating.coerceIn(0f, 5f) / 5f) * 20f
+    return score.coerceIn(0f, 100f)
+}
+
 // ==================== BADGE CHIP ====================
 @Composable
 fun BadgeChip(
@@ -853,8 +911,12 @@ fun SmoothIconButton(
     modifier: Modifier = Modifier,
     iconSize: Dp = 20.dp
 ) {
+    val hapticFeedback = LocalHapticFeedback.current
     IconButton(
-        onClick = onClick,
+        onClick = {
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            onClick()
+        },
         modifier = modifier.clip(CircleShape).background(backgroundColor)
     ) {
         Icon(imageVector = imageVector, contentDescription = contentDescription, tint = tint, modifier = Modifier.size(iconSize))
@@ -975,8 +1037,12 @@ fun SmoothIconButton(
     contentDescription: String? = null,
     modifier: Modifier = Modifier
 ) {
+    val hapticFeedback = LocalHapticFeedback.current
     IconButton(
-        onClick = onClick,
+        onClick = {
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            onClick()
+        },
         modifier = modifier
             .size(size)
             .clip(RoundedCornerShape(14.dp))
