@@ -68,6 +68,60 @@ class RentalRepository(private val rentalDao: RentalDao) {
     suspend fun clearSearchHistory() =
         rentalDao.clearSearchHistory()
 
+    suspend fun deleteSearchHistoryEntry(query: String) =
+        rentalDao.deleteSearchHistoryEntry(query)
+
+    // Notifications
+    val notifications: Flow<List<NotificationEntity>> = rentalDao.getAllNotifications()
+
+    suspend fun insertNotification(notification: NotificationEntity) =
+        rentalDao.insertNotification(notification)
+
+    suspend fun markNotificationRead(id: Int) =
+        rentalDao.markNotificationRead(id)
+
+    suspend fun markAllNotificationsRead() =
+        rentalDao.markAllNotificationsRead()
+
+    suspend fun deleteNotification(id: Int) =
+        rentalDao.deleteNotification(id)
+
+    suspend fun clearAllNotifications() =
+        rentalDao.clearAllNotifications()
+
+    fun getUnreadNotificationCount(): Flow<Int> =
+        rentalDao.getUnreadNotificationCount()
+
+    // Disputes
+    val disputes: Flow<List<DisputeEntity>> = rentalDao.getAllDisputes()
+
+    suspend fun insertDispute(dispute: DisputeEntity) =
+        rentalDao.insertDispute(dispute)
+
+    // Earnings
+    val earnings: Flow<List<EarningEntity>> = rentalDao.getAllEarnings()
+
+    suspend fun insertEarning(earning: EarningEntity) =
+        rentalDao.insertEarning(earning)
+
+    // User profile
+    suspend fun updateUserProfileFields(name: String, phone: String, email: String, dob: String, gender: String, profession: String, city: String) =
+        rentalDao.updateUserProfileFields(name, phone, email, dob, gender, profession, city)
+
+    suspend fun updateProfileImage(url: String) =
+        rentalDao.updateProfileImage(url)
+
+    // Account deletion
+    suspend fun deleteAllUserData() {
+        rentalDao.deleteUserProfile()
+        rentalDao.deleteAllBookings()
+        rentalDao.deleteAllChatMessages()
+        rentalDao.deleteAllSearchHistory()
+        rentalDao.deleteAllNotifications()
+        rentalDao.deleteAllDisputes()
+        rentalDao.deleteAllEarnings()
+    }
+
     suspend fun seedDatabase() {
         val currentItems = allRentalItems.first()
         if (currentItems.isEmpty()) {
@@ -658,6 +712,28 @@ class RentalRepository(private val rentalDao: RentalDao) {
             )
             for (msg in seedMessages) {
                 rentalDao.insertChatMessage(msg)
+            }
+
+            // Seed notifications
+            val seedNotifications = listOf(
+                NotificationEntity(id = 1, type = "reservation", title = "Réservation confirmée", message = "Votre réservation Villa La Sablière est confirmée", time = "Il y a 2 heures", isRead = false),
+                NotificationEntity(id = 2, type = "message", title = "Nouveau message", message = "Kofi: La villa est disponible du 15 au 20", time = "Il y a 3 heures", isRead = false),
+                NotificationEntity(id = 3, type = "payment", title = "Paiement reçu", message = "45 000 F CFA reçus via Airtel Money", time = "Il y a 5 heures", isRead = true),
+                NotificationEntity(id = 4, type = "alert", title = "Rappel de retour", message = "Retour Toyota Hilux prévu demain à 18h", time = "Il y a 1 jour", isRead = false),
+                NotificationEntity(id = 5, type = "system", title = "Vérification", message = "Votre identité a été vérifiée avec succès", time = "Il y a 2 jours", isRead = true),
+                NotificationEntity(id = 6, type = "reservation", title = "Réservation annulée", message = "Réservation Pack Sono annulée par le locataire", time = "Il y a 3 jours", isRead = true),
+                NotificationEntity(id = 7, type = "promotion", title = "Offre flash", message = "-30% sur les véhicules ce week-end !", time = "Il y a 3 jours", isRead = true),
+                NotificationEntity(id = 8, type = "message", title = "Nouveau message", message = "Marie-Claire: L'appartement est libre samedi", time = "Il y a 4 jours", isRead = false),
+                NotificationEntity(id = 9, type = "reservation", title = "Rappel de retour", message = "Retourner Pack Sono demain avant 18h", time = "Il y a 1 semaine", isRead = false),
+                NotificationEntity(id = 10, type = "payment", title = "Point de fidélité", message = "+250 points pour dernière réservation", time = "Il y a 2 semaines", isRead = true),
+                NotificationEntity(id = 11, type = "promotion", title = "Offre spéciale", message = "-15% sur Immobilier ce week-end", time = "Il y a 2 semaines", isRead = true),
+                NotificationEntity(id = 12, type = "system", title = "Sécurité", message = "Nouveau mot de passe configuré", time = "Il y a 3 semaines", isRead = true),
+                NotificationEntity(id = 13, type = "reservation", title = "Modification acceptée", message = "Changement de dates accepté", time = "Il y a 3 semaines", isRead = true),
+                NotificationEntity(id = 14, type = "message", title = "Relance propriétaire", message = "Marie-Claire vous a envoyé un rappel", time = "Il y a 1 mois", isRead = false),
+                NotificationEntity(id = 15, type = "payment", title = "Facture disponible", message = "Facture location Hilux en téléchargement", time = "Il y a 1 mois", isRead = true)
+            )
+            for (notification in seedNotifications) {
+                rentalDao.insertNotification(notification)
             }
         }
     }

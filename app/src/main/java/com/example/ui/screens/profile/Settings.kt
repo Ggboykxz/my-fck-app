@@ -427,6 +427,7 @@ fun SecuritySettingsScreen(
 // ==================== SETTINGS SCREEN ====================
 @Composable
 fun SettingsScreen(
+    viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -441,7 +442,10 @@ fun SettingsScreen(
             title = { Text("Supprimer mon compte ?", color = Color.White) },
             text = { Text("Cette action est irréversible. Toutes vos données seront supprimées définitivement.", color = Color.White.copy(alpha = 0.7f)) },
             confirmButton = {
-                Button(onClick = { showDeleteDialog = false }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF5350))) {
+                Button(onClick = {
+                    showDeleteDialog = false
+                    viewModel.deleteAccount()
+                }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF5350))) {
                     Text("Supprimer")
                 }
             },

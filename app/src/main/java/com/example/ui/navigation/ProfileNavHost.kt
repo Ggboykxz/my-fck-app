@@ -200,6 +200,7 @@ fun ProfileNavHost(
 
         composable<RouteProfileSettings> {
             SettingsScreen(
+                viewModel = viewModel,
                 onBack = { navController.popBackStack() }
             )
         }

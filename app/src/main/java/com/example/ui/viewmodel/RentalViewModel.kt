@@ -187,30 +187,45 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     ))
     val earnings: StateFlow<List<EarningEntry>> = _earnings.asStateFlow()
 
-    // Notifications data
-    private val _notifications = MutableStateFlow(listOf(
-        NotificationEntry(1, "reservation", "Réservation confirmée", "Votre réservation Toyota Hilux a été confirmée", "Il y a 2h", false),
-        NotificationEntry(2, "message", "Nouveau message", "Kofi Mensah a envoyé un message", "Il y a 4h", false),
-        NotificationEntry(3, "payment", "Paiement reçu", "45 000 F CFA reçus pour Hilux", "Il y a 1 jour", true),
-        NotificationEntry(4, "system", "Mise à jour", "LocAll v1.0.1 disponible", "Il y a 2 jours", true),
-        NotificationEntry(5, "reservation", "Réservation annulée", "Paul a annulé Mitsubishi L200", "Il y a 3 jours", true),
-        NotificationEntry(6, "payment", "Remboursé", "15 000 F CFA remboursés", "Il y a 5 jours", true),
-        NotificationEntry(7, "message", "Demande de réservation", "Sophie souhaite réserver l'Appartement Vue Mer", "Il y a 6 jours", false),
-        NotificationEntry(8, "system", "Vérification réussie", "Identité vérifiée. Badge Vérifié activé !", "Il y a 1 semaine", true),
-        NotificationEntry(9, "reservation", "Rappel de retour", "Retourner Pack Sono demain avant 18h", "Il y a 1 semaine", false),
-        NotificationEntry(10, "payment", "Point de fidélité", "+250 points pour dernière réservation", "Il y a 2 semaines", true),
-        NotificationEntry(11, "promotion", "Offre spéciale", "-15% sur Immobilier ce week-end", "Il y a 2 semaines", true),
-        NotificationEntry(12, "system", "Sécurité", "Nouveau mot de passe configuré", "Il y a 3 semaines", true),
-        NotificationEntry(13, "reservation", "Modification acceptée", "Changement de dates accepté", "Il y a 3 semaines", true),
-        NotificationEntry(14, "message", "Relance propriétaire", "Marie-Claire vous a envoyé un rappel", "Il y a 1 mois", false),
-        NotificationEntry(15, "payment", "Facture disponible", "Facture location Hilux en téléchargement", "Il y a 1 mois", true),
-        NotificationEntry(16, "system", "Nouvelle fonctionnalité", "Chat vidéo disponible !", "Il y a 1 mois", true),
-        NotificationEntry(17, "promotion", "Parrainage réussi", "Rodrigue a rejoint. +5 000 F CFA !", "Il y a 1 mois", true),
-        NotificationEntry(18, "reservation", "Réservation refusée", "Jean refusé (indisponible)", "Il y a 2 mois", true),
-        NotificationEntry(19, "alert", "Litige en cours", "Litige ouvert pour Moto NMAX", "Il y a 2 mois", false),
-        NotificationEntry(20, "payment", "Retrait effectué", "50 000 F CFA retirés via Airtel", "Il y a 2 mois", true)
-    ))
-    val notifications: StateFlow<List<NotificationEntry>> = _notifications.asStateFlow()
+    // Notifications wired to Room
+    private val _notifications: StateFlow<List<NotificationEntry>> = repository.notifications.map { entities ->
+        entities.map { e ->
+            NotificationEntry(
+                id = e.id,
+                type = e.type,
+                title = e.title,
+                message = e.message,
+                time = e.time,
+                isRead = e.isRead
+            )
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val notifications: StateFlow<List<NotificationEntry>> = _notifications
+
+    val unreadNotificationCount: StateFlow<Int> = repository.getUnreadNotificationCount()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    fun markNotificationRead(id: Int) {
+        viewModelScope.launch { repository.markNotificationRead(id) }
+    }
+
+    fun markAllNotificationsRead() {
+        viewModelScope.launch {
+            repository.markAllNotificationsRead()
+            showSnackbar("Toutes les notifications marquées comme lues")
+        }
+    }
+
+    fun deleteNotification(id: Int) {
+        viewModelScope.launch { repository.deleteNotification(id) }
+    }
+
+    fun clearAllNotifications() {
+        viewModelScope.launch {
+            repository.clearAllNotifications()
+            showSnackbar("Notifications effacées")
+        }
+    }
 
     // Disputes data
     private val _disputes = MutableStateFlow(listOf(
@@ -425,14 +440,6 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         showSnackbar("5 000 F CFA de crédit ajouté pour le parrainage !")
     }
 
-    fun markNotificationRead(id: Int) {
-        _notifications.value = _notifications.value.map { if (it.id == id) it.copy(isRead = true) else it }
-    }
-
-    fun markAllNotificationsRead() {
-        _notifications.value = _notifications.value.map { it.copy(isRead = true) }
-    }
-
     fun acceptReceivedBooking(id: String) {
         _receivedBookings.value = _receivedBookings.value.map { if (it.id == id) it.copy(status = "Confirmée") else it }
     }
@@ -440,9 +447,6 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     fun refuseReceivedBooking(id: String) {
         _receivedBookings.value = _receivedBookings.value.map { if (it.id == id) it.copy(status = "Refusée") else it }
     }
-
-    val unreadNotificationCount: StateFlow<Int> = _notifications.map { list -> list.count { !it.isRead } }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     fun showSnackbar(message: String) {
         _snackbarMessage.value = message
@@ -854,17 +858,55 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
             try {
                 val current = repository.getUserProfileOnce()
                 if (current != null) {
-                    repository.upsertUserProfile(current.copy(fullName = name, phone = phone))
+                    repository.updateUserProfileFields(name, phone, current.email, current.dob, current.gender, current.profession, current.city)
                 } else {
                     repository.upsertUserProfile(UserProfile(id = 1, fullName = name, phone = phone, dob = "", gender = "", city = "", profession = ""))
                 }
+                _userName.value = name
+                _userPhone.value = phone
+                showSnackbar("Profil mis à jour avec succès")
             } catch (e: Exception) {
                 showSnackbar("Une erreur est survenue: ${e.message}")
             }
         }
-        _userName.value = name
-        _userPhone.value = phone
-        showSnackbar("Profil mis à jour avec succès")
+    }
+
+    fun updateProfileFull(
+        name: String, phone: String, email: String, dob: String,
+        gender: String, profession: String, city: String
+    ) {
+        viewModelScope.launch {
+            try {
+                repository.updateUserProfileFields(name, phone, email, dob, gender, profession, city)
+                _userName.value = name
+                _userPhone.value = phone
+                _profileDob.value = dob
+                _profileGender.value = gender
+                _profileProfession.value = profession
+                _profileCity.value = city
+                showSnackbar("Profil mis à jour avec succès")
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
+    }
+
+    fun deleteAccount() {
+        viewModelScope.launch {
+            try {
+                repository.deleteAllUserData()
+                _userName.value = ""
+                _userPhone.value = ""
+                _profileDob.value = ""
+                _profileGender.value = ""
+                _profileProfession.value = ""
+                _profileCity.value = ""
+                _isLoggedIn.value = false
+                showSnackbar("Compte supprimé avec succès")
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
     }
 
     fun addDispute(description: String, type: String) {

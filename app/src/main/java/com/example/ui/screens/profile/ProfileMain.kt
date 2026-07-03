@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
@@ -558,8 +560,18 @@ fun EditProfileScreen(
 ) {
     val currentName by viewModel.userName.collectAsState()
     val currentPhone by viewModel.userPhone.collectAsState()
+    val currentDob by viewModel.profileDob.collectAsState()
+    val currentGender by viewModel.profileGender.collectAsState()
+    val currentProfession by viewModel.profileProfession.collectAsState()
+    val currentCity by viewModel.profileCity.collectAsState()
+
     var name by remember { mutableStateOf(currentName) }
     var phone by remember { mutableStateOf(currentPhone) }
+    var email by remember { mutableStateOf("") }
+    var dob by remember { mutableStateOf(currentDob) }
+    var gender by remember { mutableStateOf(currentGender) }
+    var profession by remember { mutableStateOf(currentProfession) }
+    var city by remember { mutableStateOf(currentCity) }
 
     BackHandler { onBack() }
     
@@ -580,7 +592,7 @@ fun EditProfileScreen(
         
         Spacer(modifier = Modifier.height(32.dp))
         
-        Text("NOM", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.sp)
+        Text("NOM COMPLET", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.sp)
         Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
             value = name,
@@ -608,6 +620,7 @@ fun EditProfileScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
@@ -617,12 +630,120 @@ fun EditProfileScreen(
                 unfocusedContainerColor = Color(0xFF162133)
             )
         )
-        
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("EMAIL", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(6.dp))
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedBorderColor = Color(0xFF13EC5B),
+                unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                focusedContainerColor = Color(0xFF162133),
+                unfocusedContainerColor = Color(0xFF162133)
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("DATE DE NAISSANCE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(6.dp))
+        OutlinedTextField(
+            value = dob,
+            onValueChange = { dob = it },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            singleLine = true,
+            placeholder = { Text("JJ/MM/AAAA", color = Color.White.copy(alpha = 0.3f)) },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedBorderColor = Color(0xFF13EC5B),
+                unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                focusedContainerColor = Color(0xFF162133),
+                unfocusedContainerColor = Color(0xFF162133)
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("GENRE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("Homme", "Femme", "Autre").forEach { option ->
+                FilterChip(
+                    selected = gender == option,
+                    onClick = { gender = option },
+                    label = { Text(option, fontSize = 12.sp) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Color(0xFF13EC5B).copy(alpha = 0.2f),
+                        selectedLabelColor = Color(0xFF13EC5B),
+                        containerColor = Color(0xFF162133),
+                        labelColor = Color.White.copy(alpha = 0.6f)
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        borderColor = Color.White.copy(alpha = 0.12f),
+                        selectedBorderColor = Color(0xFF13EC5B).copy(alpha = 0.4f),
+                        enabled = true,
+                        selected = gender == option
+                    )
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("PROFESSION", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(6.dp))
+        OutlinedTextField(
+            value = profession,
+            onValueChange = { profession = it },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedBorderColor = Color(0xFF13EC5B),
+                unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                focusedContainerColor = Color(0xFF162133),
+                unfocusedContainerColor = Color(0xFF162133)
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("VILLE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.6f), letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(6.dp))
+        OutlinedTextField(
+            value = city,
+            onValueChange = { city = it },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedBorderColor = Color(0xFF13EC5B),
+                unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                focusedContainerColor = Color(0xFF162133),
+                unfocusedContainerColor = Color(0xFF162133)
+            )
+        )
+
         Spacer(modifier = Modifier.height(32.dp))
         
         Button(
             onClick = {
-                viewModel.updateUserProfile(name, phone)
+                viewModel.updateProfileFull(name, phone, email, dob, gender, profession, city)
                 onSave()
             },
             modifier = Modifier.fillMaxWidth().height(54.dp),

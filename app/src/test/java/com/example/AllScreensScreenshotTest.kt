@@ -540,7 +540,7 @@ class AllScreensScreenshotTest {
     fun screenshot_47_settings() {
         composeTestRule.setContent {
             MyApplicationTheme {
-                SettingsScreen(onBack = {})
+                SettingsScreen(viewModel = viewModel, onBack = {})
             }
         }
         screenshot("47_settings")

@@ -85,6 +85,18 @@ interface RentalDao {
     @Query("UPDATE notifications SET isRead = 1 WHERE id = :id")
     suspend fun markNotificationRead(id: Int)
 
+    @Query("UPDATE notifications SET isRead = 1")
+    suspend fun markAllNotificationsRead()
+
+    @Query("DELETE FROM notifications WHERE id = :id")
+    suspend fun deleteNotification(id: Int)
+
+    @Query("DELETE FROM notifications")
+    suspend fun clearAllNotifications()
+
+    @Query("SELECT COUNT(*) FROM notifications WHERE isRead = 0")
+    fun getUnreadNotificationCount(): Flow<Int>
+
     // Disputes
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDispute(dispute: DisputeEntity)
@@ -98,4 +110,37 @@ interface RentalDao {
 
     @Query("SELECT * FROM earnings ORDER BY id DESC")
     fun getAllEarnings(): Flow<List<EarningEntity>>
+
+    // Search history
+    @Query("DELETE FROM search_history WHERE query = :query")
+    suspend fun deleteSearchHistoryEntry(query: String)
+
+    // User profile updates
+    @Query("UPDATE user_profile SET fullName = :name, phone = :phone, email = :email, dob = :dob, gender = :gender, profession = :profession, city = :city WHERE id = 1")
+    suspend fun updateUserProfileFields(name: String, phone: String, email: String, dob: String, gender: String, profession: String, city: String)
+
+    @Query("UPDATE user_profile SET profileImageUrl = :url WHERE id = 1")
+    suspend fun updateProfileImage(url: String)
+
+    // Delete all user data
+    @Query("DELETE FROM user_profile")
+    suspend fun deleteUserProfile()
+
+    @Query("DELETE FROM bookings")
+    suspend fun deleteAllBookings()
+
+    @Query("DELETE FROM chat_messages")
+    suspend fun deleteAllChatMessages()
+
+    @Query("DELETE FROM search_history")
+    suspend fun deleteAllSearchHistory()
+
+    @Query("DELETE FROM notifications")
+    suspend fun deleteAllNotifications()
+
+    @Query("DELETE FROM disputes")
+    suspend fun deleteAllDisputes()
+
+    @Query("DELETE FROM earnings")
+    suspend fun deleteAllEarnings()
 }
