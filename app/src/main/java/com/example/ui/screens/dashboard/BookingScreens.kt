@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.core.*
+import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,8 +48,11 @@ fun BookingInteractiveDialog(
     var selectedMethod by remember { mutableStateOf("Airtel Money") }
     var phoneNumber by remember { mutableStateOf("") }
     var isPhoneError by remember { mutableStateOf(false) }
+    var showCalendar by remember { mutableStateOf(false) }
+    var selectedStartDate by remember { mutableStateOf<Long?>(null) }
 
     val paymentState by viewModel.paymentState.collectAsState()
+    val today = remember { java.util.Calendar.getInstance() }
 
     BackHandler {
         if (paymentState !is PaymentState.Processing) {
@@ -140,6 +144,123 @@ fun BookingInteractiveDialog(
                                     .background(Color.White.copy(alpha = 0.1f))
                             ) {
                                 Icon(Icons.Rounded.Add, contentDescription = "Increment", tint = Color.White)
+                            }
+                        }
+
+                        Surface(
+                            onClick = { showCalendar = !showCalendar },
+                            color = Color.White.copy(alpha = 0.06f),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(16.dp))
+                                Text("Voir le calendrier", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.weight(1f))
+                                Icon(
+                                    if (showCalendar) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                                    contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+
+                        AnimatedVisibility(visible = showCalendar) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                val cal = java.util.Calendar.getInstance()
+                                val monthNames = listOf("Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre")
+                                val dayNames = listOf("L", "M", "M", "J", "V", "S", "D")
+
+                                repeat(2) { monthOffset ->
+                                    val monthCal = java.util.Calendar.getInstance().apply {
+                                        add(java.util.Calendar.MONTH, monthOffset)
+                                    }
+                                    val year = monthCal.get(java.util.Calendar.YEAR)
+                                    val month = monthCal.get(java.util.Calendar.MONTH)
+                                    val daysInMonth = monthCal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)
+                                    val firstDay = monthCal.apply { set(java.util.Calendar.DAY_OF_MONTH, 1) }.get(java.util.Calendar.DAY_OF_WEEK)
+                                    val startOffset = (firstDay + 5) % 7
+
+                                    Card(
+                                        colors = CardDefaults.cardColors(containerColor = Color(0xFF0F1A2A)),
+                                        shape = RoundedCornerShape(10.dp)
+                                    ) {
+                                        Column(modifier = Modifier.padding(10.dp)) {
+                                            Text(
+                                                "${monthNames[month]} $year",
+                                                color = Color.White,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(bottom = 6.dp)
+                                            )
+                                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                                                dayNames.forEach { d ->
+                                                    Text(d, color = Color.White.copy(alpha = 0.4f), fontSize = 10.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                                                }
+                                            }
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            val totalCells = startOffset + daysInMonth
+                                            val rows = (totalCells + 6) / 7
+                                            repeat(rows) { row ->
+                                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                                                    repeat(7) { col ->
+                                                        val dayIndex = row * 7 + col - startOffset + 1
+                                                        if (dayIndex in 1..daysInMonth) {
+                                                            val dayCal = java.util.Calendar.getInstance().apply {
+                                                                set(year, month, dayIndex)
+                                                            }
+                                                            val isPast = dayCal.before(today)
+                                                            val dayMillis = dayCal.timeInMillis
+                                                            val isSelected = selectedStartDate != null && daysCount > 0 &&
+                                                                dayMillis >= (selectedStartDate ?: 0L) &&
+                                                                dayMillis < (selectedStartDate ?: 0L) + daysCount * 86400000L
+                                                            val isStart = dayMillis == selectedStartDate
+
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .size(28.dp)
+                                                                    .clip(RoundedCornerShape(6.dp))
+                                                                    .background(
+                                                                        when {
+                                                                            isStart -> PrimaryGreen
+                                                                            isSelected -> PrimaryGreen.copy(alpha = 0.3f)
+                                                                            else -> Color.Transparent
+                                                                        }
+                                                                    )
+                                                                    .clickable(enabled = !isPast) {
+                                                                        if (selectedStartDate == null || dayMillis < (selectedStartDate ?: 0L)) {
+                                                                            selectedStartDate = dayMillis
+                                                                            daysCount = 1
+                                                                        } else {
+                                                                            val diff = ((dayMillis - (selectedStartDate ?: 0L)) / 86400000L).toInt()
+                                                                            daysCount = (diff + 1).coerceIn(1, 30)
+                                                                        }
+                                                                    },
+                                                                contentAlignment = Alignment.Center
+                                                            ) {
+                                                                Text(
+                                                                    "$dayIndex",
+                                                                    fontSize = 10.sp,
+                                                                    color = when {
+                                                                        isPast -> Color.White.copy(alpha = 0.15f)
+                                                                        isStart -> BrandNavy
+                                                                        isSelected -> Color.White
+                                                                        else -> Color.White.copy(alpha = 0.7f)
+                                                                    },
+                                                                    fontWeight = if (isStart || isSelected) FontWeight.Bold else FontWeight.Normal
+                                                                )
+                                                            }
+                                                        } else {
+                                                            Spacer(modifier = Modifier.size(28.dp))
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
 
