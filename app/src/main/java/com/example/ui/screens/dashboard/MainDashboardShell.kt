@@ -69,6 +69,14 @@ fun MainDashboardView(viewModel: RentalViewModel) {
                     is Screen.Bookmarks -> BookmarksScreen(viewModel)
                     is Screen.Messages -> InboxScreen(viewModel)
                     is Screen.Profile -> ProfileNavigator(viewModel = viewModel)
+                    is Screen.MapExplorer -> MapExplorerScreen(
+                        viewModel = viewModel,
+                        onBack = { viewModel.navigateTo("home") },
+                        onSelectItem = { item ->
+                            viewModel.selectItem(item)
+                            viewModel.navigateTo("details")
+                        }
+                    )
                     is Screen.Details -> {
                         val item = selectedItem
                         if (item != null) {
@@ -167,6 +175,7 @@ fun MainDashboardViewNavHost(viewModel: RentalViewModel) {
             is Screen.Profile -> RouteProfile::class.qualifiedName
             is Screen.Details -> RouteDetails::class.qualifiedName
             is Screen.Chat -> RouteChat::class.qualifiedName
+            is Screen.MapExplorer -> RouteMapExplorer::class.qualifiedName
         }
         if (targetRoute != null && currentRoute != targetRoute) {
             navController.navigate(targetRoute) {
@@ -191,10 +200,10 @@ fun DashboardBottomBarLegacy(
         modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         NavigationBarItem(
-            selected = currentScreen is Screen.Home || currentScreen is Screen.Details,
+            selected = currentScreen is Screen.Home || currentScreen is Screen.Details || currentScreen is Screen.MapExplorer,
             onClick = { onNavigate("home") },
             icon = {
-                val isSel = currentScreen is Screen.Home || currentScreen is Screen.Details
+                val isSel = currentScreen is Screen.Home || currentScreen is Screen.Details || currentScreen is Screen.MapExplorer
                 SmoothIcon(Icons.Rounded.Search, contentDescription = "Explorer", tint = if (isSel) BrandNavy else Color.White.copy(alpha = 0.45f), backgroundColor = if (isSel) PrimaryGreen else Color.White.copy(alpha = 0.08f), modifier = Modifier.size(32.dp), iconSize = 18.dp)
             },
             label = { Text("Explorer", fontSize = 11.sp, fontWeight = FontWeight.Bold) },

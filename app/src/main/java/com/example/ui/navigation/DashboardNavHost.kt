@@ -30,6 +30,7 @@ fun DashboardNavHost(
             is Screen.Profile -> RouteProfile
             is Screen.Details -> RouteDetails
             is Screen.Chat -> RouteChat
+            is Screen.MapExplorer -> RouteMapExplorer
         }
     }
 
@@ -110,6 +111,20 @@ fun DashboardNavHost(
             } else {
                 LaunchedEffect(Unit) { navController.popBackStack() }
             }
+        }
+
+        composable<RouteMapExplorer>(
+            enterTransition = { slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
+            exitTransition = { slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300)) }
+        ) {
+            MapExplorerScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onSelectItem = { item ->
+                    viewModel.selectItem(item)
+                    navController.navigate(RouteDetails(item.id))
+                }
+            )
         }
     }
 }

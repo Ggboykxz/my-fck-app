@@ -213,6 +213,19 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     )
                 }
 
+                Surface(
+                    onClick = { viewModel.navigateTo("map_explorer") },
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Map,
+                        contentDescription = "Carte",
+                        tint = Color.White.copy(alpha = 0.6f),
+                        modifier = Modifier.padding(12.dp).size(20.dp)
+                    )
+                }
+
                 SmoothIconButton(
                     imageVector = Icons.Rounded.Tune,
                     contentDescription = "Filtres",
@@ -546,6 +559,7 @@ fun ExploreScreen(viewModel: RentalViewModel) {
 
                 listOf(
                     Triple(Icons.Rounded.Add, "Publier une annonce", { viewModel.navigateTo("post_listing") }),
+                    Triple(Icons.Rounded.Map, "Explorer la carte", { viewModel.navigateTo("map_explorer") }),
                     Triple(Icons.Rounded.Search, "Recherche avancée", { viewModel.navigateTo("advanced_search") }),
                     Triple(Icons.Rounded.Email, "Messages", { viewModel.navigateTo("messages") }),
                     Triple(Icons.Rounded.Person, "Mon profil", { viewModel.navigateTo("profile") })

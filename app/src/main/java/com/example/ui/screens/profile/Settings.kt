@@ -34,6 +34,7 @@ import com.example.ui.components.SmoothIcon
 import com.example.ui.components.StatusBadge
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun LanguageSelectionScreen(
@@ -101,6 +102,8 @@ fun NotificationsScreen(
 ) {
     val notifications by viewModel.notifications.collectAsState()
     val unreadCount = notifications.count { !it.isRead }
+    var isLoading by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) { delay(600); isLoading = false }
 
     fun markAsRead(id: Int) {
         viewModel.markNotificationRead(id)
@@ -155,29 +158,11 @@ fun NotificationsScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = "Aucune notification",
-                        tint = Color.White.copy(alpha = 0.25f),
-                        modifier = Modifier.size(64.dp)
-                    )
-                    Text(
-                        "Aucune notification",
-                        color = Color.White.copy(alpha = 0.5f),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        "Vous serez notifié des nouvelles activités",
-                        color = Color.White.copy(alpha = 0.35f),
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                AnimatedEmptyState(
+                    icon = Icons.Default.Notifications,
+                    title = "Aucune notification",
+                    subtitle = "Vous serez notifié des nouvelles activités"
+                )
             }
         } else {
             if (unreadCount > 0) {
@@ -223,7 +208,12 @@ fun NotificationsScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                items(notifications, key = { it.id }) { notif ->
+                if (isLoading) {
+                    items(3) {
+                        SkeletonChatItem()
+                    }
+                } else {
+                    items(notifications, key = { it.id }) { notif ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -300,6 +290,7 @@ fun NotificationsScreen(
                     }
                 }
             }
+        }
         }
 
         Spacer(modifier = Modifier.height(30.dp))
@@ -816,6 +807,8 @@ fun PaymentHistoryScreen(
 ) {
     val payments by viewModel.paymentHistory.collectAsState()
     val totalSpent = payments.sumOf { it.amount }
+    var isLoading by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) { delay(600); isLoading = false }
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(modifier = Modifier.height(24.dp))
@@ -840,18 +833,34 @@ fun PaymentHistoryScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(payments, key = { it.id }) { payment ->
-                Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
-                    Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(Color.White.copy(alpha = 0.05f)), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Rounded.Receipt, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(20.dp))
+            if (isLoading) {
+                items(3) {
+                    SkeletonBookingItem()
+                }
+            } else if (payments.isEmpty()) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp), contentAlignment = Alignment.Center) {
+                        AnimatedEmptyState(
+                            icon = Icons.Rounded.Receipt,
+                            title = "Aucun paiement",
+                            subtitle = "Vos transactions apparaîtront ici"
+                        )
+                    }
+                }
+            } else {
+                items(payments, key = { it.id }) { payment ->
+                    Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+                        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(Color.White.copy(alpha = 0.05f)), contentAlignment = Alignment.Center) {
+                                Icon(Icons.Rounded.Receipt, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(20.dp))
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(payment.description, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(payment.date, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
+                            }
+                            StatusBadge(text = payment.method, color = PrimaryGreen)
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(payment.description, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(payment.date, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
-                        }
-                        StatusBadge(text = payment.method, color = PrimaryGreen)
                     }
                 }
             }

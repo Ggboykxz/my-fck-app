@@ -46,6 +46,7 @@ sealed interface Screen {
     data object Chat : Screen
     data object PostListing : Screen
     data object Profile : Screen
+    data object MapExplorer : Screen
 }
 
 data class EarningEntry(val id: Int, val amount: Int, val date: String, val source: String, val status: String)
@@ -488,6 +489,7 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
             "chat" -> Screen.Chat
             "post_listing" -> Screen.PostListing
             "profile" -> Screen.Profile
+            "map_explorer" -> Screen.MapExplorer
             else -> Screen.Home
         }
     }

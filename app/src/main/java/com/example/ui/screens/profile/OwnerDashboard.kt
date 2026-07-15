@@ -386,6 +386,8 @@ fun EarningsHistoryScreen(
     onBack: () -> Unit
 ) {
     val earnings by viewModel.earnings.collectAsState()
+    var isLoading by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) { delay(600); isLoading = false }
 
     Column(
         modifier = Modifier
@@ -415,56 +417,72 @@ fun EarningsHistoryScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.weight(1f)
         ) {
-            items(earnings, key = { it.id }, contentType = { "earnings" }) { tx ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+            if (isLoading) {
+                items(4) {
+                    SkeletonBookingItem()
+                }
+            } else if (earnings.isEmpty()) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp), contentAlignment = Alignment.Center) {
+                        AnimatedEmptyState(
+                            icon = Icons.Rounded.AccountBalance,
+                            title = "Aucun gain",
+                            subtitle = "Vos revenus des locations apparaîtront ici"
+                        )
+                    }
+                }
+            } else {
+                items(earnings, key = { it.id }, contentType = { "earnings" }) { tx ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
                     ) {
                         Row(
+                            modifier = Modifier.padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFF381519)),
-                                contentAlignment = Alignment.Center
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
-                                Text(
-                                    "E",
-                                    color = PrimaryGreen,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF381519)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        "E",
+                                        color = PrimaryGreen,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp
+                                    )
+                                }
+
+                                Column {
+                                    Text(tx.source, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                    Text(tx.date, color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                                }
                             }
 
-                            Column {
-                                Text(tx.source, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                                Text(tx.date, color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
-                            }
-                        }
-
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text("+ ${formatPriceCfa(tx.amount)}", color = PrimaryGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            Surface(
-                                color = Color(0xFF0C2417),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text(
-                                    tx.status,
-                                    color = PrimaryGreen,
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text("+ ${formatPriceCfa(tx.amount)}", color = PrimaryGreen, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                Surface(
+                                    color = Color(0xFF0C2417),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text(
+                                        tx.status,
+                                        color = PrimaryGreen,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
                             }
                         }
                     }
