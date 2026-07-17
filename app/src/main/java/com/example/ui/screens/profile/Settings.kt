@@ -103,7 +103,9 @@ fun NotificationsScreen(
     val notifications by viewModel.notifications.collectAsState()
     val unreadCount = notifications.count { !it.isRead }
     var isLoading by remember { mutableStateOf(true) }
+    var isRefreshing by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { delay(600); isLoading = false }
+    LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(800); isRefreshing = false } }
 
     fun markAsRead(id: Int) {
         viewModel.markNotificationRead(id)
@@ -149,11 +151,30 @@ fun NotificationsScreen(
             }
             Spacer(modifier = Modifier.width(16.dp))
             Text("Notifications", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.weight(1f))
+            if (isRefreshing) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = PrimaryGreen,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                IconButton(onClick = { isRefreshing = true }) {
+                    Icon(Icons.Rounded.Refresh, contentDescription = "Rafraîchir", tint = Color.White.copy(alpha = 0.6f))
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (notifications.isEmpty()) {
+        if (isRefreshing) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                repeat(3) { SkeletonChatItem() }
+            }
+        } else if (notifications.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -208,7 +229,7 @@ fun NotificationsScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                if (isLoading) {
+                if (isLoading || isRefreshing) {
                     items(3) {
                         SkeletonChatItem()
                     }
@@ -808,7 +829,9 @@ fun PaymentHistoryScreen(
     val payments by viewModel.paymentHistory.collectAsState()
     val totalSpent = payments.sumOf { it.amount }
     var isLoading by remember { mutableStateOf(true) }
+    var isRefreshing by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { delay(600); isLoading = false }
+    LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(800); isRefreshing = false } }
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(modifier = Modifier.height(24.dp))
@@ -818,6 +841,18 @@ fun PaymentHistoryScreen(
             }
             Spacer(modifier = Modifier.width(16.dp))
             Text("Historique des paiements", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.weight(1f))
+            if (isRefreshing) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = PrimaryGreen,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                IconButton(onClick = { isRefreshing = true }) {
+                    Icon(Icons.Rounded.Refresh, contentDescription = "Rafraîchir", tint = Color.White.copy(alpha = 0.6f))
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -833,7 +868,7 @@ fun PaymentHistoryScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (isLoading) {
+            if (isLoading || isRefreshing) {
                 items(3) {
                     SkeletonBookingItem()
                 }

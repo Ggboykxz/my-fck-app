@@ -30,6 +30,7 @@ import com.example.ui.components.*
 import com.example.ui.navigation.ProfileNavHost
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -53,7 +54,29 @@ fun ProfileMainScreen(
     val language by viewModel.profileLanguage.collectAsState()
     val userName by viewModel.userName.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) { delay(600); isLoading = false }
 
+    if (isLoading) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Spacer(modifier = Modifier.height(30.dp))
+            Text(
+                "Tableau de Bord & Profil",
+                color = Color.White,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+            repeat(5) {
+                SkeletonBookingItem()
+            }
+        }
+    } else {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -518,6 +541,7 @@ fun ProfileMainScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
         }
+    }
     }
 }
 

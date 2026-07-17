@@ -387,7 +387,9 @@ fun EarningsHistoryScreen(
 ) {
     val earnings by viewModel.earnings.collectAsState()
     var isLoading by remember { mutableStateOf(true) }
+    var isRefreshing by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { delay(600); isLoading = false }
+    LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(800); isRefreshing = false } }
 
     Column(
         modifier = Modifier
@@ -409,6 +411,18 @@ fun EarningsHistoryScreen(
             }
             Spacer(modifier = Modifier.width(16.dp))
             Text("Historique des Gains", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.weight(1f))
+            if (isRefreshing) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = PrimaryGreen,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                IconButton(onClick = { isRefreshing = true }) {
+                    Icon(Icons.Rounded.Refresh, contentDescription = "Rafraîchir", tint = Color.White.copy(alpha = 0.6f))
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -417,7 +431,7 @@ fun EarningsHistoryScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.weight(1f)
         ) {
-            if (isLoading) {
+            if (isLoading || isRefreshing) {
                 items(4) {
                     SkeletonBookingItem()
                 }
