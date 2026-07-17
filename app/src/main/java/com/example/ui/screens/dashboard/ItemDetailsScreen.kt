@@ -66,6 +66,7 @@ fun ItemDetailsScreen(
 ) {
     val context = LocalContext.current
     var showBookingDialog by remember { mutableStateOf(false) }
+    var showShareSheet by remember { mutableStateOf(false) }
     val lazyListState = rememberLazyListState()
 
     BackHandler { onBack() }
@@ -187,25 +188,7 @@ fun ItemDetailsScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         SmoothIconButton(
                             icon = Icons.Rounded.Share,
-                            onClick = {
-                                val shareText = "${shareListing(item.title, formatPriceCfa(item.pricePerDay))}\n\nVoir sur LocAll: https://locall.app/listing/${item.id}"
-                                val whatsappIntent = Intent().apply {
-                                    action = Intent.ACTION_SEND
-                                    putExtra(Intent.EXTRA_TEXT, shareText)
-                                    type = "text/plain"
-                                    setPackage("com.whatsapp")
-                                }
-                                if (whatsappIntent.resolveActivity(context.packageManager) != null) {
-                                    context.startActivity(whatsappIntent)
-                                } else {
-                                    val sendIntent = Intent().apply {
-                                        action = Intent.ACTION_SEND
-                                        putExtra(Intent.EXTRA_TEXT, shareText)
-                                        type = "text/plain"
-                                    }
-                                    context.startActivity(Intent.createChooser(sendIntent, "Partager l'annonce"))
-                                }
-                            },
+                            onClick = { showShareSheet = true },
                             tint = BrandNavy,
                             backgroundColor = PrimaryGreen,
                             borderColor = PrimaryGreen
@@ -488,6 +471,45 @@ fun ItemDetailsScreen(
                     }
                 }
 
+                // Social links
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(
+                        onClick = { viewModel.showSnackbar("Profil du propriétaire") },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color.White.copy(alpha = 0.05f),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Rounded.Person, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(18.dp))
+                            Text("Voir le profil", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                        }
+                    }
+                    Surface(
+                        onClick = { viewModel.showSnackbar("Avis du quartier ${item.neighborhood}") },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color.White.copy(alpha = 0.05f),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Rounded.LocationCity, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(18.dp))
+                            Text("Avis quartier", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                        }
+                    }
+                }
+
                 // Fake map section represent localization
                 SectionHeader(title = "Géolocalisation du bien")
                 Card(
@@ -685,6 +707,14 @@ fun ItemDetailsScreen(
             item = item,
             viewModel = viewModel,
             onDismiss = { showBookingDialog = false }
+        )
+    }
+
+    if (showShareSheet) {
+        ShareListingBottomSheet(
+            item = item,
+            onDismiss = { showShareSheet = false },
+            onShare = { text -> viewModel.showSnackbar("Lien partagé") }
         )
     }
 }

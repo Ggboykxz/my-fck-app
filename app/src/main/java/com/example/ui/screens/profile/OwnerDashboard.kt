@@ -182,6 +182,51 @@ fun OwnerDashboardScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            // Analytics quick access
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { onNavigate("owner_analytics") },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(Icons.Rounded.Analytics, contentDescription = null, tint = Color(0xFF4FC3F7), modifier = Modifier.size(24.dp))
+                        Text("Analytique", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("Détails vues & conversions", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
+                    }
+                }
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { onNavigate("market_insights") },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(24.dp))
+                        Text("Marché", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("Tendances & prix", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
             // Beautiful interactive Chart section
             Text(
                 text = "Évolution des Revenus",

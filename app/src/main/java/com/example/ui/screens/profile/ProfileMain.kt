@@ -508,6 +508,74 @@ fun ProfileMainScreen(
                 onClick = { onNavigate("about") }
             )
 
+            Text(
+                text = "Communauté & Avancé".uppercase(),
+                color = Color.White.copy(alpha = 0.45f),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp, top = 8.dp)
+            )
+
+            ProfileOptionRow(
+                icon = Icons.Rounded.LocationCity,
+                title = "Avis du Quartier",
+                subtitle = "Consultez et partagez des avis",
+                containerColor = Color(0xFFFFB300).copy(alpha = 0.12f),
+                iconTint = Color(0xFFFFB300),
+                onClick = { onNavigate("neighborhood_reviews") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.Gavel,
+                title = "Litiges Communautaires",
+                subtitle = "Signalez et votez sur les litiges",
+                containerColor = Color(0xFFEF5350).copy(alpha = 0.12f),
+                iconTint = Color(0xFFEF5350),
+                onClick = { onNavigate("community_disputes") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.Receipt,
+                title = "Reçus de Paiement",
+                subtitle = "Consultez vos reçus et factures",
+                containerColor = PrimaryGreen.copy(alpha = 0.12f),
+                iconTint = PrimaryGreen,
+                onClick = { onNavigate("payment_receipts") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.CalendarMonth,
+                title = "Calendrier & Sync",
+                subtitle = "Synchronisez avec Google Calendar",
+                containerColor = Color(0xFF4FC3F7).copy(alpha = 0.12f),
+                iconTint = Color(0xFF4FC3F7),
+                onClick = { onNavigate("calendar_sync") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.AccountBalance,
+                title = "Séquestre de Fonds",
+                subtitle = "Gérez vos cautions et séquestres",
+                containerColor = Color(0xFFFFB300).copy(alpha = 0.12f),
+                iconTint = Color(0xFFFFB300),
+                onClick = { onNavigate("escrow") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.NotificationsActive,
+                title = "Paramètres de Notifications",
+                subtitle = "Configurez vos alertes push",
+                containerColor = Color(0xFFCE93D8).copy(alpha = 0.12f),
+                iconTint = Color(0xFFCE93D8),
+                onClick = { onNavigate("notification_settings") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.CardGiftcard,
+                title = "Parrainage & Récompenses",
+                subtitle = "Invitez des amis et gagnez",
+                containerColor = PrimaryGreen.copy(alpha = 0.12f),
+                iconTint = PrimaryGreen,
+                onClick = { onNavigate("referral_tracking") }
+            )
+
             Button(
                 onClick = { showLogoutDialog = true },
                 modifier = Modifier

@@ -139,8 +139,7 @@ fun ProfileNavHost(
         }
 
         composable<RouteProfileLanguage> {
-            LanguageSelectionScreen(
-                viewModel = viewModel,
+            LanguageScreen(
                 onBack = { navController.popBackStack() }
             )
         }
@@ -210,7 +209,8 @@ fun ProfileNavHost(
         composable<RouteProfileSettings> {
             SettingsScreen(
                 viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onNavigate = { dest -> navController.navigate(destToRoute(dest)) }
             )
         }
 
@@ -319,6 +319,94 @@ fun ProfileNavHost(
                 onBack = { navController.popBackStack() }
             )
         }
+
+        composable<RouteImageModeration> {
+            ImageModerationScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RouteOwnerAnalytics> {
+            OwnerAnalyticsScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RouteMarketInsights> {
+            MarketInsightsScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RouteNotificationSettings> {
+            NotificationSettingsScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RouteReferralTracking> {
+            ReferralTrackingScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RouteUserProfile> { backStackEntry ->
+            val userId = backStackEntry.arguments?.getInt("userId") ?: 1
+            UserProfileScreen(
+                userId = userId,
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RouteCommunityDisputes> {
+            CommunityDisputesScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RouteEscrow> {
+            EscrowScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RouteSplitPayment> { backStackEntry ->
+            val bookingId = backStackEntry.arguments?.getInt("bookingId") ?: 0
+            SplitPaymentScreen(
+                bookingId = bookingId,
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RoutePaymentReceipts> {
+            PaymentReceiptScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RouteCalendarSync> {
+            CalendarSyncScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RouteNeighborhoodReviews> {
+            NeighborhoodReviewsScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
     }
 }
@@ -361,6 +449,16 @@ private fun destToRoute(dest: String): String {
         "realtime_verification" -> RouteProfileRealtimeVerification::class.qualifiedName!!
         "interactive_calendar" -> RouteProfileInteractiveCalendar::class.qualifiedName!!
         "personal_stats" -> RouteProfilePersonalStats::class.qualifiedName!!
+        "owner_analytics" -> RouteOwnerAnalytics::class.qualifiedName!!
+        "market_insights" -> RouteMarketInsights::class.qualifiedName!!
+        "notification_settings" -> RouteNotificationSettings::class.qualifiedName!!
+        "referral_tracking" -> RouteReferralTracking::class.qualifiedName!!
+        "image_moderation" -> RouteImageModeration::class.qualifiedName!!
+        "community_disputes" -> RouteCommunityDisputes::class.qualifiedName!!
+        "escrow" -> RouteEscrow::class.qualifiedName!!
+        "payment_receipts" -> RoutePaymentReceipts::class.qualifiedName!!
+        "calendar_sync" -> RouteCalendarSync::class.qualifiedName!!
+        "neighborhood_reviews" -> RouteNeighborhoodReviews::class.qualifiedName!!
         else -> RouteProfileMain::class.qualifiedName!!
     }
 }

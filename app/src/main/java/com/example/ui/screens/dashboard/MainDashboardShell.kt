@@ -103,6 +103,14 @@ fun MainDashboardView(viewModel: RentalViewModel) {
                             ExploreScreen(viewModel)
                         }
                     }
+                    is Screen.SearchIntelligence -> SearchIntelligenceScreen(
+                        viewModel = viewModel,
+                        onBack = { viewModel.navigateTo("home") }
+                    )
+                    is Screen.OwnerAnalytics -> {}
+                    is Screen.MarketInsights -> {}
+                    is Screen.NotificationSettings -> {}
+                    is Screen.ReferralTracking -> {}
                 }
             }
         }
@@ -178,6 +186,11 @@ fun MainDashboardViewNavHost(viewModel: RentalViewModel) {
             is Screen.Details -> RouteDetails::class.qualifiedName
             is Screen.Chat -> RouteChat::class.qualifiedName
             is Screen.MapExplorer -> RouteMapExplorer::class.qualifiedName
+            is Screen.SearchIntelligence -> RouteSearchIntelligence::class.qualifiedName
+            is Screen.OwnerAnalytics -> null
+            is Screen.MarketInsights -> null
+            is Screen.NotificationSettings -> null
+            is Screen.ReferralTracking -> null
         }
         if (targetRoute != null && currentRoute != targetRoute) {
             navController.navigate(targetRoute) {

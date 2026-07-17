@@ -32,6 +32,11 @@ fun DashboardNavHost(
             is Screen.Details -> RouteDetails
             is Screen.Chat -> RouteChat
             is Screen.MapExplorer -> RouteMapExplorer
+            is Screen.SearchIntelligence -> RouteSearchIntelligence
+            is Screen.OwnerAnalytics -> RouteHome
+            is Screen.MarketInsights -> RouteHome
+            is Screen.NotificationSettings -> RouteHome
+            is Screen.ReferralTracking -> RouteHome
         }
     }
 
@@ -132,6 +137,48 @@ fun DashboardNavHost(
                         viewModel.selectItem(item)
                         navController.navigate(RouteDetails(item.id))
                     }
+                )
+            }
+
+            composable<RouteNeighborhoodReviews>(
+                enterTransition = { slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
+                exitTransition = { slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300)) }
+            ) {
+                NeighborhoodReviewsScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable<RouteMedia>(
+                enterTransition = { slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
+                exitTransition = { slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300)) }
+            ) { backStackEntry ->
+                val listingId = backStackEntry.arguments?.getString("listingId")?.toIntOrNull() ?: 0
+                MediaScreen(
+                    viewModel = viewModel,
+                    listingId = listingId,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable<RouteVideoListing>(
+                enterTransition = { slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
+                exitTransition = { slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300)) }
+            ) {
+                VideoListingScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable<RouteSearchIntelligence>(
+                enterTransition = { slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
+                exitTransition = { slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300)) }
+            ) {
+                SearchIntelligenceScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() }
                 )
             }
         }

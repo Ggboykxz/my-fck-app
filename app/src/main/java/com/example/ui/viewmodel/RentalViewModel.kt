@@ -47,6 +47,11 @@ sealed interface Screen {
     data object PostListing : Screen
     data object Profile : Screen
     data object MapExplorer : Screen
+    data object SearchIntelligence : Screen
+    data object OwnerAnalytics : Screen
+    data object MarketInsights : Screen
+    data object NotificationSettings : Screen
+    data object ReferralTracking : Screen
 }
 
 data class EarningEntry(val id: Int, val amount: Int, val date: String, val source: String, val status: String)
@@ -184,6 +189,189 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     private val _referralEarnings = MutableStateFlow(15000)
     val referralEarnings: StateFlow<Int> = _referralEarnings.asStateFlow()
 
+    // ==================== SEARCH INTELLIGENCE ====================
+    val savedSearches: StateFlow<List<SavedSearch>> = repository.savedSearches
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val trendingSearches: StateFlow<List<SearchSuggestion>> = repository.trendingSearches
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val voiceSearchHistory: StateFlow<List<VoiceSearchHistory>> = repository.voiceSearchHistory
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _intelligentSearchQuery = MutableStateFlow("")
+    val intelligentSearchQuery: StateFlow<String> = _intelligentSearchQuery.asStateFlow()
+
+    val searchSuggestions: StateFlow<List<SearchSuggestion>> = _intelligentSearchQuery
+        .flatMapLatest { query ->
+            if (query.length >= 2) repository.searchSuggestions(query) else flowOf(emptyList())
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _isVoiceSearching = MutableStateFlow(false)
+    val isVoiceSearching: StateFlow<Boolean> = _isVoiceSearching.asStateFlow()
+
+    private val _voiceSearchResult = MutableStateFlow<String?>(null)
+    val voiceSearchResult: StateFlow<String?> = _voiceSearchResult.asStateFlow()
+
+    private val _searchAnalytics = repository.getSearchAnalytics()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val searchAnalytics: StateFlow<List<SearchSuggestion>> = _searchAnalytics
+
+    fun setIntelligentSearchQuery(query: String) { _intelligentSearchQuery.value = query }
+
+    fun fuzzySearch(query: String): List<RentalItem> {
+        if (query.isBlank()) return emptyList()
+        val q = query.lowercase().trim()
+        return rawRentalItems.value.filter { item ->
+            val text = "${item.title} ${item.description} ${item.city} ${item.neighborhood}".lowercase()
+            fuzzyMatch(q, text)
+        }
+    }
+
+    private fun fuzzyMatch(query: String, text: String): Boolean {
+        if (query.length <= 2) return text.contains(query, ignoreCase = true)
+        var qi = 0
+        for (c in text) {
+            if (qi < query.length && c == query[qi]) qi++
+        }
+        return qi == query.length
+    }
+
+    fun saveCurrentSearch() {
+        viewModelScope.launch {
+            try {
+                repository.saveSearch(
+                    query = _intelligentSearchQuery.value.ifBlank { _searchQuery.value },
+                    category = _selectedCategory.value.ifBlank { null },
+                    city = _selectedCity.value.ifBlank { null },
+                    minPrice = null,
+                    maxPrice = _selectedMaxPrice.value
+                )
+                showSnackbar("Recherche sauvegardée")
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
+    }
+
+    fun deleteSavedSearch(id: Int) {
+        viewModelScope.launch {
+            try {
+                repository.deleteSavedSearch(id)
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
+    }
+
+    fun toggleSearchAlert(id: Int, enabled: Boolean) {
+        viewModelScope.launch {
+            try {
+                repository.toggleSearchAlert(id, enabled)
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
+    }
+
+    fun startVoiceSearch() {
+        viewModelScope.launch {
+            try {
+                _isVoiceSearching.value = true
+                _voiceSearchResult.value = null
+                delay(1500)
+                val mockResults = listOf(
+                    "Appartement meublé Libreville",
+                    "Véhicule 4x4 Port-Gentil",
+                    "Salle de fête Akanda",
+                    "Terrain constructible Owendo",
+                    "Caméra professionnelle Libreville"
+                )
+                val result = mockResults.random()
+                _voiceSearchResult.value = result
+                _intelligentSearchQuery.value = result
+                _searchQuery.value = result
+                repository.logVoiceSearch(result, result)
+                _isVoiceSearching.value = false
+                showSnackbar("Recherche vocale : $result")
+            } catch (e: Exception) {
+                _isVoiceSearching.value = false
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
+    }
+
+    fun logSearchToAnalytics(query: String) {
+        viewModelScope.launch {
+            try {
+                repository.logSearch(query)
+            } catch (e: Exception) {
+                // silent
+            }
+        }
+    }
+
+    // ==================== ANALYTICS & GROWTH ====================
+    val ownerAnalytics: StateFlow<OwnerAnalytics?> = repository.ownerAnalytics
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val marketInsights: StateFlow<List<MarketInsight>> = repository.marketInsights
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val pushNotificationSettings: StateFlow<PushNotificationSetting?> = repository.pushNotificationSettings
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val referralTrackingList: StateFlow<List<ReferralTracking>> = repository.referralTracking
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun savePushNotificationSettings(settings: PushNotificationSetting) {
+        viewModelScope.launch {
+            try {
+                repository.insertPushNotificationSettings(settings)
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
+    }
+
+    fun seedAnalyticsData() {
+        viewModelScope.launch {
+            try {
+                repository.insertOwnerAnalytics(
+                    OwnerAnalytics(
+                        totalViews = 1847,
+                        totalInquiries = 124,
+                        conversionRate = 6.7f,
+                        averageResponseTime = "12 min",
+                        topListingId = 1
+                    )
+                )
+                val insights = listOf(
+                    MarketInsight(category = "Immobilier", city = "Libreville", averagePrice = 72000, listingCount = 8, demandLevel = "Élevée", trend = "up", period = "Juin 2026"),
+                    MarketInsight(category = "Véhicules", city = "Libreville", averagePrice = 65000, listingCount = 6, demandLevel = "Moyenne", trend = "stable", period = "Juin 2026"),
+                    MarketInsight(category = "Équipements", city = "Libreville", averagePrice = 42000, listingCount = 5, demandLevel = "Élevée", trend = "up", period = "Juin 2026"),
+                    MarketInsight(category = "Immobilier", city = "Port-Gentil", averagePrice = 48000, listingCount = 3, demandLevel = "Moyenne", trend = "up", period = "Juin 2026"),
+                    MarketInsight(category = "Véhicules", city = "Franceville", averagePrice = 55000, listingCount = 2, demandLevel = "Faible", trend = "down", period = "Juin 2026")
+                )
+                for (insight in insights) {
+                    repository.insertMarketInsight(insight)
+                }
+                repository.insertPushNotificationSettings(PushNotificationSetting())
+                val referrals = listOf(
+                    ReferralTracking(referredUserId = 101, referredUserName = "Sophie Nguema", status = "verified", rewardEarned = 5000),
+                    ReferralTracking(referredUserId = 102, referredUserName = "Paul Obiang", status = "verified", rewardEarned = 5000),
+                    ReferralTracking(referredUserId = 103, referredUserName = "Marie-Claire", status = "pending", rewardEarned = 0)
+                )
+                for (ref in referrals) {
+                    repository.insertReferralTracking(ref)
+                }
+            } catch (e: Exception) {
+                // silent
+            }
+        }
+    }
+
     // Earnings wired to Room
     private val _earnings: StateFlow<List<EarningEntry>> = repository.earnings.map { entities ->
         entities.map { e -> EarningEntry(e.id, e.amount, e.date, e.source, e.status) }
@@ -295,6 +483,7 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             try {
                 repository.seedDatabase()
+                seedAnalyticsData()
             } catch (e: Exception) {
                 showSnackbar("Une erreur est survenue: ${e.message}")
             }
@@ -490,6 +679,11 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
             "post_listing" -> Screen.PostListing
             "profile" -> Screen.Profile
             "map_explorer" -> Screen.MapExplorer
+            "search_intelligence" -> Screen.SearchIntelligence
+            "owner_analytics" -> Screen.OwnerAnalytics
+            "market_insights" -> Screen.MarketInsights
+            "notification_settings" -> Screen.NotificationSettings
+            "referral_tracking" -> Screen.ReferralTracking
             else -> Screen.Home
         }
     }
@@ -909,6 +1103,224 @@ class RentalViewModel(application: Application) : AndroidViewModel(application) 
     fun sortItemsBy(option: SortOption) {
         _sortOption.value = option
     }
+
+    private val _selectedProfileUserId = MutableStateFlow(1)
+    val selectedProfileUserId: StateFlow<Int> = _selectedProfileUserId.asStateFlow()
+
+    fun setSelectedProfileUserId(userId: Int) { _selectedProfileUserId.value = userId }
+
+    private val _communityDisputes: StateFlow<List<CommunityDispute>> = repository.getAllCommunityDisputes()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val communityDisputes: StateFlow<List<CommunityDispute>> = _communityDisputes
+
+    fun insertCommunityDispute(dispute: CommunityDispute) {
+        viewModelScope.launch {
+            try {
+                repository.insertCommunityDispute(dispute)
+                showSnackbar("Signalement envoyé")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    fun voteDispute(id: Int, delta: Int) {
+        viewModelScope.launch {
+            try {
+                repository.voteDispute(id, delta)
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    private val _neighborhoodReviewsCity = MutableStateFlow("Libreville")
+    val neighborhoodReviewsCity: StateFlow<String> = _neighborhoodReviewsCity.asStateFlow()
+
+    fun setNeighborhoodCity(city: String) { _neighborhoodReviewsCity.value = city }
+
+    val neighborhoodReviews: StateFlow<List<NeighborhoodReview>> = _neighborhoodReviewsCity.flatMapLatest { city ->
+        repository.getNeighborhoodReviews(city)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun insertNeighborhoodReview(review: NeighborhoodReview) {
+        viewModelScope.launch {
+            try {
+                repository.insertNeighborhoodReview(review)
+                showSnackbar("Avis publié avec succès")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    val escrows: StateFlow<List<BookingEscrow>> = repository.getAllEscrows()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun releaseEscrow(id: Int) {
+        viewModelScope.launch {
+            try {
+                repository.updateEscrowStatus(id, "released", System.currentTimeMillis())
+                showSnackbar("Fonds libérés avec succès")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    fun refundEscrow(id: Int) {
+        viewModelScope.launch {
+            try {
+                repository.updateEscrowStatus(id, "refunded", System.currentTimeMillis())
+                showSnackbar("Fonds remboursés")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    val splitPayments: StateFlow<List<SplitPayment>> = repository.getAllSplitPayments()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun insertSplitPayment(split: SplitPayment) {
+        viewModelScope.launch {
+            try {
+                repository.insertSplitPayment(split)
+                showSnackbar("Paiement partagé créé")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    val paymentReceipts: StateFlow<List<PaymentReceipt>> = repository.getAllPaymentReceipts()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun insertPaymentReceipt(receipt: PaymentReceipt) {
+        viewModelScope.launch {
+            try {
+                repository.insertPaymentReceipt(receipt)
+                showSnackbar("Reçu enregistré")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    val calendarSyncs: StateFlow<List<CalendarSync>> = repository.getAllCalendarSyncs()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun toggleCalendarSync(id: Int, synced: Boolean) {
+        viewModelScope.launch {
+            try {
+                repository.updateCalendarSync(id, synced)
+                showSnackbar(if (synced) "Synchronisé avec Google Calendar" else "Désynchronisé")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    fun insertCalendarSync(sync: CalendarSync) {
+        viewModelScope.launch {
+            try {
+                repository.insertCalendarSync(sync)
+                showSnackbar("Événement ajouté au calendrier")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    fun getVerificationBadges(userId: Int): Flow<List<VerificationBadge>> = repository.getVerificationBadges(userId)
+    fun getFollowerCount(userId: Int): Flow<Int> = repository.getFollowerCount(userId)
+    fun getFollowingCount(userId: Int): Flow<Int> = repository.getFollowingCount(userId)
+    fun isFollowing(userId: Int): Flow<UserFollow?> = flow {
+        emit(repository.isFollowing(1, userId))
+    }
+
+    fun toggleFollow(userId: Int) {
+        viewModelScope.launch {
+            try {
+                repository.toggleFollow(1, userId)
+                showSnackbar("Action effectuée")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    private val _mediaItems = MutableStateFlow<List<MediaItem>>(emptyList())
+    val mediaItems: StateFlow<List<MediaItem>> = _mediaItems.asStateFlow()
+
+    private val _mediaUploadSettings = MutableStateFlow<MediaUploadSettings?>(null)
+    val mediaUploadSettings: StateFlow<MediaUploadSettings?> = _mediaUploadSettings.asStateFlow()
+
+    fun loadMediaForListing(listingId: Int) {
+        viewModelScope.launch {
+            try {
+                repository.getMediaItemsForListing(listingId).collect { items ->
+                    _mediaItems.value = items
+                }
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    fun addMockMediaItem(listingId: Int, mediaType: String) {
+        viewModelScope.launch {
+            try {
+                val mockUri = when (mediaType) {
+                    "image" -> "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80"
+                    "video" -> "https://example.com/mock_video_${System.currentTimeMillis()}.mp4"
+                    "360" -> "https://example.com/mock_360_${System.currentTimeMillis()}.jpg"
+                    else -> "https://example.com/mock_media.jpg"
+                }
+                val item = MediaItem(
+                    listingId = listingId,
+                    mediaType = mediaType,
+                    uri = mockUri,
+                    moderationStatus = "pending"
+                )
+                repository.insertMediaItem(item)
+                showSnackbar("Média ajouté avec succès")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    fun deleteMediaItem(id: Int) {
+        viewModelScope.launch {
+            try {
+                repository.deleteMediaItem(id)
+                showSnackbar("Média supprimé")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    fun moderateMediaItem(id: Int, status: String) {
+        viewModelScope.launch {
+            try {
+                repository.updateMediaModerationStatus(id, status)
+                showSnackbar("Statut mis à jour: $status")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    fun getPendingMediaItems(): Flow<List<MediaItem>> =
+        repository.getMediaItemsByStatus("pending")
+
+    fun getApprovedMediaItems(): Flow<List<MediaItem>> =
+        repository.getMediaItemsByStatus("approved")
+
+    fun getRejectedMediaItems(): Flow<List<MediaItem>> =
+        repository.getMediaItemsByStatus("rejected")
 }
 
 class RentalViewModelFactory(private val application: Application) : ViewModelProvider.Factory {

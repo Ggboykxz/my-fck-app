@@ -36,6 +36,7 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.size.Size
 import com.example.ui.components.*
+import com.example.ui.screens.RentalCard
 import com.example.ui.theme.*
 import com.example.ui.model.RentalCategory
 import com.example.ui.viewmodel.RentalViewModel

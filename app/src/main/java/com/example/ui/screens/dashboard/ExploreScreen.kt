@@ -62,6 +62,8 @@ fun ExploreScreen(
     val selectedCity by viewModel.selectedCity.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedMaxPrice by viewModel.selectedMaxPrice.collectAsState()
+    val intelligentSearchSuggestions by viewModel.searchSuggestions.collectAsState()
+    val savedSearches by viewModel.savedSearches.collectAsState()
 
     var sortOption by remember { mutableStateOf(SortOption.RECENT) }
     var selectedItemForModal by remember { mutableStateOf<RentalItem?>(null) }
@@ -74,6 +76,7 @@ fun ExploreScreen(
     var isGridMode by remember { mutableStateOf(true) }
     var recentSearches by remember { mutableStateOf(listOf<String>()) }
     var showRecentSearches by remember { mutableStateOf(false) }
+    var showAutocomplete by remember { mutableStateOf(false) }
     val isOwnerMode by viewModel.isOwnerMode.collectAsState()
     val context = LocalContext.current
     val isDataSaving by remember { mutableStateOf(DarkModeHelper.loadDataSavingMode(context)) }
@@ -176,7 +179,9 @@ fun ExploreScreen(
                     value = searchQuery,
                     onValueChange = {
                         viewModel.setSearchQuery(it)
+                        viewModel.setIntelligentSearchQuery(it)
                         showRecentSearches = it.isEmpty() && recentSearches.isNotEmpty()
+                        showAutocomplete = it.length >= 2
                     },
                     placeholder = { Text("Quartier, villa, SUV...", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp) },
                     leadingIcon = { SmoothIcon(Icons.Rounded.Search, contentDescription = "Rechercher", tint = Color.White.copy(alpha = 0.5f), backgroundColor = Color.White.copy(alpha = 0.08f), modifier = Modifier.size(32.dp), iconSize = 18.dp) },
@@ -241,6 +246,100 @@ fun ExploreScreen(
                     modifier = Modifier.size(48.dp).testTag("filter_button"),
                     iconSize = 20.dp
                 )
+            }
+
+            if (searchQuery.length >= 2) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(
+                        onClick = {
+                            viewModel.saveCurrentSearch()
+                            showAutocomplete = false
+                        },
+                        color = Color(0xFFFFB300).copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, Color(0xFFFFB300).copy(alpha = 0.3f)),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(Icons.Rounded.Bookmark, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(14.dp))
+                            Text("Sauvegarder", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFFB300))
+                        }
+                    }
+                    Surface(
+                        onClick = { viewModel.startVoiceSearch() },
+                        color = PrimaryGreen.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f)),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(Icons.Rounded.Mic, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
+                            Text("Vocal", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryGreen)
+                        }
+                    }
+                    Surface(
+                        onClick = {
+                            viewModel.logSearchToAnalytics(searchQuery)
+                            showAutocomplete = false
+                        },
+                        color = Color(0xFF4FC3F7).copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, Color(0xFF4FC3F7).copy(alpha = 0.3f)),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(Icons.Rounded.Analytics, contentDescription = null, tint = Color(0xFF4FC3F7), modifier = Modifier.size(14.dp))
+                            Text("Analyser", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4FC3F7))
+                        }
+                    }
+                }
+            }
+
+            if (showAutocomplete && intelligentSearchSuggestions.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+                ) {
+                    Column(modifier = Modifier.padding(8.dp)) {
+                        intelligentSearchSuggestions.take(4).forEach { suggestion ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        viewModel.setSearchQuery(suggestion.query)
+                                        viewModel.setIntelligentSearchQuery(suggestion.query)
+                                        showAutocomplete = false
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
+                                Text(suggestion.query, fontSize = 13.sp, color = Color.White, modifier = Modifier.weight(1f))
+                                Text("${suggestion.searchCount}", fontSize = 10.sp, color = Color.White.copy(alpha = 0.4f))
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -583,6 +682,7 @@ fun ExploreScreen(
                     Triple(Icons.Rounded.Add, "Publier une annonce", { viewModel.navigateTo("post_listing") }),
                     Triple(Icons.Rounded.Map, "Explorer la carte", { viewModel.navigateTo("map_explorer") }),
                     Triple(Icons.Rounded.Search, "Recherche avancée", { viewModel.navigateTo("advanced_search") }),
+                    Triple(Icons.Rounded.AutoAwesome, "Recherche intelligente", { viewModel.navigateTo("search_intelligence") }),
                     Triple(Icons.Rounded.Email, "Messages", { viewModel.navigateTo("messages") }),
                     Triple(Icons.Rounded.Person, "Mon profil", { viewModel.navigateTo("profile") })
                 ).forEach { (icon, label, action) ->

@@ -72,3 +72,24 @@ import kotlinx.serialization.Serializable
 @Serializable data object RouteProfileRealtimeVerification
 @Serializable data object RouteProfileInteractiveCalendar
 @Serializable data object RouteProfilePersonalStats
+@Serializable data class RouteUserProfile(val userId: Int = 1)
+@Serializable data object RouteCommunityDisputes
+@Serializable data object RouteNeighborhoodReviews
+@Serializable data object RouteEscrow
+@Serializable data class RouteSplitPayment(val bookingId: Int = 0)
+@Serializable data object RoutePaymentReceipts
+@Serializable data object RouteCalendarSync
+
+// ─── Search Intelligence (1 route) ───
+@Serializable data object RouteSearchIntelligence
+
+// ─── Analytics & Growth (4 routes) ───
+@Serializable data object RouteOwnerAnalytics
+@Serializable data object RouteMarketInsights
+@Serializable data object RouteNotificationSettings
+@Serializable data object RouteReferralTracking
+
+// ─── Content & Media (3 routes) ───
+@Serializable data class RouteMedia(val listingId: Int = 0)
+@Serializable data object RouteVideoListing
+@Serializable data object RouteImageModeration

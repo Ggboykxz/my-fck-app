@@ -442,7 +442,8 @@ fun SecuritySettingsScreen(
 @Composable
 fun SettingsScreen(
     viewModel: RentalViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigate: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     var notificationsEnabled by remember { mutableStateOf(true) }
@@ -539,13 +540,16 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         listOf(
-            Triple(Icons.Rounded.Password, "Changer le mot de passe", "Dernière modification il y a 3 mois"),
-            Triple(Icons.Rounded.Delete, "Supprimer mon compte", "Action irréversible"),
-            Triple(Icons.Rounded.Description, "Conditions Générales", "CGU v1.0"),
-            Triple(Icons.Rounded.Shield, "Politique de Confidentialité", "RGPD")
-        ).forEach { (icon, title, subtitle) ->
+            Triple(Icons.Rounded.Language, "Langue / Language", "Choisir la langue de l'application") to "language",
+            Triple(Icons.Rounded.Password, "Changer le mot de passe", "Dernière modification il y a 3 mois") to null,
+            Triple(Icons.Rounded.Delete, "Supprimer mon compte", "Action irréversible") to "delete",
+            Triple(Icons.Rounded.Description, "Conditions Générales", "CGU v1.0") to null,
+            Triple(Icons.Rounded.Shield, "Politique de Confidentialité", "RGPD") to null
+        ).forEach { (pair, action) ->
+            val (icon, title, subtitle) = pair
             Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable {
-                if (title == "Supprimer mon compte") showDeleteDialog = true
+                if (action == "delete") showDeleteDialog = true
+                else if (action == "language") onNavigate("language")
             }, shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
                 Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Icon(icon, contentDescription = null, tint = if (title == "Supprimer mon compte") Color(0xFFEF5350) else Color.White.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))

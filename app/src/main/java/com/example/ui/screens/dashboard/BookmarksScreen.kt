@@ -18,6 +18,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.RentalItem
 import com.example.ui.components.*
+import com.example.ui.screens.RentalCard
+import com.example.ui.screens.RentalDetailModalDialog
+import com.example.ui.screens.BookingInteractiveDialog
 import com.example.ui.viewmodel.RentalViewModel
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 

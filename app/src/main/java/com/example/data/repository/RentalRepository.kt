@@ -137,6 +137,129 @@ class RentalRepository(private val rentalDao: RentalDao) {
     suspend fun insertPaymentHistory(payment: PaymentHistoryEntity) =
         rentalDao.insertPaymentHistory(payment)
 
+    // Saved Searches
+    val savedSearches: Flow<List<SavedSearch>> = rentalDao.getSavedSearches()
+
+    fun searchSuggestions(prefix: String): Flow<List<SearchSuggestion>> =
+        rentalDao.getSearchSuggestions(prefix)
+
+    val trendingSearches: Flow<List<SearchSuggestion>> = rentalDao.getTrendingSearches()
+
+    val voiceSearchHistory: Flow<List<VoiceSearchHistory>> = rentalDao.getVoiceSearchHistory()
+
+    suspend fun saveSearch(query: String, category: String?, city: String?, minPrice: Int?, maxPrice: Int?) =
+        rentalDao.insertSavedSearch(SavedSearch(query = query, category = category, city = city, minPrice = minPrice, maxPrice = maxPrice))
+
+    suspend fun deleteSavedSearch(id: Int) = rentalDao.deleteSavedSearch(id)
+
+    suspend fun toggleSearchAlert(id: Int, enabled: Boolean) = rentalDao.toggleSearchAlert(id, enabled)
+
+    suspend fun logSearch(query: String) {
+        val now = System.currentTimeMillis()
+        val existing = rentalDao.getSearchSuggestions(query, 1).first()
+        if (existing.isNotEmpty()) {
+            rentalDao.incrementSearchSuggestion(query, now)
+        } else {
+            rentalDao.insertSearchSuggestionIfNotExists(query, now)
+        }
+    }
+
+    suspend fun logVoiceSearch(spoken: String, interpreted: String) =
+        rentalDao.insertVoiceSearch(VoiceSearchHistory(spokenText = spoken, interpretedQuery = interpreted))
+
+    fun getSearchAnalytics(): Flow<List<SearchSuggestion>> = rentalDao.getSearchAnalytics()
+
+    // Owner Analytics
+    val ownerAnalytics: Flow<OwnerAnalytics?> = rentalDao.getOwnerAnalytics()
+
+    suspend fun insertOwnerAnalytics(analytics: OwnerAnalytics) = rentalDao.insertOwnerAnalytics(analytics)
+
+    // Market Insights
+    val marketInsights: Flow<List<MarketInsight>> = rentalDao.getMarketInsights()
+
+    suspend fun insertMarketInsight(insight: MarketInsight) = rentalDao.insertMarketInsight(insight)
+
+    // Push Notification Settings
+    val pushNotificationSettings: Flow<PushNotificationSetting?> = rentalDao.getPushNotificationSettings()
+
+    suspend fun insertPushNotificationSettings(settings: PushNotificationSetting) = rentalDao.insertPushNotificationSettings(settings)
+
+    // Referral Tracking
+    val referralTracking: Flow<List<ReferralTracking>> = rentalDao.getReferralTracking()
+
+    suspend fun insertReferralTracking(referral: ReferralTracking) = rentalDao.insertReferralTracking(referral)
+
+    suspend fun toggleFollow(followerId: Int, followedId: Int) {
+        val existing = rentalDao.getFollow(followerId, followedId)
+        if (existing != null) rentalDao.unfollow(followerId, followedId)
+        else rentalDao.insertUserFollow(UserFollow(followerId = followerId, followedId = followedId))
+    }
+
+    fun getFollowerCount(userId: Int): Flow<Int> = rentalDao.getFollowerCount(userId)
+    fun getFollowingCount(userId: Int): Flow<Int> = rentalDao.getFollowingCount(userId)
+    suspend fun isFollowing(followerId: Int, followedId: Int): UserFollow? = rentalDao.getFollow(followerId, followedId)
+
+    fun getVerificationBadges(userId: Int): Flow<List<VerificationBadge>> = rentalDao.getVerificationBadges(userId)
+    suspend fun insertVerificationBadge(badge: VerificationBadge) = rentalDao.insertVerificationBadge(badge)
+
+    suspend fun insertCommunityDispute(dispute: CommunityDispute) = rentalDao.insertCommunityDispute(dispute)
+    fun getAllCommunityDisputes(): Flow<List<CommunityDispute>> = rentalDao.getAllCommunityDisputes()
+    fun getUserDisputes(userId: Int): Flow<List<CommunityDispute>> = rentalDao.getUserDisputes(userId)
+    suspend fun voteDispute(id: Int, delta: Int) = rentalDao.voteDispute(id, delta)
+
+    fun getNeighborhoodReviews(city: String): Flow<List<NeighborhoodReview>> = rentalDao.getNeighborhoodReviews(city)
+    suspend fun insertNeighborhoodReview(review: NeighborhoodReview) = rentalDao.insertNeighborhoodReview(review)
+
+    fun getAllEscrows(): Flow<List<BookingEscrow>> = rentalDao.getAllEscrows()
+    fun getEscrowsByStatus(status: String): Flow<List<BookingEscrow>> = rentalDao.getEscrowsByStatus(status)
+    suspend fun insertEscrow(escrow: BookingEscrow) = rentalDao.insertEscrow(escrow)
+    suspend fun updateEscrowStatus(id: Int, status: String, releasedAt: Long? = null) = rentalDao.updateEscrowStatus(id, status, releasedAt)
+
+    suspend fun insertSplitPayment(split: SplitPayment) = rentalDao.insertSplitPayment(split)
+    fun getAllSplitPayments(): Flow<List<SplitPayment>> = rentalDao.getAllSplitPayments()
+    fun getSplitPaymentForBooking(bookingId: Int): Flow<List<SplitPayment>> = rentalDao.getSplitPaymentForBooking(bookingId)
+
+    suspend fun insertPaymentReminder(reminder: PaymentReminder) = rentalDao.insertPaymentReminder(reminder)
+    fun getAllPaymentReminders(): Flow<List<PaymentReminder>> = rentalDao.getAllPaymentReminders()
+
+    suspend fun insertPaymentReceipt(receipt: PaymentReceipt) = rentalDao.insertPaymentReceipt(receipt)
+    fun getAllPaymentReceipts(): Flow<List<PaymentReceipt>> = rentalDao.getAllPaymentReceipts()
+    fun getReceiptsForBooking(bookingId: Int): Flow<List<PaymentReceipt>> = rentalDao.getReceiptsForBooking(bookingId)
+
+    suspend fun insertCalendarSync(sync: CalendarSync) = rentalDao.insertCalendarSync(sync)
+    fun getAllCalendarSyncs(): Flow<List<CalendarSync>> = rentalDao.getAllCalendarSyncs()
+    suspend fun updateCalendarSync(id: Int, synced: Boolean) = rentalDao.updateCalendarSync(id, synced)
+
+    fun getMediaItemsForListing(listingId: Int): Flow<List<MediaItem>> =
+        rentalDao.getMediaItemsForListing(listingId)
+
+    suspend fun getMediaItemById(id: Int): MediaItem? =
+        rentalDao.getMediaItemById(id)
+
+    suspend fun insertMediaItem(mediaItem: MediaItem): Long =
+        rentalDao.insertMediaItem(mediaItem)
+
+    suspend fun updateMediaItem(mediaItem: MediaItem) =
+        rentalDao.updateMediaItem(mediaItem)
+
+    suspend fun deleteMediaItem(id: Int) =
+        rentalDao.deleteMediaItem(id)
+
+    suspend fun updateMediaModerationStatus(id: Int, status: String) =
+        rentalDao.updateMediaModerationStatus(id, status)
+
+    fun getMediaItemsByStatus(status: String): Flow<List<MediaItem>> =
+        rentalDao.getMediaItemsByStatus(status)
+
+    suspend fun upsertMediaUploadSettings(settings: MediaUploadSettings) =
+        rentalDao.upsertMediaUploadSettings(settings)
+
+    fun getMediaUploadSettings(): Flow<MediaUploadSettings?> =
+        rentalDao.getMediaUploadSettings()
+
+    suspend fun deleteMediaItemsForListing(listingId: Int) =
+        rentalDao.deleteMediaItemsForListing(listingId)
+
     suspend fun seedDatabase() {
         val currentItems = allRentalItems.first()
         if (currentItems.isEmpty()) {

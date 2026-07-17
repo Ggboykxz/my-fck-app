@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.example.data.model.*
 
 @Database(
@@ -17,11 +18,30 @@ import com.example.data.model.*
         DisputeEntity::class,
         EarningEntity::class,
         ReviewEntity::class,
-        PaymentHistoryEntity::class
+        PaymentHistoryEntity::class,
+        SavedSearch::class,
+        SearchSuggestion::class,
+        VoiceSearchHistory::class,
+        OwnerAnalytics::class,
+        MarketInsight::class,
+        PushNotificationSetting::class,
+        ReferralTracking::class,
+        UserFollow::class,
+        VerificationBadge::class,
+        CommunityDispute::class,
+        NeighborhoodReview::class,
+        BookingEscrow::class,
+        SplitPayment::class,
+        PaymentReminder::class,
+        PaymentReceipt::class,
+        CalendarSync::class,
+        MediaItem::class,
+        MediaUploadSettings::class
     ],
-    version = 3,
+    version = 6,
     exportSchema = false
 )
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun rentalDao(): RentalDao
 

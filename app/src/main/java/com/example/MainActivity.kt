@@ -17,6 +17,7 @@ import com.example.ui.screens.OnboardingNavigator
 import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.theme.isDarkMode
 import com.example.ui.theme.DarkModeHelper
+import com.example.ui.theme.LanguageHelper
 import com.example.ui.viewmodel.RentalViewModel
 import com.example.ui.viewmodel.RentalViewModelFactory
 
@@ -29,13 +30,14 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // Edge to edge immersive design framework
+
         enableEdgeToEdge()
-        
-        // Load persisted dark mode preference
+
         isDarkMode = DarkModeHelper.loadDarkMode(this)
-        
+
+        val language = LanguageHelper.loadLanguage(this)
+        val localizedContext = LanguageHelper.applyLanguage(this, language)
+
         setContent {
             MyApplicationTheme(darkTheme = isDarkMode) {
                 Surface(
@@ -46,18 +48,14 @@ class MainActivity : ComponentActivity() {
                     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
 
                     if (onboardingStep < 4) {
-                        // User is still going through onboarding screens or splash screen
                         OnboardingNavigator(
                             viewModel = viewModel,
                             onFinished = {
-                                // Onboarding done! Direct transition is handled in VM
                             }
                         )
                     } else if (!isLoggedIn) {
-                        // User needs to authenticate first
                         AuthNavigator(viewModel = viewModel)
                     } else {
-                        // Enter full LocAll explore dashboard
                         MainDashboardViewNavHost(viewModel = viewModel)
                     }
                 }
