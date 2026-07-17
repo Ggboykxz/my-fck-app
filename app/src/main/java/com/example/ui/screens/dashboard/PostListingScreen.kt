@@ -3,6 +3,7 @@ package com.example.ui.screens
 import android.content.Context
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -41,6 +42,7 @@ import com.example.ui.viewmodel.RentalViewModel
 
 private const val DRAFT_PREFS = "listing_draft"
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PostListingScreen(viewModel: RentalViewModel) {
     val context = LocalContext.current

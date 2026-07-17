@@ -11,7 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.example.ui.screens.AuthNavigator
+import com.example.ui.screens.auth.AuthNavigator
 import com.example.ui.screens.MainDashboardViewNavHost
 import com.example.ui.screens.OnboardingNavigator
 import com.example.ui.theme.MyApplicationTheme

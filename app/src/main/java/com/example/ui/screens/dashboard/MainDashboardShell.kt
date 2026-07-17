@@ -22,7 +22,9 @@ import com.example.ui.components.*
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
 import com.example.ui.viewmodel.Screen
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MainDashboardView(viewModel: RentalViewModel) {
     val currentScreen by viewModel.currentScreen.collectAsState()

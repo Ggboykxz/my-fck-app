@@ -19,7 +19,9 @@ import androidx.compose.ui.unit.sp
 import com.example.data.model.RentalItem
 import com.example.ui.components.*
 import com.example.ui.viewmodel.RentalViewModel
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun BookmarksScreen(viewModel: RentalViewModel) {
     val items by viewModel.bookmarkedItems.collectAsState()

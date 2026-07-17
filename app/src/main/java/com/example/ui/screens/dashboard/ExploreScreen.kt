@@ -43,13 +43,19 @@ import com.example.ui.components.*
 import com.example.ui.theme.*
 import com.example.ui.model.RentalCategory
 import com.example.ui.viewmodel.RentalViewModel
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import com.example.ui.theme.DarkModeHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun ExploreScreen(viewModel: RentalViewModel) {
+fun ExploreScreen(
+    viewModel: RentalViewModel,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
+    onNavigateToDetails: ((RentalItem) -> Unit)? = null
+) {
     val items by viewModel.filteredRentalItems.collectAsState()
     val rawItems by viewModel.rawRentalItems.collectAsState()
     val selectedCat by viewModel.selectedCategory.collectAsState()
@@ -428,9 +434,17 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                             ) {
                                 RentalCardCompact(
                                     item = item,
-                                    onSelect = { selectedItemForModal = item },
+                                    onSelect = {
+                                        if (onNavigateToDetails != null) {
+                                            onNavigateToDetails(item)
+                                        } else {
+                                            selectedItemForModal = item
+                                        }
+                                    },
                                     onBookmarkToggle = { viewModel.toggleBookmark(item) },
-                                    dataSavingMode = isDataSaving
+                                    dataSavingMode = isDataSaving,
+                                    sharedTransitionScope = sharedTransitionScope,
+                                    animatedVisibilityScope = animatedVisibilityScope
                                 )
                             }
                         }
@@ -452,7 +466,13 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                     ) {
                         RentalCard(
                             item = item,
-                            onSelect = { selectedItemForModal = item },
+                            onSelect = {
+                                if (onNavigateToDetails != null) {
+                                    onNavigateToDetails(item)
+                                } else {
+                                    selectedItemForModal = item
+                                }
+                            },
                             onBookmarkToggle = { viewModel.toggleBookmark(item) },
                             onChat = {
                                 viewModel.selectItem(item)
@@ -460,7 +480,9 @@ fun ExploreScreen(viewModel: RentalViewModel) {
                                 viewModel.navigateTo("chat")
                             },
                             onBook = { showBookingFromModal = item },
-                            dataSavingMode = isDataSaving
+                            dataSavingMode = isDataSaving,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope
                         )
                     }
                 }
@@ -746,7 +768,7 @@ fun FilterBottomSheet(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun RentalCard(
     item: RentalItem,
@@ -754,18 +776,39 @@ fun RentalCard(
     onBookmarkToggle: () -> Unit,
     onChat: () -> Unit,
     onBook: () -> Unit,
-    dataSavingMode: Boolean = false
+    dataSavingMode: Boolean = false,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     var showContextMenu by remember { mutableStateOf(false) }
 
-    Card(
-        modifier = Modifier
+    val cardModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+        with(sharedTransitionScope) {
+            Modifier
+                .fillMaxWidth()
+                .sharedElement(
+                    state = rememberSharedContentState(key = "listing-image-${item.id}"),
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    boundsTransform = { _, _ -> tween(300) }
+                )
+                .combinedClickable(
+                    onClick = { onSelect() },
+                    onLongClick = { showContextMenu = true }
+                )
+                .testTag("rental_card_${item.id}")
+        }
+    } else {
+        Modifier
             .fillMaxWidth()
             .combinedClickable(
                 onClick = { onSelect() },
                 onLongClick = { showContextMenu = true }
             )
-            .testTag("rental_card_${item.id}"),
+            .testTag("rental_card_${item.id}")
+    }
+
+    Card(
+        modifier = cardModifier,
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -1453,22 +1496,43 @@ private fun AnimatedCounter(count: Int, color: Color) {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun RentalCardCompact(
     item: RentalItem,
     onSelect: () -> Unit,
     onBookmarkToggle: () -> Unit,
-    dataSavingMode: Boolean = false
+    dataSavingMode: Boolean = false,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
-    Card(
-        modifier = Modifier
+    val cardModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+        with(sharedTransitionScope) {
+            Modifier
+                .fillMaxWidth()
+                .sharedElement(
+                    state = rememberSharedContentState(key = "listing-image-${item.id}"),
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    boundsTransform = { _, _ -> tween(300) }
+                )
+                .combinedClickable(
+                    onClick = { onSelect() },
+                    onLongClick = {}
+                )
+                .testTag("rental_card_compact_${item.id}")
+        }
+    } else {
+        Modifier
             .fillMaxWidth()
             .combinedClickable(
                 onClick = { onSelect() },
                 onLongClick = {}
             )
-            .testTag("rental_card_compact_${item.id}"),
+            .testTag("rental_card_compact_${item.id}")
+    }
+
+    Card(
+        modifier = cardModifier,
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))

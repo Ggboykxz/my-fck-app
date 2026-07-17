@@ -1,5 +1,8 @@
 package com.example.ui.screens
 
+import androidx.compose.animation.*
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -52,11 +55,14 @@ import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun ItemDetailsScreen(
     item: RentalItem,
     viewModel: RentalViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null
 ) {
     val context = LocalContext.current
     var showBookingDialog by remember { mutableStateOf(false) }
@@ -75,11 +81,26 @@ fun ItemDetailsScreen(
     ) {
         // Picture header with horizontal pager gallery
         item {
-            Box(
-                modifier = Modifier
+            val headerModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                with(sharedTransitionScope) {
+                    Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1.5f)
+                        .sharedElement(
+                            state = rememberSharedContentState(key = "listing-image-${item.id}"),
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            boundsTransform = { _, _ -> tween(300) }
+                        )
+                        .offset(y = with(LocalDensity.current) { -(lazyListState.firstVisibleItemScrollOffset * 0.4f).toDp() })
+                }
+            } else {
+                Modifier
                     .fillMaxWidth()
                     .aspectRatio(1.5f)
                     .offset(y = with(LocalDensity.current) { -(lazyListState.firstVisibleItemScrollOffset * 0.4f).toDp() })
+            }
+            Box(
+                modifier = headerModifier
             ) {
                 val galleryImages = remember(item.imageUrl) {
                     listOfNotNull(item.imageUrl) + listOf(
