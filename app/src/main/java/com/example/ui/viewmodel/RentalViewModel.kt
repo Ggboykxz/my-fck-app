@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+
 data class RentalReview(
     val rentalItemId: Int,
     val rating: Int,
@@ -61,10 +62,10 @@ data class PaymentEntry(val id: Int, val amount: Int, val date: String, val desc
 // ReceivedBooking removed — using ReceivedReservation from Entities.kt
 data class MediationMessage(val sender: String, val message: String, val time: String, val isSystem: Boolean = false)
 
-class RentalViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val db = AppDatabase.getDatabase(application)
-    private val repository = RentalRepository(db.rentalDao())
+class RentalViewModel(
+    application: Application,
+    private val repository: RentalRepository
+) : AndroidViewModel(application) {
 
     // Reviews wired to Room
     private val _reviews = MutableStateFlow<Map<Int, List<RentalReview>>>(emptyMap())
@@ -1327,7 +1328,8 @@ class RentalViewModelFactory(private val application: Application) : ViewModelPr
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(RentalViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return RentalViewModel(application) as T
+            val repository = com.example.di.AppContainer.getRepository(application)
+            return RentalViewModel(application, repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

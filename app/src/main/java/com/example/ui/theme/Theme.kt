@@ -18,28 +18,56 @@ var isDarkMode by mutableStateOf(true)
 
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryGreen,
-    secondary = SoftGreen80,
-    tertiary = Grey80,
-    background = BrandNavy,
-    surface = Color(0xFF162133),
     onPrimary = BrandNavy,
-    onSecondary = Color.White,
+    primaryContainer = PrimaryGreen.copy(alpha = 0.15f),
+    onPrimaryContainer = PrimaryGreen,
+    secondary = SoftGreen80,
+    onSecondary = BrandNavy,
+    secondaryContainer = SoftGreen80.copy(alpha = 0.15f),
+    onSecondaryContainer = SoftGreen80,
+    tertiary = Grey80,
     onTertiary = BrandNavy,
+    tertiaryContainer = Grey80.copy(alpha = 0.15f),
+    onTertiaryContainer = Grey80,
+    background = BrandNavy,
     onBackground = Color.White,
-    onSurface = Color.White
+    surface = Color(0xFF162133),
+    onSurface = Color.White,
+    surfaceVariant = DarkSurfaceVariant,
+    onSurfaceVariant = DarkOnSurfaceVariant,
+    error = DarkError,
+    onError = DarkOnError,
+    outline = DarkOutline,
+    inverseSurface = DarkInverseSurface,
+    inverseOnSurface = DarkInverseOnSurface,
+    inversePrimary = DarkInversePrimary
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = PrimaryGreen,
-    secondary = SoftGreen80,
-    tertiary = Grey80,
-    background = Color(0xFFF5F5F5),
-    surface = Color.White,
     onPrimary = BrandNavy,
+    primaryContainer = PrimaryGreen.copy(alpha = 0.12f),
+    onPrimaryContainer = BrandNavy,
+    secondary = Green40,
     onSecondary = Color.White,
-    onTertiary = BrandNavy,
+    secondaryContainer = SoftGreen40.copy(alpha = 0.15f),
+    onSecondaryContainer = BrandNavy,
+    tertiary = Grey40,
+    onTertiary = Color.White,
+    tertiaryContainer = Grey40.copy(alpha = 0.15f),
+    onTertiaryContainer = BrandNavy,
+    background = Color(0xFFF5F5F5),
     onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F)
+    surface = Color.White,
+    onSurface = Color(0xFF1C1B1F),
+    surfaceVariant = LightSurfaceVariant,
+    onSurfaceVariant = LightOnSurfaceVariant,
+    error = LightError,
+    onError = LightOnError,
+    outline = LightOutline,
+    inverseSurface = LightInverseSurface,
+    inverseOnSurface = LightInverseOnSurface,
+    inversePrimary = LightInversePrimary
 )
 
 @Composable

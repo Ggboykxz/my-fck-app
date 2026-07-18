@@ -11,24 +11,24 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.example.ui.screens.auth.AuthNavigator
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.ui.screens.MainDashboardViewNavHost
-import com.example.ui.screens.OnboardingNavigator
 import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.theme.isDarkMode
 import com.example.ui.theme.DarkModeHelper
 import com.example.ui.theme.LanguageHelper
 import com.example.ui.viewmodel.RentalViewModel
 import com.example.ui.viewmodel.RentalViewModelFactory
+import com.example.navigation.RootNavigator
 
 class MainActivity : ComponentActivity() {
-    
-    // Inject ViewModel
+
     private val viewModel: RentalViewModel by viewModels {
         RentalViewModelFactory(application)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
@@ -44,17 +44,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val onboardingStep by viewModel.onboardingStep.collectAsState()
                     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
 
-                    if (onboardingStep < 4) {
-                        OnboardingNavigator(
-                            viewModel = viewModel,
-                            onFinished = {
-                            }
-                        )
-                    } else if (!isLoggedIn) {
-                        AuthNavigator(viewModel = viewModel)
+                    if (!isLoggedIn) {
+                        RootNavigator(viewModel = viewModel, context = this@MainActivity)
                     } else {
                         MainDashboardViewNavHost(viewModel = viewModel)
                     }

@@ -41,3 +41,15 @@
 -keep class coil.request.** { *; }
 -keep class coil.size.** { *; }
 -keep class coil.cache.** { *; }
+
+# Hilt
+-keep class dagger.hilt.** { *; }
+-keep class javax.inject.** { *; }
+-keep class * extends dagger.hilt.android.internal.managers.ViewComponentManager$FragmentContextWrapper { *; }
+
+# EncryptedSharedPreferences
+-keep class androidx.security.crypto.** { *; }
+
+# WorkManager
+-keep class * extends androidx.work.Worker
+-keep class * extends androidx.work.ListenableWorker

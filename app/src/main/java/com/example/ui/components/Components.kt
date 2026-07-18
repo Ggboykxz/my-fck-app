@@ -34,6 +34,20 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
 
 // ==================== SKELETON LOADING ====================
+
+@Composable
+fun NotificationBadge(count: Int, modifier: Modifier = Modifier) {
+    if (count > 0) {
+        Badge(
+            modifier = modifier,
+            containerColor = Color(0xFFE53935),
+            contentColor = Color.White
+        ) {
+            Text(if (count > 99) "99+" else "$count", fontSize = 9.sp)
+        }
+    }
+}
+
 @Composable
 fun SkeletonCard(modifier: Modifier = Modifier) {
     val shimmerColors = listOf(

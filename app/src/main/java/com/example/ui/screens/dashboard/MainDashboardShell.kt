@@ -49,6 +49,7 @@ fun MainDashboardView(viewModel: RentalViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
                 .background(BrandNavy)
         ) {
             AnimatedContent(
@@ -166,6 +167,7 @@ fun MainDashboardViewNavHost(viewModel: RentalViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
                 .background(BrandNavy)
         ) {
             DashboardNavHost(
