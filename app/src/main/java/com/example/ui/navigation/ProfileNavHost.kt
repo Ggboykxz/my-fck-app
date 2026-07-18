@@ -407,6 +407,12 @@ fun ProfileNavHost(
                 onBack = { navController.popBackStack() }
             )
         }
+
+        composable<RouteMockNotifications> {
+            com.example.ui.screens.profile.MockNotificationsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
     }
 }
@@ -459,6 +465,7 @@ private fun destToRoute(dest: String): String {
         "payment_receipts" -> RoutePaymentReceipts::class.qualifiedName!!
         "calendar_sync" -> RouteCalendarSync::class.qualifiedName!!
         "neighborhood_reviews" -> RouteNeighborhoodReviews::class.qualifiedName!!
+        "mock_notifications" -> RouteMockNotifications::class.qualifiedName!!
         else -> RouteProfileMain::class.qualifiedName!!
     }
 }

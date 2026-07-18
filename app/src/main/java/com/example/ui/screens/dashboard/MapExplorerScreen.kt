@@ -532,7 +532,7 @@ fun MapExplorerScreen(
                             modifier = Modifier.heightIn(max = 260.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            items(selectedCityListings.take(10)) { item ->
+                            items(selectedCityListings.take(10), key = { it.id }) { item ->
                                 CityListingItem(
                                     item = item,
                                     onClick = { onSelectItem(item) }
@@ -569,7 +569,7 @@ fun MapExplorerScreen(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
-                items(cityNames) { cityName ->
+                items(cityNames, key = { it }) { cityName ->
                     val cityItems = listingsByCity[cityName] ?: emptyList()
                     val cityPin = gabonCities.find { it.name == cityName }
 

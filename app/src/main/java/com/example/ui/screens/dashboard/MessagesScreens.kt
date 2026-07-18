@@ -361,7 +361,7 @@ fun ChatRoomScreen(
                                 ) {
                                     Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                         Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(PrimaryGreen.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
-                                            Icon(Icons.Rounded.LocationOn, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(18.dp))
+                                            Icon(Icons.Rounded.LocationOn, contentDescription = "Position", tint = PrimaryGreen, modifier = Modifier.size(18.dp))
                                         }
                                         Column {
                                             Text("Position partagée", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)

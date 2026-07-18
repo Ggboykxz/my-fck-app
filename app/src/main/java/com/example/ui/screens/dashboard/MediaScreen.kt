@@ -175,7 +175,7 @@ fun MediaScreen(
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Rounded.Add, contentDescription = "Ajouter", modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
                 Text("Ajouter", fontWeight = FontWeight.Bold, fontSize = 13.sp)
             }
@@ -196,7 +196,7 @@ fun MediaScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Icon(Icons.Rounded.WaterDrop, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Rounded.WaterDrop, contentDescription = "Stockage", tint = PrimaryGreen, modifier = Modifier.size(20.dp))
                     Text("Ajouter filigrane", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
                 Switch(
@@ -234,7 +234,7 @@ fun MediaScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Icon(Icons.Rounded.PhotoLibrary, contentDescription = null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
+                    Icon(Icons.Rounded.PhotoLibrary, contentDescription = "Galerie", tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
                     Text("Aucun média", color = Color.White.copy(alpha = 0.5f), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Text("Ajoutez des photos ou vidéos à votre annonce", color = Color.White.copy(alpha = 0.35f), fontSize = 13.sp, textAlign = TextAlign.Center)
                 }

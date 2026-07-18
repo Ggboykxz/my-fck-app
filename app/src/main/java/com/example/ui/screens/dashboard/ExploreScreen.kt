@@ -269,7 +269,7 @@ fun ExploreScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Icon(Icons.Rounded.Bookmark, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(14.dp))
+                            Icon(Icons.Rounded.Bookmark, contentDescription = "Sauvegarder", tint = Color(0xFFFFB300), modifier = Modifier.size(14.dp))
                             Text("Sauvegarder", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFFB300))
                         }
                     }
@@ -285,7 +285,7 @@ fun ExploreScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Icon(Icons.Rounded.Mic, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
+                            Icon(Icons.Rounded.Mic, contentDescription = "Recherche vocale", tint = PrimaryGreen, modifier = Modifier.size(14.dp))
                             Text("Vocal", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryGreen)
                         }
                     }
@@ -304,7 +304,7 @@ fun ExploreScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Icon(Icons.Rounded.Analytics, contentDescription = null, tint = Color(0xFF4FC3F7), modifier = Modifier.size(14.dp))
+                            Icon(Icons.Rounded.Analytics, contentDescription = "Analyser", tint = Color(0xFF4FC3F7), modifier = Modifier.size(14.dp))
                             Text("Analyser", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4FC3F7))
                         }
                     }
@@ -333,7 +333,7 @@ fun ExploreScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
+                                Icon(Icons.Rounded.TrendingUp, contentDescription = "Tendance", tint = PrimaryGreen, modifier = Modifier.size(14.dp))
                                 Text(suggestion.query, fontSize = 13.sp, color = Color.White, modifier = Modifier.weight(1f))
                                 Text("${suggestion.searchCount}", fontSize = 10.sp, color = Color.White.copy(alpha = 0.4f))
                             }
@@ -380,7 +380,7 @@ fun ExploreScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                Icon(Icons.Rounded.History, contentDescription = null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(16.dp))
+                                Icon(Icons.Rounded.History, contentDescription = "Historique", tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(16.dp))
                                 Text(search, fontSize = 13.sp, color = Color.White.copy(alpha = 0.7f))
                             }
                         }
@@ -929,7 +929,7 @@ fun RentalCard(
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Image,
-                            contentDescription = null,
+                            contentDescription = "Image non disponible",
                             tint = Color.White.copy(alpha = 0.3f),
                             modifier = Modifier.size(48.dp)
                         )
@@ -1149,17 +1149,17 @@ fun RentalCard(
             DropdownMenuItem(
                 text = { Text("Voir détails") },
                 onClick = { showContextMenu = false; onSelect() },
-                leadingIcon = { Icon(Icons.Rounded.Info, contentDescription = null) }
+                leadingIcon = { Icon(Icons.Rounded.Info, contentDescription = "Information", tint = PrimaryGreen) }
             )
             DropdownMenuItem(
                 text = { Text("Contacter") },
                 onClick = { showContextMenu = false; onChat() },
-                leadingIcon = { Icon(Icons.Rounded.Chat, contentDescription = null) }
+                leadingIcon = { Icon(Icons.Rounded.Chat, contentDescription = "Message", tint = PrimaryGreen) }
             )
             DropdownMenuItem(
                 text = { Text("Signaler", color = Color.Red) },
                 onClick = { showContextMenu = false },
-                leadingIcon = { Icon(Icons.Rounded.Flag, contentDescription = null, tint = Color.Red) }
+                leadingIcon = { Icon(Icons.Rounded.Flag, contentDescription = "Signaler", tint = Color.Red) }
             )
         }
     }
@@ -1652,7 +1652,7 @@ fun RentalCardCompact(
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Image,
-                            contentDescription = null,
+                            contentDescription = "Image non disponible",
                             tint = Color.White.copy(alpha = 0.3f),
                             modifier = Modifier.size(36.dp)
                         )
@@ -1719,7 +1719,7 @@ fun RentalCardCompact(
                 ) {
                     Icon(
                         Icons.Rounded.LocationOn,
-                        contentDescription = null,
+                        contentDescription = "Position",
                         tint = PrimaryGreen,
                         modifier = Modifier.size(10.dp)
                     )

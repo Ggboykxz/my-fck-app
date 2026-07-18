@@ -1,5 +1,6 @@
 package com.example
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,6 +21,7 @@ import com.example.ui.theme.LanguageHelper
 import com.example.ui.viewmodel.RentalViewModel
 import com.example.ui.viewmodel.RentalViewModelFactory
 import com.example.navigation.RootNavigator
+import com.example.connectivity.ConnectivityMonitor
 
 class MainActivity : ComponentActivity() {
 
@@ -32,6 +34,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
+
+        ConnectivityMonitor.startMonitoring(this)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
+        }
 
         isDarkMode = DarkModeHelper.loadDarkMode(this)
 

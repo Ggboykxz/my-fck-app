@@ -41,6 +41,26 @@ import com.example.ui.theme.*
 import com.example.ui.model.RentalCategory
 import com.example.ui.viewmodel.RentalViewModel
 
+fun validateTitle(title: String): String? = when {
+    title.isBlank() -> "Le titre est requis"
+    title.length < 5 -> "Le titre doit avoir au moins 5 caractères"
+    title.length > 100 -> "Le titre ne peut pas dépasser 100 caractères"
+    else -> null
+}
+
+fun validatePrice(price: String): String? = when {
+    price.isBlank() -> "Le prix est requis"
+    price.toIntOrNull() == null -> "Le prix doit être un nombre"
+    (price.toIntOrNull() ?: 0) < 1000 -> "Le prix minimum est 1 000 FCFA"
+    else -> null
+}
+
+fun validateDescription(desc: String): String? = when {
+    desc.isBlank() -> "La description est requise"
+    desc.length < 20 -> "La description doit avoir au moins 20 caractères"
+    else -> null
+}
+
 private const val DRAFT_PREFS = "listing_draft"
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -373,7 +393,7 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(city, fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.Medium)
-                                Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, tint = Color.White.copy(alpha = 0.5f))
+                                Icon(Icons.Rounded.ArrowDropDown, contentDescription = "Sélectionner", tint = Color.White.copy(alpha = 0.5f))
                             }
                         }
                         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.background(Color(0xFF162133))) {
@@ -531,7 +551,7 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth().height(56.dp).testTag("submit_post_button")
                 ) {
-                    Icon(Icons.Rounded.Publish, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Rounded.Publish, contentDescription = "Publier", modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Publier l'annonce", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }

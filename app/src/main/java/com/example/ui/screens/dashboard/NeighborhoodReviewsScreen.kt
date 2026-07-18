@@ -101,7 +101,7 @@ fun NeighborhoodReviewsScreen(viewModel: RentalViewModel, onBack: () -> Unit) {
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            items(neighborhoods) { (name, safety, accessibility) ->
+            items(neighborhoods, key = { it.first }) { (name, safety, accessibility) ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
@@ -119,7 +119,7 @@ fun NeighborhoodReviewsScreen(viewModel: RentalViewModel, onBack: () -> Unit) {
                                 Text(selectedCity, color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Icon(Icons.Rounded.Star, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(14.dp))
+                                Icon(Icons.Rounded.Star, contentDescription = "Étoile", tint = Color(0xFFFFB300), modifier = Modifier.size(14.dp))
                                 Text(String.format("%.1f", safety), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -154,7 +154,7 @@ fun NeighborhoodReviewsScreen(viewModel: RentalViewModel, onBack: () -> Unit) {
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                items(reviews) { review ->
+                items(reviews, key = { it.id }) { review ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
@@ -170,7 +170,7 @@ fun NeighborhoodReviewsScreen(viewModel: RentalViewModel, onBack: () -> Unit) {
                                 Text(review.neighborhood, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                                 Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                                     repeat(review.safetyRating) {
-                                        Icon(Icons.Rounded.Star, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(12.dp))
+                                        Icon(Icons.Rounded.Star, contentDescription = "Étoile", tint = Color(0xFFFFB300), modifier = Modifier.size(12.dp))
                                     }
                                 }
                             }
@@ -187,7 +187,7 @@ fun NeighborhoodReviewsScreen(viewModel: RentalViewModel, onBack: () -> Unit) {
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
         ) {
-            Icon(Icons.Rounded.RateReview, contentDescription = null, modifier = Modifier.size(18.dp))
+            Icon(Icons.Rounded.RateReview, contentDescription = "Écrire un avis", modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text("Écrire un avis", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = BrandNavy)
         }

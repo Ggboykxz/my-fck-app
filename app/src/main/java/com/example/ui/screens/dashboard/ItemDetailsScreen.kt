@@ -210,7 +210,7 @@ fun ItemDetailsScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Icon(Icons.Rounded.FavoriteBorder, contentDescription = null, tint = Color.Red, modifier = Modifier.size(14.dp))
+                                Icon(Icons.Rounded.FavoriteBorder, contentDescription = "Favoris", tint = Color.Red, modifier = Modifier.size(14.dp))
                                 Text("$likeCount", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -253,7 +253,7 @@ fun ItemDetailsScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(12.dp))
+                                Icon(Icons.Rounded.CheckCircle, contentDescription = "Vérifié", tint = PrimaryGreen, modifier = Modifier.size(12.dp))
                                 Text("Vérifié", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.White)
                             }
                         }
@@ -447,7 +447,7 @@ fun ItemDetailsScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                Icon(Icons.Rounded.Star, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(13.dp))
+                                Icon(Icons.Rounded.Star, contentDescription = "Note", tint = Color(0xFFFFB300), modifier = Modifier.size(13.dp))
                                 Text("4.9/5", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.8f))
                                 Box(modifier = Modifier.size(3.dp).background(Color.White.copy(alpha = 0.3f), CircleShape))
                                 Text("Gabonais", fontSize = 11.sp, color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Medium)
@@ -488,7 +488,7 @@ fun ItemDetailsScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Icon(Icons.Rounded.Person, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Rounded.Person, contentDescription = "Profil", tint = PrimaryGreen, modifier = Modifier.size(18.dp))
                             Text("Voir le profil", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                         }
                     }
@@ -504,7 +504,7 @@ fun ItemDetailsScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Icon(Icons.Rounded.LocationCity, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(18.dp))
+                            Icon(Icons.Rounded.LocationCity, contentDescription = "Quartier", tint = Color(0xFFFFB300), modifier = Modifier.size(18.dp))
                             Text("Avis quartier", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                         }
                     }

@@ -23,6 +23,7 @@ import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
 import com.example.ui.viewmodel.Screen
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -52,66 +53,69 @@ fun MainDashboardView(viewModel: RentalViewModel) {
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .background(BrandNavy)
         ) {
-            AnimatedContent(
-                targetState = currentScreen,
-                transitionSpec = {
-                    if (targetState is Screen.Details || targetState is Screen.Chat) {
-                        slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it } + fadeOut()
-                    } else if (targetState is Screen.Home) {
-                        slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it } + fadeOut()
-                    } else {
-                        fadeIn(androidx.compose.animation.core.tween(300)) togetherWith fadeOut(androidx.compose.animation.core.tween(300))
-                    }
-                },
-                label = "DashboardScreenTransition"
-            ) { screen ->
-                when (screen) {
-                    is Screen.Home -> ExploreScreen(viewModel)
-                    is Screen.Bookings -> BookingsScreen(viewModel)
-                    is Screen.PostListing -> PostListingScreen(viewModel)
-                    is Screen.Bookmarks -> BookmarksScreen(viewModel)
-                    is Screen.Messages -> InboxScreen(viewModel)
-                    is Screen.Profile -> ProfileNavigator(viewModel = viewModel)
-                    is Screen.MapExplorer -> MapExplorerScreen(
-                        viewModel = viewModel,
-                        onBack = { viewModel.navigateTo("home") },
-                        onSelectItem = { item ->
-                            viewModel.selectItem(item)
-                            viewModel.navigateTo("details")
-                        }
-                    )
-                    is Screen.Details -> {
-                        val item = selectedItem
-                        if (item != null) {
-                            ItemDetailsScreen(
-                                item = item,
-                                viewModel = viewModel,
-                                onBack = { viewModel.navigateTo("home") }
-                            )
+            Column {
+                OfflineBanner()
+                AnimatedContent(
+                    targetState = currentScreen,
+                    transitionSpec = {
+                        if (targetState is Screen.Details || targetState is Screen.Chat) {
+                            slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it } + fadeOut()
+                        } else if (targetState is Screen.Home) {
+                            slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it } + fadeOut()
                         } else {
-                            ExploreScreen(viewModel)
+                            fadeIn(androidx.compose.animation.core.tween(300)) togetherWith fadeOut(androidx.compose.animation.core.tween(300))
                         }
-                    }
-                    is Screen.Chat -> {
-                        val item = selectedItem
-                        if (item != null) {
-                            ChatRoomScreen(
-                                item = item,
-                                viewModel = viewModel,
-                                onBack = { viewModel.navigateTo("messages") }
-                            )
-                        } else {
-                            ExploreScreen(viewModel)
+                    },
+                    label = "DashboardScreenTransition"
+                ) { screen ->
+                    when (screen) {
+                        is Screen.Home -> ExploreScreen(viewModel)
+                        is Screen.Bookings -> BookingsScreen(viewModel)
+                        is Screen.PostListing -> PostListingScreen(viewModel)
+                        is Screen.Bookmarks -> BookmarksScreen(viewModel)
+                        is Screen.Messages -> InboxScreen(viewModel)
+                        is Screen.Profile -> ProfileNavigator(viewModel = viewModel)
+                        is Screen.MapExplorer -> MapExplorerScreen(
+                            viewModel = viewModel,
+                            onBack = { viewModel.navigateTo("home") },
+                            onSelectItem = { item ->
+                                viewModel.selectItem(item)
+                                viewModel.navigateTo("details")
+                            }
+                        )
+                        is Screen.Details -> {
+                            val item = selectedItem
+                            if (item != null) {
+                                ItemDetailsScreen(
+                                    item = item,
+                                    viewModel = viewModel,
+                                    onBack = { viewModel.navigateTo("home") }
+                                )
+                            } else {
+                                ExploreScreen(viewModel)
+                            }
                         }
+                        is Screen.Chat -> {
+                            val item = selectedItem
+                            if (item != null) {
+                                ChatRoomScreen(
+                                    item = item,
+                                    viewModel = viewModel,
+                                    onBack = { viewModel.navigateTo("messages") }
+                                )
+                            } else {
+                                ExploreScreen(viewModel)
+                            }
+                        }
+                        is Screen.SearchIntelligence -> SearchIntelligenceScreen(
+                            viewModel = viewModel,
+                            onBack = { viewModel.navigateTo("home") }
+                        )
+                        is Screen.OwnerAnalytics -> {}
+                        is Screen.MarketInsights -> {}
+                        is Screen.NotificationSettings -> {}
+                        is Screen.ReferralTracking -> {}
                     }
-                    is Screen.SearchIntelligence -> SearchIntelligenceScreen(
-                        viewModel = viewModel,
-                        onBack = { viewModel.navigateTo("home") }
-                    )
-                    is Screen.OwnerAnalytics -> {}
-                    is Screen.MarketInsights -> {}
-                    is Screen.NotificationSettings -> {}
-                    is Screen.ReferralTracking -> {}
                 }
             }
         }
@@ -131,6 +135,11 @@ fun MainDashboardViewNavHost(viewModel: RentalViewModel) {
             currentRoute == RouteChat::class.qualifiedName
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(snackbarHostState, coroutineScope) {
+        SnackbarHelper.init(snackbarHostState, coroutineScope)
+    }
 
     val snackbarMessage by viewModel.snackbarMessage.collectAsState()
 
@@ -170,10 +179,13 @@ fun MainDashboardViewNavHost(viewModel: RentalViewModel) {
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .background(BrandNavy)
         ) {
-            DashboardNavHost(
-                navController = navController,
-                viewModel = viewModel
-            )
+            Column {
+                OfflineBanner()
+                DashboardNavHost(
+                    navController = navController,
+                    viewModel = viewModel
+                )
+            }
         }
     }
 

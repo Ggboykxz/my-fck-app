@@ -28,9 +28,17 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
+import coil.size.Size
+import com.example.connectivity.ConnectivityMonitor
 import com.example.ui.theme.*
 
 // ==================== SKELETON LOADING ====================
@@ -1256,3 +1264,136 @@ fun SocialIconButton(
         }
     }
 }
+
+// ==================== SHIMMER IMAGE PLACEHOLDER ====================
+@Composable
+fun ShimmerImagePlaceholder(modifier: Modifier = Modifier) {
+    val shimmerColors = listOf(
+        Color(0xFF1A2744),
+        Color(0xFF253555),
+        Color(0xFF1A2744)
+    )
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim = transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmerTranslate"
+    )
+    val brush = Brush.linearGradient(
+        colors = shimmerColors,
+        start = Offset.Zero,
+        end = Offset(x = translateAnim.value, y = translateAnim.value)
+    )
+    Box(modifier = modifier.background(brush, RoundedCornerShape(8.dp)))
+}
+
+// ==================== APP ASYNC IMAGE ====================
+@Composable
+fun AppAsyncImage(
+    model: Any?,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Crop
+) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(model)
+            .crossfade(true)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .build(),
+        contentDescription = contentDescription,
+        modifier = modifier.clip(RoundedCornerShape(8.dp)),
+        contentScale = contentScale,
+        placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+        error = painterResource(android.R.drawable.ic_menu_close_clear_cancel),
+        fallback = painterResource(android.R.drawable.ic_menu_gallery)
+    )
+}
+
+// ==================== MINIMUM TOUCH TARGET ====================
+fun Modifier.minimumTouchTarget(): Modifier = this.then(
+    Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+)
+
+@Composable
+fun OfflineBanner(modifier: Modifier = Modifier) {
+    val isOnline by ConnectivityMonitor.isOnline.collectAsState()
+
+    AnimatedVisibility(
+        visible = !isOnline,
+        enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+        exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
+    ) {
+        Surface(
+            modifier = modifier.fillMaxWidth(),
+            color = Color(0xFFE65100),
+            contentColor = Color.White
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Rounded.CloudOff, contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Mode hors ligne — les données en cache sont affichées", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+fun StaleDataIndicator(lastUpdated: Long, onRefresh: () -> Unit, modifier: Modifier = Modifier) {
+    val timeSince = System.currentTimeMillis() - lastUpdated
+    val minutes = (timeSince / 60000).toInt()
+
+    if (minutes > 5) {
+        Surface(
+            modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+            color = Color(0xFF1B5E20).copy(alpha = 0.3f),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Rounded.Info, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color(0xFF81C784))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Données il y a ${minutes}min", style = MaterialTheme.typography.labelSmall, color = Color(0xFF81C784))
+                Spacer(modifier = Modifier.weight(1f))
+                TextButton(onClick = onRefresh) { Text("Actualiser", fontSize = 12.sp) }
+            }
+        }
+    }
+}
+
+@Composable
+fun ErrorBoundary(
+    onError: ((Throwable) -> Unit)? = null,
+    content: @Composable () -> Unit
+) {
+    var hasError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+
+    if (hasError) {
+        Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0D1B2A)), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Icons.Rounded.ErrorOutline, contentDescription = null, modifier = Modifier.size(64.dp), tint = Color(0xFFE53935))
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Une erreur s'est produite", color = Color.White, style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(errorMessage, color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(onClick = { hasError = false }) { Text("Réessayer") }
+            }
+        }
+    } else {
+        content()
+    }
+}
+
+

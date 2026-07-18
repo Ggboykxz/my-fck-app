@@ -85,7 +85,7 @@ fun LanguageSelectionScreen(
                 ) {
                     Text(lng, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     if (currentLang == lng) {
-                        Icon(Icons.Rounded.Check, contentDescription = null, tint = PrimaryGreen)
+                        Icon(Icons.Rounded.Check, contentDescription = "Sélectionné", tint = PrimaryGreen)
                     }
                 }
             }
@@ -201,7 +201,7 @@ fun NotificationsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Icon(Icons.Rounded.DoneAll, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Rounded.DoneAll, contentDescription = "Tout lu", tint = PrimaryGreen, modifier = Modifier.size(20.dp))
                         Text(
                             "Tout marquer comme lu",
                             color = PrimaryGreen,
@@ -265,7 +265,7 @@ fun NotificationsScreen(
                             ) {
                                 Icon(
                                     imageVector = notificationIcon(notif.type),
-                                    contentDescription = null,
+                                    contentDescription = notif.type,
                                     tint = if (notif.isRead) Color.White.copy(alpha = 0.4f) else notificationColor(notif.type),
                                     modifier = Modifier.size(22.dp)
                                 )
@@ -535,6 +535,24 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        Text("DÉMO", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SmoothIcon(icon = Icons.Rounded.NotificationsActive, tint = Color(0xFFFFB300), backgroundColor = Color(0xFFFFB300).copy(alpha = 0.12f))
+                    Column { Text("Notifications Push (Démo)", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold); Text("Tester les notifications push", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp) }
+                }
+                IconButton(onClick = { onNavigate("mock_notifications") }) {
+                    Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White.copy(alpha = 0.5f))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         Text("COMPTE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -552,9 +570,9 @@ fun SettingsScreen(
                 else if (action == "language") onNavigate("language")
             }, shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
                 Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Icon(icon, contentDescription = null, tint = if (title == "Supprimer mon compte") Color(0xFFEF5350) else Color.White.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
+                    Icon(icon, contentDescription = title, tint = if (title == "Supprimer mon compte") Color(0xFFEF5350) else Color.White.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
                     Column(modifier = Modifier.weight(1f)) { Text(title, color = if (title == "Supprimer mon compte") Color(0xFFEF5350) else Color.White, fontSize = 14.sp); Text(subtitle, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp) }
-                    Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White.copy(alpha = 0.3f))
+                    Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = "Voir plus", tint = Color.White.copy(alpha = 0.3f))
                 }
             }
         }
@@ -625,7 +643,7 @@ fun PaymentMethodsScreen(
                                 .background(Color(0xFF381519)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Phone, contentDescription = null, tint = BrandAirtel, modifier = Modifier.size(22.dp))
+                            Icon(Icons.Default.Phone, contentDescription = "Téléphone", tint = BrandAirtel, modifier = Modifier.size(22.dp))
                         }
 
                         Column {
@@ -670,7 +688,7 @@ fun PaymentMethodsScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                Icon(Icons.Rounded.Star, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
+                                Icon(Icons.Rounded.Star, contentDescription = "Définir par défaut", tint = PrimaryGreen, modifier = Modifier.size(14.dp))
                                 Text("Définir par défaut", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -679,7 +697,7 @@ fun PaymentMethodsScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Rounded.CheckCircle, contentDescription = "Par défaut", tint = PrimaryGreen, modifier = Modifier.size(16.dp))
                             Text("Par défaut", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
@@ -716,7 +734,7 @@ fun PaymentMethodsScreen(
                                 .background(Color(0xFF0E2235)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Phone, contentDescription = null, tint = BrandMoov, modifier = Modifier.size(22.dp))
+                            Icon(Icons.Default.Phone, contentDescription = "Téléphone", tint = BrandMoov, modifier = Modifier.size(22.dp))
                         }
 
                         Column {
@@ -761,7 +779,7 @@ fun PaymentMethodsScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                Icon(Icons.Rounded.Star, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
+                                Icon(Icons.Rounded.Star, contentDescription = "Définir par défaut", tint = PrimaryGreen, modifier = Modifier.size(14.dp))
                                 Text("Définir par défaut", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -770,7 +788,7 @@ fun PaymentMethodsScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Rounded.CheckCircle, contentDescription = "Par défaut", tint = PrimaryGreen, modifier = Modifier.size(16.dp))
                             Text("Par défaut", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
@@ -792,7 +810,7 @@ fun PaymentMethodsScreen(
                 .fillMaxWidth()
                 .height(52.dp)
         ) {
-            Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(20.dp))
+            Icon(Icons.Rounded.Add, contentDescription = "Ajouter", modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text("Ajouter un moyen de paiement", fontWeight = FontWeight.Bold)
         }
@@ -891,7 +909,7 @@ fun PaymentHistoryScreen(
                     Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
                         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                             Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(Color.White.copy(alpha = 0.05f)), contentAlignment = Alignment.Center) {
-                                Icon(Icons.Rounded.Receipt, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(20.dp))
+                                Icon(Icons.Rounded.Receipt, contentDescription = "Reçu", tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(20.dp))
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
@@ -922,7 +940,7 @@ fun AddPaymentMethodScreen(
         AlertDialog(
             onDismissRequest = { showSuccessDialog = false },
             containerColor = Color(0xFF162133),
-            icon = { Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(48.dp)) },
+            icon = { Icon(Icons.Rounded.CheckCircle, contentDescription = "Succès", tint = PrimaryGreen, modifier = Modifier.size(48.dp)) },
             title = { Text("Moyen de paiement ajouté", color = Color.White, textAlign = TextAlign.Center) },
             text = { Text("$selectedProvider a été ajouté avec succès.", color = Color.White.copy(alpha = 0.7f), textAlign = TextAlign.Center) },
             confirmButton = {
@@ -968,14 +986,14 @@ fun AddPaymentMethodScreen(
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     Box(modifier = Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(bg), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Phone, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
+                        Icon(Icons.Default.Phone, contentDescription = "Téléphone", tint = tint, modifier = Modifier.size(22.dp))
                     }
                     Column(modifier = Modifier.weight(1f)) {
                         Text(name, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         Text("Mobile Money", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
                     }
                     if (selectedProvider == name) {
-                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
+                        Icon(Icons.Rounded.CheckCircle, contentDescription = "Sélectionné", tint = tint, modifier = Modifier.size(22.dp))
                     }
                 }
             }
@@ -1008,7 +1026,7 @@ fun AddPaymentMethodScreen(
 
         Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF0F1A2A)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.2f))) {
             Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Icon(Icons.Rounded.Info, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(18.dp))
+                Icon(Icons.Rounded.Info, contentDescription = "Information", tint = PrimaryGreen, modifier = Modifier.size(18.dp))
                 Text("Un code de confirmation vous sera envoyé par SMS pour valider ce moyen de paiement.", color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp, lineHeight = 18.sp)
             }
         }
@@ -1027,7 +1045,7 @@ fun AddPaymentMethodScreen(
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy)
         ) {
-            Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(20.dp))
+            Icon(Icons.Rounded.Add, contentDescription = "Ajouter", modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text("Ajouter $selectedProvider", fontSize = 15.sp, fontWeight = FontWeight.Bold)
         }

@@ -140,11 +140,11 @@ fun VideoPlayerScreen(
                 Text("Appartement Vue Mer - Visite Virtuelle", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Visibility, contentDescription = null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
+                    Icon(Icons.Rounded.Visibility, contentDescription = "Vues", tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("2 345 vues", color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp)
                     Spacer(modifier = Modifier.width(16.dp))
-                    Icon(Icons.Rounded.Schedule, contentDescription = null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
+                    Icon(Icons.Rounded.Schedule, contentDescription = "Durée", tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Il y a 3 jours", color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp)
                 }
@@ -177,7 +177,7 @@ fun VideoPlayerScreen(
                             modifier = Modifier.size(100.dp, 60.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF1E293B)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Rounded.PlayCircleOutline, contentDescription = null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(28.dp))
+                                Icon(Icons.Rounded.PlayCircleOutline, contentDescription = "Lire", tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(28.dp))
                             Surface(
                                 modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp),
                                 color = Color.Black.copy(alpha = 0.7f),

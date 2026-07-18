@@ -188,11 +188,11 @@ fun ReceivedBookingsScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Icon(Icons.Rounded.Person, contentDescription = null, tint = PrimaryGreen)
+                                    Icon(Icons.Rounded.Person, contentDescription = "Locataire", tint = PrimaryGreen)
                                     Column {
                                         Text(res.tenantName, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                                         Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Icon(Icons.Rounded.Star, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(11.dp))
+                                            Icon(Icons.Rounded.Star, contentDescription = "Note", tint = Color(0xFFFFB300), modifier = Modifier.size(11.dp))
                                             Text("${res.tenantRating}/5", color = Color.LightGray, fontSize = 10.sp)
                                         }
                                     }
@@ -479,7 +479,7 @@ fun ReservationDetailScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.15f), contentColor = Color.Red),
                 shape = RoundedCornerShape(14.dp)
             ) {
-                Icon(Icons.Rounded.Cancel, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Rounded.Cancel, contentDescription = "Annuler la réservation", modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Annuler la réservation", fontWeight = FontWeight.Bold)
             }

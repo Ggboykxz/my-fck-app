@@ -157,12 +157,12 @@ fun BookingInteractiveDialog(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Rounded.CalendarMonth, contentDescription = "Calendrier", tint = PrimaryGreen, modifier = Modifier.size(16.dp))
                                 Text("Voir le calendrier", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 Spacer(modifier = Modifier.weight(1f))
                                 Icon(
                                     if (showCalendar) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                                    contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(16.dp)
+                                    contentDescription = if (showCalendar) "Masquer le calendrier" else "Afficher le calendrier", tint = PrimaryGreen, modifier = Modifier.size(16.dp)
                                 )
                             }
                         }
@@ -948,7 +948,7 @@ fun BookingItemCard(booking: Booking, onCancelClick: () -> Unit = {}, onItemClic
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Icon(Icons.Rounded.Cancel, contentDescription = null, tint = Color.Red, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Rounded.Cancel, contentDescription = "Annuler", tint = Color.Red, modifier = Modifier.size(16.dp))
                         Text("Annuler", color = Color.Red, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }

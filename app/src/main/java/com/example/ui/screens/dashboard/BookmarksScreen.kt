@@ -86,7 +86,12 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
                             onBook = {}
                         )
                         IconButton(
-                            onClick = { viewModel.toggleBookmark(item) },
+                            onClick = {
+                                viewModel.toggleBookmark(item)
+                                SnackbarHelper.showUndoableDelete("Annonce retirée des favoris") {
+                                    viewModel.toggleBookmark(item)
+                                }
+                            },
                             modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
                                 .background(Color.Red.copy(alpha = 0.8f), RoundedCornerShape(8.dp))
                         ) {

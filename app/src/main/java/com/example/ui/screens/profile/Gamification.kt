@@ -237,7 +237,7 @@ fun LeaderboardScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(leaderboardData.size) { index ->
+            items(leaderboardData.size, key = { it }) { index ->
                 val entry = leaderboardData[index]
                 val name = entry["name"] ?: ""
                 val rating = entry["rating"] ?: ""

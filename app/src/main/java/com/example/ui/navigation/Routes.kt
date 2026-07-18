@@ -93,3 +93,4 @@ import kotlinx.serialization.Serializable
 @Serializable data class RouteMedia(val listingId: Int = 0)
 @Serializable data object RouteVideoListing
 @Serializable data object RouteImageModeration
+@Serializable data object RouteMockNotifications

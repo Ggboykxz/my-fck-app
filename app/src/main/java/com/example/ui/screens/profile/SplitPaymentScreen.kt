@@ -195,7 +195,7 @@ fun SplitPaymentScreen(bookingId: Int, viewModel: RentalViewModel, onBack: () ->
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        items(paymentStatuses) { (name, status, color) ->
+        items(paymentStatuses, key = { it.first }) { (name, status, color) ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),

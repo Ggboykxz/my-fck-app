@@ -123,7 +123,7 @@ fun ProfileMainScreen(
                                 .padding(horizontal = 4.dp, vertical = 2.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = BrandNavy, modifier = Modifier.size(10.dp))
+                            Icon(Icons.Rounded.CheckCircle, contentDescription = "Vérifié", tint = BrandNavy, modifier = Modifier.size(10.dp))
                         }
                     }
 
@@ -202,7 +202,7 @@ fun ProfileMainScreen(
                         ) {
                             Icon(
                                 imageVector = if (isOwnerMode) Icons.Rounded.HomeWork else Icons.Rounded.Person,
-                                contentDescription = null,
+                                contentDescription = if (isOwnerMode) "Mode propriétaire" else "Mode locataire",
                                 tint = if (isOwnerMode) PrimaryGreen else Color.White
                             )
                         }
@@ -589,7 +589,7 @@ fun ProfileMainScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Logout,
-                    contentDescription = null,
+                    contentDescription = "Se déconnecter",
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -650,7 +650,7 @@ fun ProfileOptionRow(
                 Text(subtitle, color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
             }
 
-            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Color.White.copy(alpha = 0.3f))
+                    Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = "Voir plus", tint = Color.White.copy(alpha = 0.3f))
         }
     }
 }
@@ -925,7 +925,7 @@ fun PersonalStatsScreen(viewModel: RentalViewModel, onBack: () -> Unit) {
                                     .background(PrimaryGreen.copy(alpha = 0.12f)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(icon, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(18.dp))
+                                Icon(icon, contentDescription = label, tint = PrimaryGreen, modifier = Modifier.size(18.dp))
                             }
                             Text(value, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
                             Text(label, color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
@@ -965,7 +965,7 @@ fun PersonalStatsScreen(viewModel: RentalViewModel, onBack: () -> Unit) {
                                 .background(Color.White.copy(alpha = 0.05f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Rounded.Receipt, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(20.dp))
+                            Icon(Icons.Rounded.Receipt, contentDescription = "Reçu", tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(20.dp))
                         }
                         Column(modifier = Modifier.weight(1f)) {
                             Text(booking.rentalItemTitle, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)

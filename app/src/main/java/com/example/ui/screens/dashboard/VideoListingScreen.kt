@@ -356,7 +356,7 @@ fun VideoListingScreen(
                 .fillMaxWidth()
                 .height(52.dp)
         ) {
-            Icon(Icons.Rounded.Save, contentDescription = null, modifier = Modifier.size(20.dp))
+            Icon(Icons.Rounded.Save, contentDescription = "Enregistrer", modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))
             Text("Sauvegarder l'annonce vidéo", fontWeight = FontWeight.Bold)
         }
