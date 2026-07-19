@@ -826,6 +826,78 @@ fun calculateTrustScore(
     return score.coerceIn(0f, 100f)
 }
 
+// ==================== RATE APP DIALOG ====================
+@Composable
+fun RateAppDialog(
+    show: Boolean,
+    onDismiss: () -> Unit,
+    onRate: (Int) -> Unit
+) {
+    if (show) {
+        var rating by remember { mutableIntStateOf(0) }
+        
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            containerColor = Color(0xFF162133),
+            title = { Text("Évaluez LocAll", color = Color.White) },
+            text = {
+                Column {
+                    Text("Vous avez passé 3 réservations !", color = Color.White.copy(alpha = 0.8f))
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                        (1..5).forEach { star ->
+                            IconButton(onClick = { rating = star }) {
+                                Icon(
+                                    if (star <= rating) Icons.Rounded.Star else Icons.Rounded.StarBorder,
+                                    contentDescription = "$star étoiles",
+                                    tint = if (star <= rating) Color(0xFFFFD700) else Color.Gray,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = { onRate(rating); onDismiss() }, enabled = rating > 0) {
+                    Text("Évaluer")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) { Text("Plus tard", color = Color.Gray) }
+            }
+        )
+    }
+}
+
+// ==================== LEGAL DIALOG ====================
+@Composable
+fun LegalDialog(title: String, content: String, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color(0xFF162133),
+        title = { Text(title, color = Color.White) },
+        text = { 
+            Column(modifier = Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState())) {
+                Text(content, color = Color.White.copy(alpha = 0.8f), style = MaterialTheme.typography.bodyMedium)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Fermer", color = Color(0xFF4FC3F7)) }
+        }
+    )
+}
+
+// ==================== SHARE APP ====================
+fun shareApp(context: android.content.Context) {
+    val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(android.content.Intent.EXTRA_SUBJECT, "LocAll - Marketplace de location")
+        putExtra(android.content.Intent.EXTRA_TEXT, "Découvrez LocAll, la meilleure app de location immobilière au Gabon !\nhttps://play.google.com/store/apps/details?id=com.aistudio.localall.qpnmws")
+    }
+    context.startActivity(android.content.Intent.createChooser(shareIntent, "Partager via"))
+}
+
 // ==================== BADGE CHIP ====================
 @Composable
 fun BadgeChip(

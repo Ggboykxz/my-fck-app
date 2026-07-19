@@ -10,12 +10,14 @@ import com.example.data.model.*
 import com.example.data.repository.RentalRepository
 import com.example.ui.components.SortOption
 import com.example.ui.model.RentalCategory
+import com.example.ui.state.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.random.Random
 
 
 data class RentalReview(
@@ -1322,7 +1324,274 @@ class RentalViewModel(
 
     fun getRejectedMediaItems(): Flow<List<MediaItem>> =
         repository.getMediaItemsByStatus("rejected")
+
+    private val _walletBalance = MutableStateFlow(125000)
+    val walletBalance: StateFlow<Int> = _walletBalance.asStateFlow()
+
+    private val _walletTransactions = MutableStateFlow(listOf(
+        WalletTxn(1, "topup", 50000, "Recharge Airtel Money", null, "15/07/2026", "completed"),
+        WalletTxn(2, "payment", -25000, "Réservation Villa La Sablière", 1, "14/07/2026", "completed"),
+        WalletTxn(3, "earning", 75000, "Location Toyota Hilux", 2, "12/07/2026", "completed"),
+        WalletTxn(4, "refund", 15000, "Annulation réservation #3", 3, "10/07/2026", "completed"),
+        WalletTxn(5, "topup", 30000, "Recharge Moov Money", null, "08/07/2026", "completed"),
+        WalletTxn(6, "withdrawal", -40000, "Retrait bancaire", null, "05/07/2026", "completed"),
+        WalletTxn(7, "payment", -18000, "Réservation Studio Louis", 4, "03/07/2026", "completed"),
+        WalletTxn(8, "earning", 45000, "Location Sono Concert", 5, "01/07/2026", "completed")
+    ))
+    val walletTransactions: StateFlow<List<WalletTxn>> = _walletTransactions.asStateFlow()
+
+    private val _activePromos = MutableStateFlow(listOf(
+        PromoCodeEntry(1, "LOCALL20", 20, "15/08/2026", 100, 23, "20% de réduction sur toute réservation"),
+        PromoCodeEntry(2, "BIENVENUE", 15, "31/12/2026", 1, 0, "15% sur votre première réservation"),
+        PromoCodeEntry(3, "AMIS10", 10, "30/09/2026", 50, 12, "10% pour parrainage amis")
+    ))
+    val activePromos: StateFlow<List<PromoCodeEntry>> = _activePromos.asStateFlow()
+
+    private val _selectedWalletFilter = MutableStateFlow("Toutes")
+    val selectedWalletFilter: StateFlow<String> = _selectedWalletFilter.asStateFlow()
+
+    fun setWalletFilter(filter: String) { _selectedWalletFilter.value = filter }
+
+    fun topUpWallet(amount: Int, method: String) {
+        _walletBalance.value += amount
+        val newTxn = WalletTxn(
+            id = _walletTransactions.value.size + 1,
+            type = "topup",
+            amount = amount,
+            description = "Recharge $method",
+            relatedBookingId = null,
+            date = "Maintenant",
+            status = "completed"
+        )
+        _walletTransactions.value = listOf(newTxn) + _walletTransactions.value
+        showSnackbar("Recharge de $amount FCFA effectuée avec succès")
+    }
+
+    fun withdrawFromWallet(amount: Int) {
+        if (_walletBalance.value >= amount) {
+            _walletBalance.value -= amount
+            val newTxn = WalletTxn(
+                id = _walletTransactions.value.size + 1,
+                type = "withdrawal",
+                amount = -amount,
+                description = "Retrait bancaire",
+                relatedBookingId = null,
+                date = "Maintenant",
+                status = "completed"
+            )
+            _walletTransactions.value = listOf(newTxn) + _walletTransactions.value
+            showSnackbar("Retrait de $amount FCFA effectué")
+        } else {
+            showSnackbar("Solde insuffisant")
+        }
+    }
+
+    fun applyPromoCode(code: String): Boolean {
+        val promo = _activePromos.value.find { it.code.equals(code, ignoreCase = true) }
+        return if (promo != null) {
+            showSnackbar("Code promo ${promo.code} appliqué : -${promo.discount}%")
+            true
+        } else {
+            showSnackbar("Code promo invalide")
+            false
+        }
+    }
+
+    fun addFavoriteLocation(name: String, city: String, lat: Double, lng: Double) {
+        showSnackbar("Position \"$name\" ajoutée aux favoris")
+    }
+
+    private val _searchUiState = MutableStateFlow(SearchUiState())
+    val searchUiState: StateFlow<SearchUiState> = _searchUiState.asStateFlow()
+
+    private val _chatUiState = MutableStateFlow(ChatUiState())
+    val chatUiState: StateFlow<ChatUiState> = _chatUiState.asStateFlow()
+
+    private val _mapUiState = MutableStateFlow(MapUiState())
+    val mapUiState: StateFlow<MapUiState> = _mapUiState.asStateFlow()
+
+    private val _uiEvents = MutableSharedFlow<UIEvent>(extraBufferCapacity = 10)
+    val uiEvents: SharedFlow<UIEvent> = _uiEvents.asSharedFlow()
+
+    fun onSearchQueryChange(query: String) {
+        _searchUiState.update { it.copy(query = query) }
+        viewModelScope.launch {
+            try {
+                val suggestions = repository.searchSuggestions(query).first()
+                _searchUiState.update { it.copy(suggestions = suggestions.map { s -> s.query }) }
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
+    }
+
+    fun onSearchSubmit() {
+        val query = _searchUiState.value.query
+        if (query.isBlank()) return
+        _searchUiState.update { it.copy(isSearching = true) }
+        viewModelScope.launch {
+            try {
+                val results = repository.allRentalItems.first().filter {
+                    it.title.contains(query, ignoreCase = true) ||
+                    it.description.contains(query, ignoreCase = true) ||
+                    it.city.contains(query, ignoreCase = true) ||
+                    it.neighborhood.contains(query, ignoreCase = true)
+                }
+                _searchUiState.update { it.copy(results = results, isSearching = false) }
+                repository.logSearch(query)
+            } catch (e: Exception) {
+                _searchUiState.update { it.copy(isSearching = false) }
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
+    }
+
+    fun updateSearchFilters(filters: SearchFilters) {
+        _searchUiState.update { it.copy(filters = filters) }
+        viewModelScope.launch {
+            try {
+                val allListings = repository.allRentalItems.first()
+                val filtered = allListings.filter { item ->
+                    (filters.category == null || item.category == filters.category) &&
+                    (filters.city == null || item.city == filters.city) &&
+                    (filters.minPrice == null || item.pricePerDay >= filters.minPrice) &&
+                    (filters.maxPrice == null || item.pricePerDay <= filters.maxPrice)
+                }
+                val sorted = when (filters.sortBy) {
+                    SortBy.PRICE_ASC -> filtered.sortedBy { it.pricePerDay }
+                    SortBy.PRICE_DESC -> filtered.sortedByDescending { it.pricePerDay }
+                    SortBy.POPULARITY -> filtered.shuffled()
+                    SortBy.RECENT -> filtered.reversed()
+                }
+                _searchUiState.update { it.copy(results = sorted) }
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
+    }
+
+    fun updateMapListings(listings: List<RentalItem>) {
+        _mapUiState.update { it.copy(listings = listings) }
+    }
+
+    fun selectMapListing(id: Int?) {
+        _mapUiState.update { it.copy(selectedListingId = id) }
+    }
+
+    fun setMapCity(city: String) {
+        _mapUiState.update { it.copy(selectedCity = city) }
+    }
+
+    fun updateChatTyping(isTyping: Boolean) {
+        _chatUiState.update { it.copy(isTyping = isTyping) }
+    }
+
+    fun updateChatOnlineStatus(online: Boolean) {
+        _chatUiState.update { it.copy(otherUserOnline = online, otherUserLastSeen = System.currentTimeMillis()) }
+    }
+
+    fun addReactionToMessage(messageId: Int, reaction: String, messages: List<ChatMessage>) {
+        viewModelScope.launch {
+            try {
+                val msg = messages.find { it.id == messageId } ?: return@launch
+                val currentReactions = msg.reactions.toMutableList()
+                if (reaction in currentReactions) {
+                    currentReactions.remove(reaction)
+                } else {
+                    currentReactions.add(reaction)
+                }
+                val updated = msg.copy(reactions = currentReactions)
+                repository.insertChatMessage(updated)
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
+    }
+
+    fun sendImageMessage(rentalId: Int, ownerName: String) {
+        viewModelScope.launch {
+            try {
+                repository.insertChatMessage(
+                    ChatMessage(
+                        rentalItemId = rentalId,
+                        sender = "User",
+                        messageText = "[image] https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=60",
+                        messageType = "image"
+                    )
+                )
+                delay(1200)
+                _chatUiState.update { it.copy(isTyping = true) }
+                delay(1500 + Random.nextLong(800))
+                _chatUiState.update { it.copy(isTyping = false) }
+                val imageReplies = listOf(
+                    "Magnifique photo ! Je suis intéressé.",
+                    "Superbe ! On peut organiser une visite ?",
+                    "Merci pour les photos, c'est exactement ce que je cherchais.",
+                    "J'adore ! Je vais réserver directement."
+                )
+                repository.insertChatMessage(
+                    ChatMessage(
+                        rentalItemId = rentalId,
+                        sender = "Owner",
+                        messageText = imageReplies.random(),
+                        status = "read"
+                    )
+                )
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
+    }
+
+    private val _recentlyViewed = MutableStateFlow<List<RentalItem>>(emptyList())
+    val recentlyViewed: StateFlow<List<RentalItem>> = _recentlyViewed.asStateFlow()
+
+    fun addToRecentlyViewed(item: RentalItem) {
+        val current = _recentlyViewed.value.toMutableList()
+        current.removeAll { it.id == item.id }
+        current.add(0, item)
+        if (current.size > 50) current.removeLast()
+        _recentlyViewed.value = current
+    }
+
+    fun clearRecentlyViewed() {
+        _recentlyViewed.value = emptyList()
+        showSnackbar("Historique effacé")
+    }
+
+    private val _profileCompletion = MutableStateFlow(60)
+    val profileCompletion: StateFlow<Int> = _profileCompletion.asStateFlow()
+
+    fun updateProfileCompletion() {
+        var score = 0
+        if (_userName.value.isNotBlank()) score += 20
+        if (_profileCity.value.isNotBlank()) score += 20
+        if (_isPhoneVerified.value) score += 20
+        if (_profileDob.value.isNotBlank()) score += 20
+        score += 20
+        _profileCompletion.value = score
+    }
 }
+
+data class WalletTxn(
+    val id: Int,
+    val type: String,
+    val amount: Int,
+    val description: String,
+    val relatedBookingId: Int?,
+    val date: String,
+    val status: String
+)
+
+data class PromoCodeEntry(
+    val id: Int,
+    val code: String,
+    val discount: Int,
+    val validUntil: String,
+    val maxUses: Int,
+    val usedCount: Int,
+    val description: String
+)
 
 class RentalViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

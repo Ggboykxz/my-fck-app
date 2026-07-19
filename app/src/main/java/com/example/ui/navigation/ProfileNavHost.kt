@@ -11,6 +11,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.ui.screens.*
 import com.example.ui.screens.AddPaymentMethodScreen
+import com.example.ui.screens.profile.WalletScreen
+import com.example.ui.screens.profile.TopUpScreen
+import com.example.ui.screens.profile.PromoCodeScreen
 import com.example.ui.viewmodel.RentalViewModel
 
 @Composable
@@ -413,6 +416,56 @@ fun ProfileNavHost(
                 onBack = { navController.popBackStack() }
             )
         }
+
+        composable<RoutePersonalization> {
+            com.example.ui.screens.profile.PersonalizationScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RouteRecentlyViewed> {
+            com.example.ui.screens.profile.RecentlyViewedScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RouteRecommendations> {
+            com.example.ui.screens.profile.RecommendationsScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RouteChangelog> {
+            com.example.ui.screens.profile.ChangelogScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RouteWallet> {
+            WalletScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onTopUp = { navController.navigate(RouteTopUp::class.qualifiedName!!) },
+                onPromoCodes = { navController.navigate(RoutePromoCodes::class.qualifiedName!!) }
+            )
+        }
+
+        composable<RouteTopUp> {
+            TopUpScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<RoutePromoCodes> {
+            PromoCodeScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
     }
 }
@@ -421,7 +474,6 @@ private fun destToRoute(dest: String): String {
     return when (dest) {
         "dashboard" -> RouteProfileDashboard::class.qualifiedName!!
         "earnings" -> RouteProfileEarnings::class.qualifiedName!!
-        "wallet" -> RouteProfileWallet::class.qualifiedName!!
         "listings" -> RouteProfileListings::class.qualifiedName!!
         "calendar" -> RouteProfileCalendar::class.qualifiedName!!
         "bookings_received" -> RouteProfileBookingsReceived::class.qualifiedName!!
@@ -466,6 +518,14 @@ private fun destToRoute(dest: String): String {
         "calendar_sync" -> RouteCalendarSync::class.qualifiedName!!
         "neighborhood_reviews" -> RouteNeighborhoodReviews::class.qualifiedName!!
         "mock_notifications" -> RouteMockNotifications::class.qualifiedName!!
+        "my_wallet" -> RouteWallet::class.qualifiedName!!
+        "wallet" -> RouteProfileWallet::class.qualifiedName!!
+        "top_up" -> RouteTopUp::class.qualifiedName!!
+        "promo_codes" -> RoutePromoCodes::class.qualifiedName!!
+        "personalization" -> RoutePersonalization::class.qualifiedName!!
+        "recently_viewed" -> RouteRecentlyViewed::class.qualifiedName!!
+        "recommendations" -> RouteRecommendations::class.qualifiedName!!
+        "changelog" -> RouteChangelog::class.qualifiedName!!
         else -> RouteProfileMain::class.qualifiedName!!
     }
 }

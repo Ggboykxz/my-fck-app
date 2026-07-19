@@ -576,6 +576,46 @@ fun SettingsScreen(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text("APPLICATION", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        var showRateDialog by remember { mutableStateOf(false) }
+
+        RateAppDialog(
+            show = showRateDialog,
+            onDismiss = { showRateDialog = false },
+            onRate = { rating -> viewModel.showSnackbar("Merci pour votre note de $rating/5 !") }
+        )
+
+        listOf(
+            Triple(Icons.Rounded.NewReleases, "Nouveautés / Changelog", "Dernières mises à jour") to "changelog",
+            Triple(Icons.Rounded.Info, "À propos de LocAll", "LocAll v1.5.0") to "about",
+            Triple(Icons.Rounded.Star, "Évaluer l'application", "Donnez votre avis") to "rate",
+            Triple(Icons.Rounded.Share, "Partager LocAll", "Invitez vos amis") to "share"
+        ).forEach { (pair, action) ->
+            val (icon, title, subtitle) = pair
+            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable {
+                when (action) {
+                    "changelog" -> onNavigate("changelog")
+                    "about" -> onNavigate("about")
+                    "rate" -> showRateDialog = true
+                    "share" -> {
+                        val ctx = context
+                        shareApp(ctx)
+                    }
+                }
+            }, shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+                Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Icon(icon, contentDescription = title, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
+                    Column(modifier = Modifier.weight(1f)) { Text(title, color = Color.White, fontSize = 14.sp); Text(subtitle, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp) }
+                    Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = "Voir plus", tint = Color.White.copy(alpha = 0.3f))
+                }
+            }
+        }
     }
 }
 

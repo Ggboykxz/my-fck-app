@@ -31,8 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.RentalItem
 import com.example.ui.components.*
+import com.example.ui.screens.dashboard.MapData
+import com.example.ui.screens.dashboard.MapMarker
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
+import com.example.util.LocationUtils
 
 private val GabonShapeColor = Color(0xFF0D2818)
 private val GabonBorder = Color(0xFF1A5C32)
@@ -71,6 +74,8 @@ fun MapExplorerScreen(
     val rawItems by viewModel.rawRentalItems.collectAsState()
     var selectedCity by remember { mutableStateOf<String?>(null) }
     var showCitySheet by remember { mutableStateOf(false) }
+    var selectedMarker by remember { mutableStateOf<MapMarker?>(null) }
+    var selectedListingId by remember { mutableIntStateOf(-1) }
 
     val listingsByCity = remember(rawItems) {
         rawItems.groupBy { it.city }
@@ -83,6 +88,10 @@ fun MapExplorerScreen(
     val selectedCityListings = remember(selectedCity, listingsByCity) {
         if (selectedCity != null) listingsByCity[selectedCity] ?: emptyList()
         else emptyList()
+    }
+
+    val selectedArea = remember(selectedCity) {
+        MapData.cityAreas.find { it.name == selectedCity }
     }
 
     Column(
@@ -512,6 +521,22 @@ fun MapExplorerScreen(
                         }
                     }
 
+                    if (selectedArea != null) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            AreaStatChip("Prix moyen", "${selectedArea.avgPrice}", Color(0xFFFFB300))
+                            AreaStatChip("Annonces", "${selectedArea.listingCount}", Color(0xFF4FC3F7))
+                            AreaStatChip("Demande", selectedArea.demandLevel, when(selectedArea.demandLevel) {
+                                "Élevée" -> Color(0xFFF44336)
+                                "Moyenne" -> Color(0xFFFFB300)
+                                else -> Color(0xFF4CAF50)
+                            })
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(10.dp))
 
                     if (selectedCityListings.isEmpty()) {
@@ -535,7 +560,11 @@ fun MapExplorerScreen(
                             items(selectedCityListings.take(10), key = { it.id }) { item ->
                                 CityListingItem(
                                     item = item,
-                                    onClick = { onSelectItem(item) }
+                                    isSelected = item.id == selectedListingId,
+                                    onClick = {
+                                        selectedListingId = item.id
+                                        onSelectItem(item)
+                                    }
                                 )
                             }
                             if (selectedCityListings.size > 10) {
@@ -663,17 +692,29 @@ fun MapExplorerScreen(
 @Composable
 private fun CityListingItem(
     item: RentalItem,
+    isSelected: Boolean = false,
     onClick: () -> Unit
 ) {
+    val marker = MapData.markers.find { it.title.contains(item.title.take(10), ignoreCase = true) }
+    val markerColor = marker?.color ?: PrimaryGreen
+    val distance = LocationUtils.calculateDistance(
+        LocationUtils.USER_LAT, LocationUtils.USER_LNG,
+        MapData.markers.firstOrNull()?.lat ?: 0.3763,
+        MapData.markers.firstOrNull()?.lng ?: 9.4536
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.05f)
+            containerColor = if (isSelected) markerColor.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.05f)
         ),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.06f))
+        border = BorderStroke(
+            width = if (isSelected) 1.5.dp else 1.dp,
+            color = if (isSelected) markerColor.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.06f)
+        )
     ) {
         Row(
             modifier = Modifier
@@ -686,13 +727,13 @@ private fun CityListingItem(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(PrimaryGreen.copy(alpha = 0.1f)),
+                    .background(markerColor.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     getCategoryIcon(item.category),
                     contentDescription = null,
-                    tint = PrimaryGreen,
+                    tint = markerColor,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -705,13 +746,24 @@ private fun CityListingItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = "${item.neighborhood} - ${item.category}",
-                    color = Color.White.copy(alpha = 0.45f),
-                    fontSize = 11.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${item.neighborhood} - ${item.category}",
+                        color = Color.White.copy(alpha = 0.45f),
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "• ${LocationUtils.formatDistance(distance)}",
+                        color = markerColor.copy(alpha = 0.7f),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
@@ -743,5 +795,23 @@ private fun getCategoryIcon(category: String): androidx.compose.ui.graphics.vect
         "marine & fluvial", "marine", "fluvial" -> Icons.Rounded.Sailing
         "sport & loisirs", "sport", "loisirs" -> Icons.Rounded.SportsTennis
         else -> Icons.Rounded.Category
+    }
+}
+
+@Composable
+private fun AreaStatChip(label: String, value: String, color: Color) {
+    Surface(
+        color = color.copy(alpha = 0.12f),
+        shape = RoundedCornerShape(8.dp),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.25f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(value, color = color, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+            Text(label, color = color.copy(alpha = 0.7f), fontSize = 10.sp, fontWeight = FontWeight.Medium)
+        }
     }
 }

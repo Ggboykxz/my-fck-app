@@ -55,7 +55,12 @@ data class ChatMessage(
     val sender: String,
     val messageText: String,
     val timestamp: Long = System.currentTimeMillis(),
-    val isRead: Boolean = false
+    val isRead: Boolean = false,
+    val chatId: Int = 0,
+    val senderId: Int = 0,
+    val status: String = "read",
+    val reactions: List<String> = emptyList(),
+    val messageType: String = "text"
 ) : Serializable
 
 @Entity(tableName = "user_profile")
@@ -337,4 +342,44 @@ data class ReferralTracking(
     val referredAt: Long = System.currentTimeMillis(),
     val status: String = "pending",
     val rewardEarned: Int = 0
+)
+
+@Entity(tableName = "wallet")
+data class Wallet(
+    @PrimaryKey val id: Int = 1,
+    val balance: Int = 0,
+    val currency: String = "FCFA",
+    val lastUpdated: Long = System.currentTimeMillis()
+)
+
+@Entity(tableName = "wallet_transactions")
+data class WalletTransaction(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val type: String,
+    val amount: Int,
+    val description: String,
+    val relatedBookingId: Int? = null,
+    val timestamp: Long = System.currentTimeMillis(),
+    val status: String = "completed"
+)
+
+@Entity(tableName = "payment_methods_local")
+data class PaymentMethodLocal(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val type: String,
+    val displayName: String,
+    val isDefault: Boolean = false,
+    val last4: String? = null,
+    val addedAt: Long = System.currentTimeMillis()
+)
+
+@Entity(tableName = "promo_codes")
+data class PromoCode(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val code: String,
+    val discount: Int,
+    val validUntil: Long,
+    val maxUses: Int,
+    val usedCount: Int = 0,
+    val description: String
 )

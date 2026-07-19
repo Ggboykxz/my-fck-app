@@ -94,3 +94,16 @@ import kotlinx.serialization.Serializable
 @Serializable data object RouteVideoListing
 @Serializable data object RouteImageModeration
 @Serializable data object RouteMockNotifications
+
+// ─── Personalization & Preferences (3 routes) ───
+@Serializable data object RoutePersonalization
+@Serializable data object RouteRecentlyViewed
+@Serializable data object RouteRecommendations
+
+// ─── Final Polish (2 routes) ───
+@Serializable data object RouteChangelog
+
+// ─── Wallet & Payment (3 routes) ───
+@Serializable data object RouteWallet
+@Serializable data object RouteTopUp
+@Serializable data object RoutePromoCodes

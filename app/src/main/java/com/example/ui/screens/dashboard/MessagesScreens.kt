@@ -3,6 +3,8 @@ package com.example.ui.screens
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,6 +38,7 @@ import com.example.ui.components.*
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
 import kotlinx.coroutines.delay
+import kotlin.random.Random
 
 @Composable
 fun InboxScreen(viewModel: RentalViewModel) {
@@ -167,13 +170,30 @@ fun ChatRoomScreen(
     val messages by viewModel.activeChatMessages.collectAsState()
     var userMessageText by remember { mutableStateOf("") }
     var showTypingIndicator by remember { mutableStateOf(false) }
+    var showReactionMenuForMessage by remember { mutableStateOf<Int?>(null) }
+
+    val isOnline = remember { mutableStateOf(Random.nextFloat() > 0.3f) }
+    val lastSeen = remember { mutableStateOf(System.currentTimeMillis() - Random.nextLong(3600000)) }
 
     BackHandler { onBack() }
 
-    LaunchedEffect(showTypingIndicator) {
-        if (showTypingIndicator) {
-            delay(2000)
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty() && messages.last().sender == "User") {
+            delay(500)
+            showTypingIndicator = true
+            delay(1500 + Random.nextLong(1000))
             showTypingIndicator = false
+            val replies = listOf(
+                "D'accord, je regarde ça",
+                "Merci pour l'info !",
+                "On peut en discuter demain",
+                "Je vous envoie les photos",
+                "Parfait, à bientôt !",
+                "C'est noté, merci",
+                "Je confirme la réservation",
+                "Super, hâte de visiter !"
+            )
+            viewModel.sendChatMessage(item.id, replies.random(), item.ownerName)
         }
     }
 
@@ -185,7 +205,6 @@ fun ChatRoomScreen(
             .background(BrandNavy)
             .imePadding()
     ) {
-        // App header containing landlord profiles
         Surface(
             color = Color(0xFF162133),
             tonalElevation = 8.dp,
@@ -230,38 +249,54 @@ fun ChatRoomScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        val infiniteTransition = rememberInfiniteTransition(label = "online")
-                        val pulseAlpha by infiniteTransition.animateFloat(
-                            initialValue = 0.4f,
-                            targetValue = 1f,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(800),
-                                repeatMode = RepeatMode.Reverse
-                            ),
-                            label = "pulseAlpha"
-                        )
-                        val pulseScale by infiniteTransition.animateFloat(
-                            initialValue = 0.8f,
-                            targetValue = 1.2f,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(800),
-                                repeatMode = RepeatMode.Reverse
-                            ),
-                            label = "pulseScale"
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size((6 * pulseScale).dp)
-                                .clip(CircleShape)
-                                .background(PrimaryGreen.copy(alpha = pulseAlpha))
-                        )
-                        Text("En ligne", fontSize = 10.sp, color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Medium)
+                        if (isOnline.value) {
+                            val infiniteTransition = rememberInfiniteTransition(label = "online")
+                            val pulseAlpha by infiniteTransition.animateFloat(
+                                initialValue = 0.4f,
+                                targetValue = 1f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(800),
+                                    repeatMode = RepeatMode.Reverse
+                                ),
+                                label = "pulseAlpha"
+                            )
+                            val pulseScale by infiniteTransition.animateFloat(
+                                initialValue = 0.8f,
+                                targetValue = 1.2f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(800),
+                                    repeatMode = RepeatMode.Reverse
+                                ),
+                                label = "pulseScale"
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .size((6 * pulseScale).dp)
+                                    .clip(CircleShape)
+                                    .background(PrimaryGreen.copy(alpha = pulseAlpha))
+                            )
+                            Text("En ligne", fontSize = 10.sp, color = Color(0xFF4CAF50), fontWeight = FontWeight.Medium)
+                        } else {
+                            val elapsed = System.currentTimeMillis() - lastSeen.value
+                            val minutes = (elapsed / 60000).toInt()
+                            val timeAgo = when {
+                                minutes < 1 -> "à l'instant"
+                                minutes < 60 -> "il y a ${minutes}min"
+                                else -> "il y a ${minutes / 60}h"
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .size(6.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.Gray.copy(alpha = 0.5f))
+                            )
+                            Text("Vu $timeAgo", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
+                        }
                     }
                 }
             }
         }
 
-        // Messages list history
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -291,10 +326,10 @@ fun ChatRoomScreen(
 
             items(messages, key = { it.id }, contentType = { "message" }) { message ->
                 val isMe = message.sender == "User"
-                val isImage = message.messageText.startsWith("[image]")
+                val isImage = message.messageType == "image" || message.messageText.startsWith("[image]")
                 val isLocation = message.messageText.startsWith("[location]")
                 val displayText = when {
-                    isImage -> message.messageText.removePrefix("[image] ").trim()
+                    isImage && message.messageText.startsWith("[image]") -> message.messageText.removePrefix("[image] ").trim()
                     isLocation -> message.messageText.removePrefix("[location] ").trim()
                     else -> message.messageText
                 }
@@ -316,75 +351,151 @@ fun ChatRoomScreen(
                             )
                         }
                     }
-                    Box(
-                        modifier = Modifier
-                            .widthIn(max = 280.dp)
-                            .clip(
-                                RoundedCornerShape(
-                                    topStart = 18.dp,
-                                    topEnd = 18.dp,
-                                    bottomStart = if (isMe) 18.dp else 4.dp,
-                                    bottomEnd = if (isMe) 4.dp else 18.dp
+                    Box {
+                        @OptIn(ExperimentalFoundationApi::class)
+                        Box(
+                            modifier = Modifier
+                                .widthIn(max = 280.dp)
+                                .clip(
+                                    RoundedCornerShape(
+                                        topStart = 18.dp,
+                                        topEnd = 18.dp,
+                                        bottomStart = if (isMe) 18.dp else 4.dp,
+                                        bottomEnd = if (isMe) 4.dp else 18.dp
+                                    )
                                 )
-                            )
-                            .background(if (isMe) PrimaryGreen.copy(alpha = 0.15f) else Color(0xFF1E2D45))
-                            .border(
-                                1.dp,
-                                if (isMe) PrimaryGreen.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.06f),
-                                RoundedCornerShape(18.dp)
-                            )
-                            .padding(14.dp)
-                    ) {
-                        when {
-                            isImage -> Column {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(displayText)
-                                        .crossfade(true)
-                                        .size(Size.ORIGINAL)
-                                        .diskCachePolicy(CachePolicy.ENABLED)
-                                        .memoryCachePolicy(CachePolicy.ENABLED)
-                                        .build(),
-                                    contentDescription = "Image partagée",
-                                    modifier = Modifier.fillMaxWidth().height(160.dp).clip(RoundedCornerShape(10.dp)),
-                                    contentScale = ContentScale.Crop,
-                                    placeholder = painterResource(android.R.drawable.ic_menu_gallery),
-                                    error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
+                                .background(if (isMe) PrimaryGreen.copy(alpha = 0.15f) else Color(0xFF1E2D45))
+                                .border(
+                                    1.dp,
+                                    if (isMe) PrimaryGreen.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.06f),
+                                    RoundedCornerShape(18.dp)
                                 )
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text("📷 Photo partagée", fontSize = 11.sp, color = Color.White.copy(alpha = 0.5f))
-                            }
-                            isLocation -> Column {
-                                Card(
-                                    shape = RoundedCornerShape(10.dp),
-                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0D2137))
-                                ) {
-                                    Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(PrimaryGreen.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
-                                            Icon(Icons.Rounded.LocationOn, contentDescription = "Position", tint = PrimaryGreen, modifier = Modifier.size(18.dp))
-                                        }
-                                        Column {
-                                            Text("Position partagée", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                            Text(displayText, color = Color.White.copy(alpha = 0.6f), fontSize = 10.sp)
+                                .combinedClickable(
+                                    onClick = {},
+                                    onLongClick = { showReactionMenuForMessage = message.id }
+                                )
+                                .padding(14.dp)
+                        ) {
+                            when {
+                                isImage -> Column {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.7f)
+                                            .aspectRatio(4f / 3f)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(Color(0xFF1A2744))
+                                    ) {
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(displayText)
+                                                .crossfade(true)
+                                                .size(Size.ORIGINAL)
+                                                .diskCachePolicy(CachePolicy.ENABLED)
+                                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                                .build(),
+                                            contentDescription = "Image partagée",
+                                            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)),
+                                            contentScale = ContentScale.Crop,
+                                            placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                                            error = painterResource(android.R.drawable.ic_menu_close_clear_cancel)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text("Photo partagée", fontSize = 11.sp, color = Color.White.copy(alpha = 0.5f))
+                                }
+                                isLocation -> Column {
+                                    Card(
+                                        shape = RoundedCornerShape(10.dp),
+                                        colors = CardDefaults.cardColors(containerColor = Color(0xFF0D2137))
+                                    ) {
+                                        Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(PrimaryGreen.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
+                                                Icon(Icons.Rounded.LocationOn, contentDescription = "Position", tint = PrimaryGreen, modifier = Modifier.size(18.dp))
+                                            }
+                                            Column {
+                                                Text("Position partagée", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                                Text(displayText, color = Color.White.copy(alpha = 0.6f), fontSize = 10.sp)
+                                            }
                                         }
                                     }
                                 }
+                                else -> Text(
+                                    text = displayText,
+                                    fontSize = 14.sp,
+                                    color = if (isMe) Color.White else Color.White.copy(alpha = 0.9f),
+                                    lineHeight = 20.sp
+                                )
                             }
-                            else -> Text(
-                                text = displayText,
-                                fontSize = 14.sp,
-                                color = if (isMe) Color.White else Color.White.copy(alpha = 0.9f),
-                                lineHeight = 20.sp
-                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showReactionMenuForMessage == message.id,
+                            onDismissRequest = { showReactionMenuForMessage = null },
+                            modifier = Modifier.background(Color(0xFF162133))
+                        ) {
+                            listOf("\uD83D\uDC4D", "\u2764\uFE0F", "\uD83D\uDE02", "\uD83D\uDE2E", "\uD83D\uDE22", "\uD83D\uDE4F").forEach { emoji ->
+                                DropdownMenuItem(
+                                    text = { Text(emoji, fontSize = 20.sp) },
+                                    onClick = {
+                                        viewModel.addReactionToMessage(message.id, emoji, messages)
+                                        showReactionMenuForMessage = null
+                                    }
+                                )
+                            }
                         }
                     }
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = if (isMe) "Vous • maintenant" else "${item.ownerName} • maintenant",
-                        fontSize = 10.sp,
-                        color = Color.White.copy(alpha = 0.3f),
-                        modifier = Modifier.padding(horizontal = 4.dp)
-                    )
+
+                    if (message.reactions.isNotEmpty()) {
+                        Row(modifier = Modifier.padding(top = 2.dp, start = 4.dp)) {
+                            message.reactions.forEach { reaction ->
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = Color(0xFF1A2744),
+                                    modifier = Modifier.padding(horizontal = 2.dp)
+                                ) {
+                                    Text(
+                                        reaction,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "${formatChatTime(message.timestamp)}",
+                            fontSize = 10.sp,
+                            color = Color.White.copy(alpha = 0.3f)
+                        )
+                        if (isMe) {
+                            Spacer(modifier = Modifier.width(4.dp))
+                            when (message.status) {
+                                "sent" -> Icon(
+                                    Icons.Rounded.Check,
+                                    contentDescription = "Envoyé",
+                                    modifier = Modifier.size(14.dp),
+                                    tint = Color.Gray
+                                )
+                                "delivered" -> Icon(
+                                    Icons.Rounded.DoneAll,
+                                    contentDescription = "Livré",
+                                    modifier = Modifier.size(14.dp),
+                                    tint = Color.Gray
+                                )
+                                "read" -> Icon(
+                                    Icons.Rounded.DoneAll,
+                                    contentDescription = "Lu",
+                                    modifier = Modifier.size(14.dp),
+                                    tint = Color(0xFF2196F3)
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
@@ -407,10 +518,10 @@ fun ChatRoomScreen(
                         Box(modifier = Modifier.size(6.dp).offset(y = dotOffset.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.5f)))
                     }
                 }
+                Text("écrit...", fontSize = 11.sp, color = Color.White.copy(alpha = 0.4f))
             }
         }
 
-        // Write messaging bar bottom
         Surface(
             color = Color(0xFF162133),
             tonalElevation = 8.dp,
@@ -435,6 +546,13 @@ fun ChatRoomScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                IconButton(
+                    onClick = { viewModel.sendImageMessage(item.id, item.ownerName) },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(Icons.Rounded.PhotoLibrary, contentDescription = "Photo", tint = Color.Gray, modifier = Modifier.size(22.dp))
+                }
+
                 OutlinedTextField(
                     value = userMessageText,
                     onValueChange = { userMessageText = it },
@@ -475,4 +593,9 @@ fun ChatRoomScreen(
             }
         }
     }
+}
+
+private fun formatChatTime(timestamp: Long): String {
+    val sdf = java.text.SimpleDateFormat("HH:mm", java.util.Locale.FRANCE)
+    return sdf.format(java.util.Date(timestamp))
 }

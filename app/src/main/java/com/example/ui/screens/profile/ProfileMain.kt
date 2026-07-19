@@ -95,6 +95,61 @@ fun ProfileMainScreen(
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
+            val completion by viewModel.profileCompletion.collectAsState()
+            if (completion < 100) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                    border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Complétez votre profil", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LinearProgressIndicator(
+                            progress = { completion / 100f },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp)),
+                            color = if (completion >= 80) PrimaryGreen else Color(0xFFFFB300),
+                            trackColor = Color.White.copy(alpha = 0.1f)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "$completion% complété",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.5f)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        val checkItems = listOf(
+                            Triple("Photo de profil", true, Icons.Rounded.CameraAlt),
+                            Triple("Nom complet", userName.isNotBlank(), Icons.Rounded.Person),
+                            Triple("Ville", viewModel.profileCity.collectAsState().value.isNotBlank(), Icons.Rounded.LocationOn),
+                            Triple("Téléphone vérifié", viewModel.isPhoneVerified.collectAsState().value, Icons.Rounded.Phone),
+                            Triple("Email vérifié", true, Icons.Rounded.Email)
+                        )
+                        checkItems.forEach { (label, done, icon) ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(icon, contentDescription = null, tint = if (done) PrimaryGreen else Color.White.copy(alpha = 0.3f), modifier = Modifier.size(16.dp))
+                                Text(label, color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp, modifier = Modifier.weight(1f))
+                                if (done) {
+                                    Icon(Icons.Rounded.CheckCircle, contentDescription = "Fait", tint = PrimaryGreen, modifier = Modifier.size(16.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // User Profile Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -299,6 +354,22 @@ fun ProfileMainScreen(
             // TENANT MODE MENU ITEMS
             item {
                 ProfileOptionRow(
+                    icon = Icons.Rounded.AccountBalanceWallet,
+                    title = "Mon Portefeuille",
+                    subtitle = "Solde, recharges & transactions",
+                    containerColor = Color(0xFF4CAF50).copy(alpha = 0.12f),
+                    iconTint = Color(0xFF4CAF50),
+                    onClick = { onNavigate("my_wallet") }
+                )
+                ProfileOptionRow(
+                    icon = Icons.Rounded.LocalOffer,
+                    title = "Codes Promo",
+                    subtitle = "Entrez vos codes de réduction",
+                    containerColor = Color(0xFFCE93D8).copy(alpha = 0.12f),
+                    iconTint = Color(0xFFCE93D8),
+                    onClick = { onNavigate("promo_codes") }
+                )
+                ProfileOptionRow(
                     icon = Icons.Rounded.Task,
                     title = "Mes Réservations à venir",
                     subtitle = "Reçus, codes de retraits & dommages",
@@ -502,10 +573,42 @@ fun ProfileMainScreen(
             ProfileOptionRow(
                 icon = Icons.Rounded.Info,
                 title = "À propos",
-                subtitle = "LocAll v1.0.0 (Prototype)",
+                subtitle = "LocAll v1.5.0",
                 containerColor = Color(0xFF4FC3F7).copy(alpha = 0.12f),
                 iconTint = Color(0xFF4FC3F7),
                 onClick = { onNavigate("about") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.Person,
+                title = "Personnalisation",
+                subtitle = "Thème, devise, catégories & préférences",
+                containerColor = Color(0xFFAB47BC).copy(alpha = 0.12f),
+                iconTint = Color(0xFFAB47BC),
+                onClick = { onNavigate("personalization") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.History,
+                title = "Récemment consultées",
+                subtitle = "Retrouvez vos annonces récentes",
+                containerColor = Color(0xFF78909C).copy(alpha = 0.12f),
+                iconTint = Color(0xFF78909C),
+                onClick = { onNavigate("recently_viewed") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.AutoAwesome,
+                title = "Recommandations",
+                subtitle = "Annonces sélectionnées pour vous",
+                containerColor = Color(0xFFFFB300).copy(alpha = 0.12f),
+                iconTint = Color(0xFFFFB300),
+                onClick = { onNavigate("recommendations") }
+            )
+            ProfileOptionRow(
+                icon = Icons.Rounded.NewReleases,
+                title = "Nouveautés / Changelog",
+                subtitle = "Dernières mises à jour de l'app",
+                containerColor = Color(0xFF4FC3F7).copy(alpha = 0.12f),
+                iconTint = Color(0xFF4FC3F7),
+                onClick = { onNavigate("changelog") }
             )
 
             Text(

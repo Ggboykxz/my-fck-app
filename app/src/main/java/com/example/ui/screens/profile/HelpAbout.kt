@@ -399,6 +399,31 @@ fun AboutScreen(
     var showCguDialog by remember { mutableStateOf(false) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
     var showLicensesDialog by remember { mutableStateOf(false) }
+    var tapCount by remember { mutableIntStateOf(0) }
+    var showEasterEgg by remember { mutableStateOf(false) }
+    var easterEggTimer by remember { mutableStateOf(0L) }
+
+    LaunchedEffect(tapCount) {
+        if (tapCount > 0) {
+            kotlinx.coroutines.delay(2000)
+            tapCount = 0
+        }
+    }
+
+    if (showEasterEgg) {
+        AlertDialog(
+            onDismissRequest = { showEasterEgg = false },
+            containerColor = Color(0xFF162133),
+            icon = { Icon(Icons.Rounded.EmojiEvents, contentDescription = null, tint = Color(0xFFFFD700), modifier = Modifier.size(48.dp)) },
+            title = { Text("Vous avez trouvé l'easter egg !", color = Color.White, textAlign = TextAlign.Center) },
+            text = { Text("LocAll a été développé avec passion au Gabon. Merci d'utiliser notre application !", color = Color.White.copy(alpha = 0.8f), textAlign = TextAlign.Center) },
+            confirmButton = {
+                Button(onClick = { showEasterEgg = false }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)) {
+                    Text("Super !", color = BrandNavy)
+                }
+            }
+        )
+    }
 
     if (showCguDialog) {
         Dialog(onDismissRequest = { showCguDialog = false }) {
@@ -568,9 +593,22 @@ fun AboutScreen(
                 fontWeight = FontWeight.ExtraBold
             )
             Text(
-                "v1.0.0 (Prototype)",
+                "v1.5.0",
                 color = Color.White.copy(alpha = 0.4f),
-                fontSize = 13.sp
+                fontSize = 13.sp,
+                modifier = Modifier.clickable {
+                    val now = System.currentTimeMillis()
+                    if (now - easterEggTimer < 3000) {
+                        tapCount++
+                    } else {
+                        tapCount = 1
+                    }
+                    easterEggTimer = now
+                    if (tapCount >= 5) {
+                        showEasterEgg = true
+                        tapCount = 0
+                    }
+                }
             )
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -586,7 +624,7 @@ fun AboutScreen(
                     Text("Description", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "LocAll est une application de location entre particuliers conçue pour le marché gabonais. Louez tout, partout au Gabon.",
+                        "La marketplace de location immobilière du Gabon. Louez tout, partout au Gabon.",
                         color = Color.White.copy(alpha = 0.7f),
                         fontSize = 13.sp,
                         lineHeight = 20.sp
@@ -609,15 +647,49 @@ fun AboutScreen(
                 ) {
                     Text("Crédits", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     Text(
-                        "Développé avec ❤️ au Gabon",
+                        "Développé avec Jetpack Compose",
                         color = Color.White.copy(alpha = 0.7f),
                         fontSize = 13.sp
                     )
                     Text(
-                        "Technologies: Kotlin, Jetpack Compose, Room DB",
+                        "Architecture: MVVM + Room",
                         color = Color.White.copy(alpha = 0.5f),
                         fontSize = 12.sp
                     )
+                    Text(
+                        "UI: Material Design 3",
+                        color = Color.White.copy(alpha = 0.5f),
+                        fontSize = 12.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Build Info
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text("Informations", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Version", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                        Text("1.5.0", color = Color.White, fontSize = 12.sp)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Build", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                        Text("20260718", color = Color.White, fontSize = 12.sp)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Base de données", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                        Text("v6", color = Color.White, fontSize = 12.sp)
+                    }
                 }
             }
 
@@ -729,24 +801,6 @@ fun AboutScreen(
                             Text("Instagram", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
                         }
 
-                        // Twitter / X
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(RoundedCornerShape(14.dp))
-                                    .background(Color(0xFF1A1A2E).copy(alpha = 0.8f))
-                                    .clickable { },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(Icons.Rounded.Tag, contentDescription = "Twitter", tint = Color(0xFF1DA1F2), modifier = Modifier.size(22.dp))
-                            }
-                            Text("Twitter", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
-                        }
-
                         // Facebook
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -763,6 +817,24 @@ fun AboutScreen(
                                 Icon(Icons.Rounded.Public, contentDescription = "Facebook", tint = Color(0xFF1877F2), modifier = Modifier.size(22.dp))
                             }
                             Text("Facebook", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
+                        }
+
+                        // Contact
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .background(Color(0xFF1A1A2E).copy(alpha = 0.8f))
+                                    .clickable { },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Rounded.Email, contentDescription = "Contact", tint = PrimaryGreen, modifier = Modifier.size(22.dp))
+                            }
+                            Text("Contact", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
                         }
                     }
                 }
