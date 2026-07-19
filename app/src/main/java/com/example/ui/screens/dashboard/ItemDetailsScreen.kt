@@ -67,7 +67,9 @@ fun ItemDetailsScreen(
     val context = LocalContext.current
     var showBookingDialog by remember { mutableStateOf(false) }
     var showShareSheet by remember { mutableStateOf(false) }
+    var showReportDialog by remember { mutableStateOf(false) }
     val lazyListState = rememberLazyListState()
+    val allItems by viewModel.rawRentalItems.collectAsState()
 
     BackHandler { onBack() }
 
@@ -362,6 +364,8 @@ fun ItemDetailsScreen(
                     }
                 }
 
+                PriceComparisonCard(item = item, allItems = allItems)
+
                 // Description Title and contents
                 SectionHeader(title = "Description du bien")
                 Text(
@@ -506,6 +510,50 @@ fun ItemDetailsScreen(
                         ) {
                             Icon(Icons.Rounded.LocationCity, contentDescription = "Quartier", tint = Color(0xFFFFB300), modifier = Modifier.size(18.dp))
                             Text("Avis quartier", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                        }
+                    }
+                }
+
+                // Contact Owner card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Contacter le propriétaire", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                            ContactButton(
+                                icon = Icons.Rounded.Chat,
+                                label = "WhatsApp",
+                                color = Color(0xFF25D366),
+                                onClick = { viewModel.showSnackbar("Ouverture de WhatsApp...") }
+                            )
+                            ContactButton(
+                                icon = Icons.Rounded.Phone,
+                                label = "Appeler",
+                                color = Color(0xFF4FC3F7),
+                                onClick = { viewModel.showSnackbar("Appel en cours...") }
+                            )
+                            ContactButton(
+                                icon = Icons.Rounded.Sms,
+                                label = "SMS",
+                                color = Color(0xFFFF9800),
+                                onClick = { viewModel.showSnackbar("Ouverture SMS...") }
+                            )
+                            ContactButton(
+                                icon = Icons.Rounded.Email,
+                                label = "Message",
+                                color = Color(0xFFAB47BC),
+                                onClick = {
+                                    viewModel.selectItem(item)
+                                    viewModel.openChatFor(item)
+                                    viewModel.navigateTo("chat")
+                                }
+                            )
                         }
                     }
                 }
@@ -662,6 +710,23 @@ fun ItemDetailsScreen(
                     }
                 }
 
+                Surface(
+                    onClick = { showReportDialog = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFF162133),
+                    border = BorderStroke(1.dp, Color(0xFFE53935).copy(alpha = 0.2f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Icon(Icons.Rounded.Flag, contentDescription = "Signaler", tint = Color(0xFFE53935), modifier = Modifier.size(18.dp))
+                        Text("Signaler cette annonce", color = Color(0xFFE53935), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
@@ -717,6 +782,12 @@ fun ItemDetailsScreen(
             onShare = { text -> viewModel.showSnackbar("Lien partagé") }
         )
     }
+
+    ReportListingDialog(
+        show = showReportDialog,
+        onDismiss = { showReportDialog = false },
+        onReport = { reason -> viewModel.showSnackbar("Annonce signalée : $reason") }
+    )
 }
 
 fun formatPriceCfa(amount: Int): String {

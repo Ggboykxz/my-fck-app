@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,11 +60,11 @@ fun MainDashboardView(viewModel: RentalViewModel) {
                     targetState = currentScreen,
                     transitionSpec = {
                         if (targetState is Screen.Details || targetState is Screen.Chat) {
-                            slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it } + fadeOut()
+                            slideInVertically(initialOffsetY = { it / 3 }) + fadeIn(tween(300)) togetherWith slideOutVertically(targetOffsetY = { -it / 3 }) + fadeOut(tween(200))
                         } else if (targetState is Screen.Home) {
-                            slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it } + fadeOut()
+                            slideInVertically(initialOffsetY = { it / 3 }) + fadeIn(tween(300)) togetherWith slideOutVertically(targetOffsetY = { -it / 3 }) + fadeOut(tween(200))
                         } else {
-                            fadeIn(androidx.compose.animation.core.tween(300)) togetherWith fadeOut(androidx.compose.animation.core.tween(300))
+                            fadeIn(tween(300)) + slideInHorizontally(initialOffsetX = { it / 5 }) togetherWith fadeOut(tween(200)) + slideOutHorizontally(targetOffsetX = { -it / 5 })
                         }
                     },
                     label = "DashboardScreenTransition"

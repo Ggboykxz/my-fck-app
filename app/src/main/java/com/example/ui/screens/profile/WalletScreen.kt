@@ -27,6 +27,7 @@ import com.example.ui.components.*
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
 import com.example.ui.viewmodel.WalletTxn
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +40,10 @@ fun WalletScreen(
     val balance by viewModel.walletBalance.collectAsState()
     val transactions by viewModel.walletTransactions.collectAsState()
     val selectedFilter by viewModel.selectedWalletFilter.collectAsState()
+    var isLoading by remember { mutableStateOf(true) }
+    var isRefreshing by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { delay(600); isLoading = false }
+    LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(800); isRefreshing = false } }
     BackHandler { onBack() }
 
     val filters = listOf("Toutes", "Recharges", "Paiements", "Gains", "Remboursements")
@@ -52,6 +57,24 @@ fun WalletScreen(
         }
     }
 
+    if (isLoading) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onBack, modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.08f))) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Text("Mon Portefeuille", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            }
+            repeat(4) {
+                SkeletonBookingItem()
+            }
+        }
+    } else {
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -69,7 +92,14 @@ fun WalletScreen(
                     Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Retour", tint = Color.White)
                 }
                 Spacer(modifier = Modifier.width(16.dp))
-                Text("Mon Portefeuille", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Mon Portefeuille", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                IconButton(onClick = { isRefreshing = true }) {
+                    if (isRefreshing) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = Color(0xFF4FC3F7))
+                    } else {
+                        Icon(Icons.Rounded.Refresh, contentDescription = "Actualiser", tint = Color.White)
+                    }
+                }
             }
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -186,6 +216,7 @@ fun WalletScreen(
         }
 
         item { Spacer(modifier = Modifier.height(30.dp)) }
+    }
     }
 }
 

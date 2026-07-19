@@ -23,12 +23,16 @@ import com.example.ui.screens.RentalDetailModalDialog
 import com.example.ui.screens.BookingInteractiveDialog
 import com.example.ui.viewmodel.RentalViewModel
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.material.icons.rounded.Refresh
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun BookmarksScreen(viewModel: RentalViewModel) {
     val items by viewModel.bookmarkedItems.collectAsState()
     val isLoading by viewModel.isBookmarksLoading.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
+    LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(800); isRefreshing = false } }
 
     var selectedItemForModal by remember { mutableStateOf<RentalItem?>(null) }
     var showBookingFromModal by remember { mutableStateOf<RentalItem?>(null) }
@@ -41,12 +45,25 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            "Mes Favoris",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Mes Favoris",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = { isRefreshing = true }) {
+                if (isRefreshing) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = Color(0xFF4FC3F7))
+                } else {
+                    Icon(Icons.Rounded.Refresh, contentDescription = "Actualiser", tint = Color.White)
+                }
+            }
+        }
 
         HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 

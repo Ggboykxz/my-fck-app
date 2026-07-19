@@ -55,7 +55,9 @@ fun ProfileMainScreen(
     val userName by viewModel.userName.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
+    var isRefreshing by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { delay(600); isLoading = false }
+    LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(800); isRefreshing = false } }
 
     if (isLoading) {
         Column(
@@ -86,14 +88,25 @@ fun ProfileMainScreen(
         item {
             Spacer(modifier = Modifier.height(30.dp))
             
-            // Header Title
-            Text(
-                "Tableau de Bord & Profil",
-                color = Color.White,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Tableau de Bord & Profil",
+                    color = Color.White,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f).padding(bottom = 24.dp)
+                )
+                IconButton(onClick = { isRefreshing = true }) {
+                    if (isRefreshing) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = Color(0xFF4FC3F7))
+                    } else {
+                        Icon(Icons.Rounded.Refresh, contentDescription = "Actualiser", tint = Color.White)
+                    }
+                }
+            }
 
             val completion by viewModel.profileCompletion.collectAsState()
             if (completion < 100) {

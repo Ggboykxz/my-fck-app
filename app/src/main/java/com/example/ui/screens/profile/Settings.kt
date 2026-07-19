@@ -450,6 +450,8 @@ fun SettingsScreen(
     var locationEnabled by remember { mutableStateOf(false) }
     var dataSavingEnabled by remember { mutableStateOf(DarkModeHelper.loadDataSavingMode(context)) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) { delay(600); isLoading = false }
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -473,6 +475,18 @@ fun SettingsScreen(
         )
     }
 
+    if (isLoading) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Spacer(modifier = Modifier.height(30.dp))
+            Text("Paramètres", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 24.dp))
+            repeat(6) {
+                SkeletonBookingItem()
+            }
+        }
+    } else {
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)
     ) {
@@ -616,6 +630,7 @@ fun SettingsScreen(
                 }
             }
         }
+    }
     }
 }
 

@@ -77,6 +77,7 @@ fun ExploreScreen(
     var recentSearches by remember { mutableStateOf(listOf<String>()) }
     var showRecentSearches by remember { mutableStateOf(false) }
     var showAutocomplete by remember { mutableStateOf(false) }
+    var fabExpanded by remember { mutableStateOf(false) }
     val isOwnerMode by viewModel.isOwnerMode.collectAsState()
     val context = LocalContext.current
     val isDataSaving by remember { mutableStateOf(DarkModeHelper.loadDataSavingMode(context)) }
@@ -84,6 +85,7 @@ fun ExploreScreen(
 
     LaunchedEffect(Unit) { delay(300); isLoading = false }
     LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(300); isRefreshing = false } }
+    LaunchedEffect(Unit) { delay(500); fabExpanded = true }
 
     val sortedItems = items
     val displayItems = if (isOwnerMode) sortedItems.filter { it.ownerName == "Vous" || it.ownerName == "User" } else sortedItems
@@ -614,7 +616,8 @@ fun ExploreScreen(
         FloatingActionButton(
             onClick = { showActionsSheet = true },
             containerColor = PrimaryGreen,
-            contentColor = BrandNavy
+            contentColor = BrandNavy,
+            modifier = Modifier.scale(if (fabExpanded) 1f else 0f)
         ) {
             Icon(Icons.Rounded.Add, contentDescription = "Actions rapides")
         }

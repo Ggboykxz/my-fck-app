@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -38,8 +39,25 @@ import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.size.Size
+import kotlinx.coroutines.delay
 import com.example.connectivity.ConnectivityMonitor
 import com.example.ui.theme.*
+
+object AppSpacing {
+    val xs = 4.dp
+    val sm = 8.dp
+    val md = 12.dp
+    val lg = 16.dp
+    val xl = 24.dp
+    val xxl = 32.dp
+}
+
+object AppCornerRadius {
+    val sm = 8.dp
+    val md = 12.dp
+    val lg = 16.dp
+    val xl = 24.dp
+}
 
 // ==================== SKELETON LOADING ====================
 
@@ -1464,6 +1482,301 @@ fun ErrorBoundary(
             }
         }
     } else {
+        content()
+    }
+}
+
+@Composable
+fun ContactButton(icon: ImageVector, label: String, color: Color, onClick: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        FilledIconButton(
+            onClick = onClick,
+            modifier = Modifier.size(48.dp),
+            colors = IconButtonDefaults.filledIconButtonColors(containerColor = color.copy(alpha = 0.15f))
+        ) {
+            Icon(icon, contentDescription = label, tint = color, modifier = Modifier.size(24.dp))
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(label, color = Color.Gray, fontSize = 10.sp)
+    }
+}
+
+@Composable
+fun PriceComparisonCard(item: com.example.data.model.RentalItem, allItems: List<com.example.data.model.RentalItem>) {
+    val sameCategory = allItems.filter { it.category == item.category }
+    val avgPrice = if (sameCategory.isNotEmpty()) sameCategory.map { it.pricePerDay }.average().toInt() else item.pricePerDay
+    val diff = item.pricePerDay - avgPrice
+    val percentage = if (avgPrice > 0) ((diff.toFloat() / avgPrice) * 100).toInt() else 0
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Prix moyen dans la catégorie", color = Color.Gray, fontSize = 12.sp)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(com.example.ui.screens.formatPriceCfa(avgPrice) + "/jour", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        if (diff <= 0) Icons.Rounded.TrendingDown else Icons.Rounded.TrendingUp,
+                        contentDescription = null,
+                        tint = if (diff <= 0) Color(0xFF4CAF50) else Color(0xFFE53935),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        "${if (diff >= 0) "+" else ""}${percentage}%",
+                        color = if (diff <= 0) Color(0xFF4CAF50) else Color(0xFFE53935),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    if (diff <= 0) "Moins cher" else "Plus cher",
+                    color = Color.Gray,
+                    fontSize = 12.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ReportListingDialog(
+    show: Boolean,
+    onDismiss: () -> Unit,
+    onReport: (String) -> Unit
+) {
+    if (show) {
+        var selectedReason by remember { mutableStateOf("") }
+        val reasons = listOf(
+            "Annonce fausse ou trompeuse",
+            "Prix incorrect",
+            "Photos différentes de la réalité",
+            "Logement déjà loué",
+            "Discrimination",
+            "Spam ou arnaque",
+            "Autre"
+        )
+
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            containerColor = Color(0xFF162133),
+            title = { Text("Signaler cette annonce", color = Color.White) },
+            text = {
+                Column {
+                    Text("Choisissez la raison du signalement :", color = Color.Gray)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    reasons.forEach { reason ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { selectedReason = reason }
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = selectedReason == reason,
+                                onClick = { selectedReason = reason },
+                                colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF4FC3F7))
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(reason, color = Color.White)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { onReport(selectedReason); onDismiss() },
+                    enabled = selectedReason.isNotEmpty(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
+                ) { Text("Signaler") }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) { Text("Annuler", color = Color.Gray) }
+            }
+        )
+    }
+}
+
+@Composable
+fun AnimatedLoadingOverlay(
+    isLoading: Boolean,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Box(modifier = modifier) {
+        content()
+
+        AnimatedVisibility(
+            visible = isLoading,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(
+                        color = Color(0xFF4FC3F7),
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Chargement...", color = Color.White, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ValidatedTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    error: String?,
+    modifier: Modifier = Modifier,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    singleLine: Boolean = true,
+    leadingIcon: ImageVector? = null
+) {
+    Column(modifier = modifier) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = { Text(label) },
+            isError = error != null,
+            singleLine = singleLine,
+            keyboardOptions = keyboardOptions,
+            leadingIcon = leadingIcon?.let { { Icon(it, contentDescription = null) } },
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = if (error != null) Color(0xFFE53935) else Color(0xFF4FC3F7),
+                unfocusedBorderColor = Color.Gray,
+                focusedLabelColor = if (error != null) Color(0xFFE53935) else Color(0xFF4FC3F7),
+                cursorColor = Color(0xFF4FC3F7)
+            )
+        )
+        AnimatedVisibility(visible = error != null) {
+            Text(
+                error ?: "",
+                color = Color(0xFFE53935),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun SuccessCheckmark(modifier: Modifier = Modifier) {
+    var playAnimation by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) { playAnimation = true }
+
+    Icon(
+        Icons.Rounded.CheckCircle,
+        contentDescription = "Succès",
+        tint = Color(0xFF4CAF50),
+        modifier = modifier
+            .size(80.dp)
+            .then(
+                if (playAnimation) Modifier.scale(1f) else Modifier.scale(0f)
+            )
+    )
+}
+
+@Composable
+fun AppCard(
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        onClick = onClick ?: {},
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+        shape = RoundedCornerShape(AppCornerRadius.lg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(AppSpacing.lg), content = content)
+    }
+}
+
+@Composable
+fun AppSectionHeader(
+    title: String,
+    modifier: Modifier = Modifier,
+    actionText: String? = null,
+    onAction: (() -> Unit)? = null
+) {
+    Row(
+        modifier = modifier.fillMaxWidth().padding(horizontal = AppSpacing.lg),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Spacer(modifier = Modifier.weight(1f))
+        if (actionText != null && onAction != null) {
+            TextButton(onClick = onAction) {
+                Text(actionText, color = Color(0xFF4FC3F7), fontSize = 14.sp)
+            }
+        }
+    }
+}
+
+@Composable
+fun PullToRefreshWrapper(
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Box(modifier = modifier) {
+        content()
+
+        if (isRefreshing) {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color(0xFF4FC3F7),
+                    strokeWidth = 2.dp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AnimatedListItem(
+    index: Int,
+    content: @Composable () -> Unit
+) {
+    var visible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        delay(index * 50L)
+        visible = true
+    }
+
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(tween(300)) + slideInVertically(tween(300), initialOffsetY = { it / 4 })
+    ) {
         content()
     }
 }

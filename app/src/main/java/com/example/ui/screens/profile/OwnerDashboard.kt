@@ -60,6 +60,8 @@ fun OwnerDashboardScreen(
     val activeListings = bookings.count { it.status == "Confirmé" || it.status == "Payé" }
     val cancellationRate = if (bookings.isNotEmpty()) (bookings.count { it.status == "Annulé" } * 100 / bookings.size) else 0
     val totalRevenue = earnings.filter { it.status == "Versé" }.sumOf { it.amount }
+    var isRefreshing by remember { mutableStateOf(false) }
+    LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(800); isRefreshing = false } }
 
     LazyColumn(
         modifier = Modifier
@@ -91,7 +93,13 @@ fun OwnerDashboardScreen(
                     fontWeight = FontWeight.Bold
                 )
 
-                Box(modifier = Modifier.size(40.dp))
+                IconButton(onClick = { isRefreshing = true }) {
+                    if (isRefreshing) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = Color(0xFF4FC3F7))
+                    } else {
+                        Icon(Icons.Rounded.Refresh, contentDescription = "Actualiser", tint = Color.White)
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
