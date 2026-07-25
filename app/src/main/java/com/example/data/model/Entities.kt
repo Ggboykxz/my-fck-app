@@ -383,3 +383,23 @@ data class PromoCode(
     val usedCount: Int = 0,
     val description: String
 )
+
+@Entity(tableName = "insurance_claims")
+data class InsuranceClaim(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val planName: String,
+    val incidentDate: String,
+    val description: String,
+    val amountClaimed: Int,
+    val status: String = "pending",
+    val createdAt: Long = System.currentTimeMillis(),
+    val resolvedAt: Long? = null
+)
+
+@Entity(tableName = "insurance_subscriptions")
+data class InsuranceSubscription(
+    @PrimaryKey val id: Int = 1,
+    val planName: String,
+    val subscribedAt: Long = System.currentTimeMillis(),
+    val expiresAt: Long? = null
+)

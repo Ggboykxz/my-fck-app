@@ -366,4 +366,31 @@ interface RentalDao {
 
     @Query("DELETE FROM media_items WHERE listingId = :listingId")
     suspend fun deleteMediaItemsForListing(listingId: Int)
+
+    @Query("UPDATE community_disputes SET evidence = :evidence WHERE id = :id")
+    suspend fun updateDisputeEvidence(id: Int, evidence: List<String>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertInsuranceClaim(claim: InsuranceClaim)
+
+    @Query("SELECT * FROM insurance_claims ORDER BY createdAt DESC")
+    fun getAllInsuranceClaims(): Flow<List<InsuranceClaim>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertInsuranceSubscription(sub: InsuranceSubscription)
+
+    @Query("SELECT * FROM insurance_subscriptions WHERE id = 1")
+    fun getInsuranceSubscription(): Flow<InsuranceSubscription?>
+
+    @Query("UPDATE user_profile SET isPhoneVerified = :verified WHERE id = 1")
+    suspend fun updatePhoneVerified(verified: Boolean)
+
+    @Query("UPDATE user_profile SET identityStatus = :status WHERE id = 1")
+    suspend fun updateIdentityStatus(status: String)
+
+    @Query("UPDATE chat_messages SET status = :status WHERE id = :id")
+    suspend fun updateMessageStatus(id: Int, status: String)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertWalletTransaction(txn: WalletTransaction)
 }

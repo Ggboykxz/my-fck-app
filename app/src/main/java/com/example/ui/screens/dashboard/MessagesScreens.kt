@@ -42,9 +42,10 @@ import kotlin.random.Random
 
 @Composable
 fun InboxScreen(viewModel: RentalViewModel) {
-    val items by viewModel.rawRentalItems.collectAsState()
+    val items by viewModel.filteredInboxItems.collectAsState()
     val isLoading by viewModel.isInboxLoading.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
+    var inboxSearch by remember { mutableStateOf("") }
 
     LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(1500); isRefreshing = false } }
 
@@ -64,6 +65,34 @@ fun InboxScreen(viewModel: RentalViewModel) {
             color = Color.White
         )
 
+        OutlinedTextField(
+            value = inboxSearch,
+            onValueChange = {
+                inboxSearch = it
+                viewModel.setInboxSearchQuery(it)
+            },
+            placeholder = { Text("Rechercher une conversation...", color = Color.White.copy(alpha = 0.3f), fontSize = 14.sp) },
+            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = "Rechercher", tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(20.dp)) },
+            trailingIcon = {
+                if (inboxSearch.isNotEmpty()) {
+                    IconButton(onClick = { inboxSearch = ""; viewModel.setInboxSearchQuery("") }) {
+                        Icon(Icons.Rounded.Close, contentDescription = "Effacer", tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(18.dp))
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedBorderColor = PrimaryGreen,
+                unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                focusedContainerColor = Color(0xFF162133),
+                unfocusedContainerColor = Color(0xFF162133)
+            ),
+            singleLine = true
+        )
+
         HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
         if (isLoading) {
@@ -79,8 +108,8 @@ fun InboxScreen(viewModel: RentalViewModel) {
             ) {
                 AnimatedEmptyState(
                     icon = Icons.Rounded.ChatBubbleOutline,
-                    title = "Aucun message",
-                    subtitle = "Contactez un propriétaire pour démarrer une conversation"
+                    title = if (inboxSearch.isNotBlank()) "Aucun résultat" else "Aucun message",
+                    subtitle = if (inboxSearch.isNotBlank()) "Aucune conversation ne correspond à votre recherche" else "Contactez un propriétaire pour démarrer une conversation"
                 )
             }
         } else {
@@ -107,7 +136,6 @@ fun InboxScreen(viewModel: RentalViewModel) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Landlord avatar mock
                         Box(modifier = Modifier.size(44.dp)) {
                             AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)

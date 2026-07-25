@@ -27,11 +27,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import android.content.Context
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.ui.platform.LocalContext
 import com.example.ui.components.*
 import com.example.ui.components.SmoothIcon
 import com.example.ui.components.StatusBadge
+import com.example.preferences.UserPreferences
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
 import kotlinx.coroutines.delay
@@ -446,9 +448,11 @@ fun SettingsScreen(
     onNavigate: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
-    var notificationsEnabled by remember { mutableStateOf(true) }
+    var notificationsEnabled by remember { mutableStateOf(UserPreferences.notificationsEnabled(context)) }
     var locationEnabled by remember { mutableStateOf(false) }
     var dataSavingEnabled by remember { mutableStateOf(DarkModeHelper.loadDataSavingMode(context)) }
+    val hapticEnabledValue by viewModel.hapticEnabled.collectAsState()
+    var hapticEnabled by remember { mutableStateOf(hapticEnabledValue) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) { delay(600); isLoading = false }
@@ -507,7 +511,7 @@ fun SettingsScreen(
                     SmoothIcon(icon = Icons.Rounded.Notifications, tint = Color(0xFFFFB300), backgroundColor = Color(0xFFFFB300).copy(alpha = 0.12f))
                     Column { Text("Notifications", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold); Text("Alertes push et emails", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp) }
                 }
-                Switch(checked = notificationsEnabled, onCheckedChange = { notificationsEnabled = it }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
+                Switch(checked = notificationsEnabled, onCheckedChange = { notificationsEnabled = it; UserPreferences.setNotificationsEnabled(context, it) }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
             }
         }
 
@@ -543,7 +547,19 @@ fun SettingsScreen(
                     SmoothIcon(icon = Icons.Rounded.DataSaverOn, tint = Color(0xFFAB47BC), backgroundColor = Color(0xFFAB47BC).copy(alpha = 0.12f))
                     Column { Text("Mode économie données", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold); Text("Réduire le chargement des images", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp) }
                 }
-                Switch(checked = dataSavingEnabled, onCheckedChange = { dataSavingEnabled = it; DarkModeHelper.saveDataSavingMode(context, it) }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
+                Switch(checked = dataSavingEnabled, onCheckedChange = { dataSavingEnabled = it; DarkModeHelper.saveDataSavingMode(context, it); Toast.makeText(context, if (it) "Mode économie activé" else "Mode économie désactivé", Toast.LENGTH_SHORT).show() }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SmoothIcon(icon = Icons.Rounded.Vibration, tint = Color(0xFFFF7043), backgroundColor = Color(0xFFFF7043).copy(alpha = 0.12f))
+                    Column { Text("Retour haptique", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold); Text("Vibrations sur les interactions", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp) }
+                }
+                Switch(checked = hapticEnabled, onCheckedChange = { hapticEnabled = it; viewModel.setHapticEnabled(it) }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
             }
         }
 

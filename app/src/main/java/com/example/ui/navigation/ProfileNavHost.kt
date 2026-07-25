@@ -259,6 +259,7 @@ fun ProfileNavHost(
 
         composable<RouteProfileAchievements> {
             AchievementsScreen(
+                viewModel = viewModel,
                 onBack = { navController.popBackStack() }
             )
         }
@@ -279,6 +280,7 @@ fun ProfileNavHost(
 
         composable<RouteProfileRewardsCoupons> {
             RewardsCouponsScreen(
+                viewModel = viewModel,
                 onBack = { navController.popBackStack() }
             )
         }
@@ -299,6 +301,7 @@ fun ProfileNavHost(
 
         composable<RouteProfileDigitalDeposit> {
             DigitalDepositScreen(
+                viewModel = viewModel,
                 onBack = { navController.popBackStack() }
             )
         }

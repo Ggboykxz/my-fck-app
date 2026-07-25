@@ -37,6 +37,7 @@ import com.example.ui.viewmodel.RentalViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.activity.compose.BackHandler
+import kotlinx.coroutines.delay
 
 @Composable
 fun BookingInteractiveDialog(
@@ -622,6 +623,12 @@ fun BookingInteractiveDialog(
                     }
 
                     is PaymentState.Success -> {
+                        LaunchedEffect(Unit) {
+                            delay(3000)
+                            viewModel.resetPaymentState()
+                            viewModel.navigateTo("bookings")
+                            onDismiss()
+                        }
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -714,6 +721,10 @@ fun BookingsScreen(viewModel: RentalViewModel) {
     val isLoading by viewModel.isBookingsLoading.collectAsState()
     var showCancelDialog by remember { mutableStateOf<Booking?>(null) }
     var selectedBooking by remember { mutableStateOf<Booking?>(null) }
+    val selectedBookingForReceipt by viewModel.selectedBookingForReceipt.collectAsState()
+    val bookingReviewTarget by viewModel.bookingReviewTarget.collectAsState()
+    var reviewRating by remember { mutableStateOf(0) }
+    var reviewComment by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -769,7 +780,9 @@ fun BookingsScreen(viewModel: RentalViewModel) {
                     BookingItemCard(
                         booking = booking,
                         onCancelClick = { showCancelDialog = booking },
-                        onItemClick = { selectedBooking = booking }
+                        onItemClick = { selectedBooking = booking },
+                        onReceiptClick = { viewModel.showReceiptForBooking(booking) },
+                        onReviewClick = { viewModel.startReviewForBooking(booking) }
                     )
                 }
             }
@@ -841,10 +854,145 @@ fun BookingsScreen(viewModel: RentalViewModel) {
             }
         )
     }
+
+    selectedBookingForReceipt?.let { booking ->
+        val receipts by viewModel.paymentReceipts.collectAsState()
+        val bookingReceipt = receipts.find { it.bookingId == booking.id }
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissReceiptDialog() },
+            containerColor = Color(0xFF162133),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Rounded.Receipt, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(24.dp))
+                    Text("Reçu de paiement", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF0D2137)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(booking.rentalItemTitle, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("N° Reçu", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                                Text(bookingReceipt?.receiptNumber ?: "N/A", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Montant", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                                Text(formatPriceCfa(booking.totalPrice), color = PrimaryGreen, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                            }
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Méthode", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                                Text(booking.paymentMethod, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Période", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                                Text("${booking.days} jours", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Date", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                                Text(
+                                    SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.FRANCE).format(Date(booking.bookingTimestamp)),
+                                    color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold
+                                )
+                            }
+                            HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Statut", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                                Surface(color = PrimaryGreen.copy(alpha = 0.15f), shape = RoundedCornerShape(6.dp)) {
+                                    Text("Payé", color = PrimaryGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.dismissReceiptDialog() },
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandNavy),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Fermer", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {}
+        )
+    }
+
+    bookingReviewTarget?.let { booking ->
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissBookingReview() },
+            containerColor = Color(0xFF162133),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Rounded.RateReview, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(24.dp))
+                    Text("Laisser un avis", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(booking.rentalItemTitle, color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
+                    Text("Note", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        (1..5).forEach { star ->
+                            IconButton(onClick = { reviewRating = star }, modifier = Modifier.size(36.dp)) {
+                                Icon(
+                                    if (star <= reviewRating) Icons.Rounded.Star else Icons.Rounded.StarBorder,
+                                    contentDescription = "$star étoiles",
+                                    tint = if (star <= reviewRating) Color(0xFFFFD700) else Color.Gray,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
+                        }
+                    }
+                    OutlinedTextField(
+                        value = reviewComment,
+                        onValueChange = { reviewComment = it },
+                        placeholder = { Text("Partagez votre expérience...", color = Color.White.copy(alpha = 0.3f), fontSize = 13.sp) },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 80.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = PrimaryGreen,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                            focusedContainerColor = Color(0xFF0F1A2A),
+                            unfocusedContainerColor = Color(0xFF0F1A2A)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (reviewRating > 0) {
+                            viewModel.submitBookingReview(booking, reviewRating, reviewComment)
+                            reviewRating = 0
+                            reviewComment = ""
+                        }
+                    },
+                    enabled = reviewRating > 0,
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Publier l'avis", color = BrandNavy, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissBookingReview(); reviewRating = 0; reviewComment = "" }) {
+                    Text("Annuler", color = Color.White.copy(alpha = 0.5f))
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun BookingItemCard(booking: Booking, onCancelClick: () -> Unit = {}, onItemClick: () -> Unit = {}) {
+fun BookingItemCard(booking: Booking, onCancelClick: () -> Unit = {}, onItemClick: () -> Unit = {}, onReceiptClick: () -> Unit = {}, onReviewClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -937,19 +1085,64 @@ fun BookingItemCard(booking: Booking, onCancelClick: () -> Unit = {}, onItemClic
 
             if (booking.status != "Annulé" && booking.status != "Terminé") {
                 Spacer(modifier = Modifier.height(8.dp))
-                Surface(
-                    onClick = { onCancelClick() },
-                    color = Color.Red.copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.3f))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    Surface(
+                        onClick = { onCancelClick() },
+                        color = Color.Red.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.3f)),
+                        modifier = Modifier.weight(1f)
                     ) {
-                        Icon(Icons.Rounded.Cancel, contentDescription = "Annuler", tint = Color.Red, modifier = Modifier.size(16.dp))
-                        Text("Annuler", color = Color.Red, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            Icon(Icons.Rounded.Cancel, contentDescription = "Annuler", tint = Color.Red, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Annuler", color = Color.Red, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    if (booking.status == "Payé" || booking.status == "Confirmé") {
+                        Surface(
+                            onClick = { onReceiptClick() },
+                            color = Color(0xFF4FC3F7).copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, Color(0xFF4FC3F7).copy(alpha = 0.3f)),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(Icons.Rounded.Receipt, contentDescription = "Reçu", tint = Color(0xFF4FC3F7), modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Reçu", color = Color(0xFF4FC3F7), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                    if (booking.status == "Confirmé") {
+                        Surface(
+                            onClick = { onReviewClick() },
+                            color = Color(0xFFFFB300).copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, Color(0xFFFFB300).copy(alpha = 0.3f)),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(Icons.Rounded.RateReview, contentDescription = "Avis", tint = Color(0xFFFFB300), modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Avis", color = Color(0xFFFFB300), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 }
             }

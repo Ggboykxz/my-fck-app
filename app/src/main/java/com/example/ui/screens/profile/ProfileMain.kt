@@ -229,7 +229,8 @@ fun ProfileMainScreen(
             }
 
             // Trust Score
-            TrustScore(score = 85)
+            val trustScore by viewModel.trustScore.collectAsState()
+            TrustScore(score = trustScore)
 
             Spacer(modifier = Modifier.height(12.dp))
 

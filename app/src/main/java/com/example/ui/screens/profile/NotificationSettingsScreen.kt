@@ -31,6 +31,7 @@ fun NotificationSettingsScreen(
     var currentSettings by remember(settings) {
         mutableStateOf(settings ?: PushNotificationSetting())
     }
+    var selectedFrequency by remember { mutableIntStateOf(0) }
 
     Column(
         modifier = Modifier
@@ -142,14 +143,14 @@ fun NotificationSettingsScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { }
+                            .clickable { selectedFrequency = index; viewModel.showSnackbar("Fréquence : $label") }
                             .padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         RadioButton(
-                            selected = index == 0,
-                            onClick = { },
+                            selected = index == selectedFrequency,
+                            onClick = { selectedFrequency = index; viewModel.showSnackbar("Fréquence : $label") },
                             colors = RadioButtonDefaults.colors(selectedColor = PrimaryGreen, unselectedColor = Color.White.copy(alpha = 0.4f))
                         )
                         Text(label, color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)

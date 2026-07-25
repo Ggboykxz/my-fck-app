@@ -74,6 +74,7 @@ fun InviteFriendScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(
                     onClick = {
+                        viewModel.onFirstShare()
                         val sendIntent = Intent().apply {
                             action = Intent.ACTION_SEND
                             putExtra(Intent.EXTRA_TEXT, "Rejoins LocAll avec mon code $inviteCode et gagne 5 000 F CFA ! https://locall.app/invite/$inviteCode")
@@ -279,22 +280,24 @@ fun LeaderboardScreen(
 // ==================== ACHIEVEMENTS SCREEN ====================
 @Composable
 fun AchievementsScreen(
+    viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
-    data class Achievement(val title: String, val desc: String, val unlocked: Boolean, val icon: ImageVector)
+    data class AchievementData(val id: Int, val title: String, val desc: String, val icon: ImageVector)
     val achievements = listOf(
-        Achievement("Premier Pas", "Créez votre premier compte", true, Icons.Rounded.PersonAdd),
-        Achievement("Première Location", "Effectuez votre première réservation", true, Icons.Rounded.CarRental),
-        Achievement("Propriétaire Actif", "Publiez 3 annonces minimum", true, Icons.Rounded.Home),
-        Achievement("Groupe Social", "Invitez 5 amis via le parrainage", false, Icons.Rounded.Group),
-        Achievement("Fidélité", "Cumulez 10 réservations", false, Icons.Rounded.EmojiEvents),
-        Achievement("Confiance Verte", "Obtenez la vérification d'identité", true, Icons.Rounded.Verified),
-        Achievement("Super Hôte", "Maintenez une note >= 4.8 sur 10 avis", false, Icons.Rounded.Star),
-        Achievement("Réactif", "Répondez en moins de 1h pendant 30 jours", false, Icons.Rounded.Timer),
-        Achievement("Événementier", "Louez du matériel événementiel 5 fois", false, Icons.Rounded.Celebration),
-        Achievement("Explorateur", "Louez dans 3 villes différentes", false, Icons.Rounded.Explore)
+        AchievementData(0, "Premier Pas", "Créez votre premier compte", Icons.Rounded.PersonAdd),
+        AchievementData(1, "Première Location", "Effectuez votre première réservation", Icons.Rounded.CarRental),
+        AchievementData(2, "Propriétaire Actif", "Publiez 3 annonces minimum", Icons.Rounded.Home),
+        AchievementData(3, "Groupe Social", "Invitez 5 amis via le parrainage", Icons.Rounded.Group),
+        AchievementData(4, "Fidélité", "Cumulez 10 réservations", Icons.Rounded.EmojiEvents),
+        AchievementData(5, "Confiance Verte", "Obtenez la vérification d'identité", Icons.Rounded.Verified),
+        AchievementData(6, "Super Hôte", "Maintenez une note >= 4.8 sur 10 avis", Icons.Rounded.Star),
+        AchievementData(7, "Réactif", "Répondez en moins de 1h pendant 30 jours", Icons.Rounded.Timer),
+        AchievementData(8, "Événementier", "Louez du matériel événementiel 5 fois", Icons.Rounded.Celebration),
+        AchievementData(9, "Explorateur", "Louez dans 3 villes différentes", Icons.Rounded.Explore)
     )
-    val unlocked = achievements.count { it.unlocked }
+    val unlockedIds by viewModel.unlockedAchievements.collectAsState()
+    val unlockedCount = unlockedIds.size
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(modifier = Modifier.height(24.dp))
@@ -310,11 +313,11 @@ fun AchievementsScreen(
 
         Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
             Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("$unlocked / ${achievements.size}", color = PrimaryGreen, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                Text("$unlockedCount / ${achievements.size}", color = PrimaryGreen, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
                 Text("succès débloqués", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 LinearProgressIndicator(
-                    progress = { unlocked.toFloat() / achievements.size },
+                    progress = { unlockedCount.toFloat() / achievements.size },
                     modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
                     color = PrimaryGreen,
                     trackColor = Color.White.copy(alpha = 0.1f)
@@ -325,26 +328,34 @@ fun AchievementsScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(achievements, key = { it.title }, contentType = { "achievement" }) { achievement ->
+            items(achievements, key = { it.id }, contentType = { "achievement" }) { achievement ->
+                val isUnlocked = achievement.id in unlockedIds
                 Card(
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (achievement.unlocked) PrimaryGreen.copy(alpha = 0.08f) else Color(0xFF162133)
+                        containerColor = if (isUnlocked) PrimaryGreen.copy(alpha = 0.08f) else Color(0xFF162133)
                     ),
-                    border = BorderStroke(1.dp, if (achievement.unlocked) PrimaryGreen.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.08f))
+                    border = BorderStroke(1.dp, if (isUnlocked) PrimaryGreen.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.08f))
                 ) {
                     Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(if (achievement.unlocked) PrimaryGreen.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
-                            Icon(achievement.icon, contentDescription = null, tint = if (achievement.unlocked) PrimaryGreen else Color.White.copy(alpha = 0.3f), modifier = Modifier.size(24.dp))
+                        Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(if (isUnlocked) PrimaryGreen.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
+                            Icon(achievement.icon, contentDescription = null, tint = if (isUnlocked) PrimaryGreen else Color.White.copy(alpha = 0.3f), modifier = Modifier.size(24.dp))
                         }
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(achievement.title, color = if (achievement.unlocked) Color.White else Color.White.copy(alpha = 0.5f), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(achievement.title, color = if (isUnlocked) Color.White else Color.White.copy(alpha = 0.5f), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Text(achievement.desc, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
                         }
-                        if (achievement.unlocked) {
+                        if (isUnlocked) {
                             Icon(Icons.Rounded.CheckCircle, contentDescription = "Débloqué", tint = PrimaryGreen, modifier = Modifier.size(22.dp))
                         } else {
-                            Icon(Icons.Rounded.Lock, contentDescription = "Verrouillé", tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(20.dp))
+                            Surface(
+                                onClick = { viewModel.unlockAchievement(achievement.id) },
+                                color = PrimaryGreen.copy(alpha = 0.12f),
+                                shape = RoundedCornerShape(10.dp),
+                                border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))
+                            ) {
+                                Text("Débloquer", color = PrimaryGreen, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+                            }
                         }
                     }
                 }
@@ -359,6 +370,8 @@ fun FlashOffersScreen(
     viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
+    val loyaltyPoints by viewModel.loyaltyPoints.collectAsState()
+    val claimedOffers by viewModel.claimedFlashOffers.collectAsState()
     val flashOffers = listOf(
         Triple("Villa La Sablière", "-30%", "Se termine dans 2h 15min"),
         Triple("Toyota Hilux 4x4", "-25%", "Se termine dans 4h 30min"),
@@ -379,6 +392,18 @@ fun FlashOffersScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
+            Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Icon(Icons.Rounded.Star, contentDescription = "Points", tint = PrimaryGreen, modifier = Modifier.size(28.dp))
+                Column {
+                    Text("$loyaltyPoints points disponibles", color = PrimaryGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("Utilisez vos points pour réclamer des offres", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFFF6F00).copy(alpha = 0.12f)), border = BorderStroke(1.dp, Color(0xFFFF6F00).copy(alpha = 0.3f))) {
             Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Icon(Icons.Rounded.FlashOn, contentDescription = null, tint = Color(0xFFFF6F00), modifier = Modifier.size(28.dp))
@@ -393,6 +418,15 @@ fun FlashOffersScreen(
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             items(flashOffers, key = { it.first }, contentType = { "triple" }) { (title, discount, timer) ->
+                val isClaimed = title in claimedOffers
+                val cost = when (discount) {
+                    "-30%" -> 500
+                    "-25%" -> 400
+                    "-20%" -> 300
+                    "-15%" -> 200
+                    "-35%" -> 600
+                    else -> 250
+                }
                 Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)), border = BorderStroke(1.dp, Color(0xFFFF6F00).copy(alpha = 0.2f))) {
                     Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFFFF6F00).copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
@@ -401,20 +435,28 @@ fun FlashOffersScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Text(timer, color = Color(0xFFFF6F00), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                            Text("$cost points", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
                         }
-                        Button(
-                            onClick = {
-                                val matchedItem = viewModel.rawRentalItems.value.find { it.title == title }
-                                if (matchedItem != null) {
-                                    viewModel.selectItem(matchedItem)
-                                    viewModel.navigateTo("details")
+                        if (isClaimed) {
+                            Surface(
+                                color = PrimaryGreen.copy(alpha = 0.12f),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
+                                    Text("Réclamé", color = PrimaryGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF6F00), contentColor = Color.White),
-                            shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Text("Voir", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        } else {
+                            Button(
+                                onClick = { viewModel.claimFlashOffer(title, cost) },
+                                enabled = loyaltyPoints >= cost,
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF6F00), contentColor = Color.White, disabledContainerColor = Color.White.copy(alpha = 0.08f), disabledContentColor = Color.White.copy(alpha = 0.3f)),
+                                shape = RoundedCornerShape(10.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text("Réclamer", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }
@@ -429,13 +471,13 @@ fun LoyaltyRedeemScreen(
     viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
-    val points by viewModel.referralEarnings.collectAsState()
+    val points by viewModel.loyaltyPoints.collectAsState()
     val rewards = listOf(
-        Triple("Réduction 5 000 F", "5 000 points", Icons.Rounded.Discount),
-        Triple("Location gratuite 1 jour", "15 000 points", Icons.Rounded.CardGiftcard),
-        Triple("Upgrade véhicule", "10 000 points", Icons.Rounded.Upgrade),
-        Triple("Assurance offerte", "20 000 points", Icons.Rounded.Shield),
-        Triple("Cashback 10 000 F", "25 000 points", Icons.Rounded.Payments)
+        Triple("Réduction 5 000 F", 5000, Icons.Rounded.Discount),
+        Triple("Location gratuite 1 jour", 15000, Icons.Rounded.CardGiftcard),
+        Triple("Upgrade véhicule", 10000, Icons.Rounded.Upgrade),
+        Triple("Assurance offerte", 20000, Icons.Rounded.Shield),
+        Triple("Cashback 10 000 F", 25000, Icons.Rounded.Payments)
     )
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
@@ -454,7 +496,7 @@ fun LoyaltyRedeemScreen(
             Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(Icons.Rounded.Star, contentDescription = "Points", tint = PrimaryGreen, modifier = Modifier.size(32.dp))
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("${points / 1000} 000", color = PrimaryGreen, fontSize = 32.sp, fontWeight = FontWeight.ExtraBold)
+                Text("$points", color = PrimaryGreen, fontSize = 32.sp, fontWeight = FontWeight.ExtraBold)
                 Text("points disponibles", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
             }
         }
@@ -466,7 +508,7 @@ fun LoyaltyRedeemScreen(
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             items(rewards, key = { it.first }, contentType = { "triple" }) { (title, cost, icon) ->
-                val canAfford = points >= 5000
+                val canAfford = points >= cost
                 Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
                     Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Box(modifier = Modifier.size(48.dp).clip(CircleShape).background(PrimaryGreen.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
@@ -474,10 +516,10 @@ fun LoyaltyRedeemScreen(
                         }
                         Column(modifier = Modifier.weight(1f)) {
                             Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text(cost, color = Color(0xFFFFB300), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                            Text("$cost points", color = Color(0xFFFFB300), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                         }
                         Button(
-                            onClick = { viewModel.showSnackbar("Points échangés avec succès !") },
+                            onClick = { viewModel.redeemLoyaltyPoints(cost, title) },
                             enabled = canAfford,
                             colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy, disabledContainerColor = Color.White.copy(alpha = 0.08f), disabledContentColor = Color.White.copy(alpha = 0.3f)),
                             shape = RoundedCornerShape(10.dp),
@@ -495,12 +537,14 @@ fun LoyaltyRedeemScreen(
 // ==================== REWARDS & COUPONS SCREEN ====================
 @Composable
 fun RewardsCouponsScreen(
+    viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
-    val coupons = listOf(
-        Triple("BIENVENUE10", "10% sur votre 1ère location", "Valide jusqu'au 31/12/2026"),
-        Triple("ÉTÉ2026", "15% sur les réservations > 3 jours", "Valide jusqu'au 30/09/2026"),
-        Triple("PARRAINAGE", "5 000 F CFA de crédit", "Valide après 1ère utilisation")
+    val claimedRewards by viewModel.claimedRewards.collectAsState()
+    val availableCoupons = listOf(
+        Triple("PARRAINAGE", "5 000 F CFA de crédit", "Valide après 1ère utilisation"),
+        Triple("FLASH20", "20% sur toute réservation flash", "Valide jusqu'au 31/08/2026"),
+        Triple("FIDELE15", "15% pour les membres fidèles", "Valide jusqu'au 31/12/2026")
     )
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
@@ -518,18 +562,70 @@ fun RewardsCouponsScreen(
         Text("MES COUPONS", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
         Spacer(modifier = Modifier.height(12.dp))
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(coupons, key = { it.first }, contentType = { "triple" }) { (code, description, expiry) ->
-                Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.2f))) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Icon(Icons.Rounded.LocalOffer, contentDescription = "Coupon", tint = PrimaryGreen, modifier = Modifier.size(20.dp))
-                            Text(code, color = PrimaryGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+        if (claimedRewards.isEmpty()) {
+            Box(modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Rounded.LocalOffer, contentDescription = null, tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(48.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text("Aucun coupon", color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("Réclamez des offres flash pour obtenir des coupons", color = Color.White.copy(alpha = 0.3f), fontSize = 12.sp)
+                }
+            }
+        } else {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(claimedRewards, key = { it.code }, contentType = { "reward" }) { reward ->
+                    Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.2f))) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Icon(Icons.Rounded.LocalOffer, contentDescription = "Coupon", tint = PrimaryGreen, modifier = Modifier.size(20.dp))
+                                Text(reward.code, color = PrimaryGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                                Spacer(modifier = Modifier.weight(1f))
+                                Surface(color = PrimaryGreen.copy(alpha = 0.12f), shape = RoundedCornerShape(8.dp)) {
+                                    Text("Actif", color = PrimaryGreen, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(reward.description, color = Color.White, fontSize = 13.sp)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(reward.expiry, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(description, color = Color.White, fontSize = 13.sp)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(expiry, color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
+                    }
+                }
+            }
+        }
+
+        if (availableCoupons.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("COUPONS DISPONIBLES", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(availableCoupons, key = { it.first }, contentType = { "available" }) { (code, description, expiry) ->
+                    val isAlreadyClaimed = claimedRewards.any { it.code == code }
+                    Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)), border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))) {
+                        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Icon(Icons.Rounded.LocalOffer, contentDescription = "Coupon", tint = Color(0xFFFFB300), modifier = Modifier.size(16.dp))
+                                    Text(code, color = Color(0xFFFFB300), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(description, color = Color.White, fontSize = 12.sp)
+                                Text(expiry, color = Color.White.copy(alpha = 0.4f), fontSize = 10.sp)
+                            }
+                            if (isAlreadyClaimed) {
+                                Icon(Icons.Rounded.CheckCircle, contentDescription = "Réclamé", tint = PrimaryGreen, modifier = Modifier.size(22.dp))
+                            } else {
+                                Button(
+                                    onClick = { viewModel.claimReward(code, description, expiry) },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB300), contentColor = Color(0xFF162133)),
+                                    shape = RoundedCornerShape(10.dp),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Text("Réclamer", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
                     }
                 }
             }

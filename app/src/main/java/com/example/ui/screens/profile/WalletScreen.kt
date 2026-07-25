@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -42,9 +44,63 @@ fun WalletScreen(
     val selectedFilter by viewModel.selectedWalletFilter.collectAsState()
     var isLoading by remember { mutableStateOf(true) }
     var isRefreshing by remember { mutableStateOf(false) }
+    var showWithdrawDialog by remember { mutableStateOf(false) }
+    var withdrawAmount by remember { mutableStateOf("") }
     LaunchedEffect(Unit) { delay(600); isLoading = false }
     LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(800); isRefreshing = false } }
     BackHandler { onBack() }
+
+    if (showWithdrawDialog) {
+        AlertDialog(
+            onDismissRequest = { showWithdrawDialog = false },
+            containerColor = Color(0xFF162133),
+            title = { Text("Retirer du portefeuille", color = Color.White) },
+            text = {
+                Column {
+                    Text("Solde disponible : $balance FCFA", color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = withdrawAmount,
+                        onValueChange = { withdrawAmount = it.filter { c -> c.isDigit() } },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        placeholder = { Text("Montant à retirer", color = Color.White.copy(alpha = 0.3f)) },
+                        prefix = { Text("FCFA ", color = PrimaryGreen, fontWeight = FontWeight.Bold) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = PrimaryGreen,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
+                            focusedContainerColor = Color(0xFF0F1A2A),
+                            unfocusedContainerColor = Color(0xFF0F1A2A)
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val amount = withdrawAmount.toIntOrNull() ?: 0
+                        if (amount > 0) {
+                            viewModel.withdrawFromWallet(amount)
+                            showWithdrawDialog = false
+                            withdrawAmount = ""
+                        }
+                    },
+                    enabled = (withdrawAmount.toIntOrNull() ?: 0) > 0 && (withdrawAmount.toIntOrNull() ?: 0) <= balance,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4FC3F7), contentColor = Color.White)
+                ) {
+                    Text("Retirer")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showWithdrawDialog = false; withdrawAmount = "" }) {
+                    Text("Annuler", color = Color.White.copy(alpha = 0.6f))
+                }
+            }
+        )
+    }
 
     val filters = listOf("Toutes", "Recharges", "Paiements", "Gains", "Remboursements")
     val filteredTransactions = remember(transactions, selectedFilter) {
@@ -149,7 +205,7 @@ fun WalletScreen(
                     icon = Icons.Rounded.AccountBalance,
                     label = "Retirer",
                     color = Color(0xFF4FC3F7),
-                    onClick = { viewModel.showSnackbar("Retrait bientôt disponible") },
+                    onClick = { showWithdrawDialog = true },
                     modifier = Modifier.weight(1f)
                 )
                 WalletActionButton(

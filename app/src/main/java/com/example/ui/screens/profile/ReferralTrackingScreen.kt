@@ -92,6 +92,7 @@ fun ReferralTrackingScreen(
                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                             val clip = ClipData.newPlainText("referral_code", referralCode)
                             clipboard.setPrimaryClip(clip)
+                            viewModel.showSnackbar("Code copié dans le presse-papier")
                         },
                         color = PrimaryGreen,
                         shape = RoundedCornerShape(12.dp)

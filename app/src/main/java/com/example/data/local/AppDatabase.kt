@@ -36,9 +36,15 @@ import com.example.data.model.*
         PaymentReceipt::class,
         CalendarSync::class,
         MediaItem::class,
-        MediaUploadSettings::class
+        MediaUploadSettings::class,
+        InsuranceClaim::class,
+        InsuranceSubscription::class,
+        Wallet::class,
+        WalletTransaction::class,
+        PaymentMethodLocal::class,
+        PromoCode::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

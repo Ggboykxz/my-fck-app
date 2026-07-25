@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -31,13 +32,44 @@ fun InsuranceScreen(
     viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
-    val activeInsurancePlan by viewModel.activeInsurancePlan.collectAsState()
-    var selectedPlan by remember { mutableStateOf(activeInsurancePlan ?: "basic") }
-    val showSubscribed = activeInsurancePlan != null
+    val insuranceSubscription by viewModel.insuranceSubscription.collectAsState()
+    val insuranceClaims by viewModel.insuranceClaims.collectAsState()
+    val walletBalance by viewModel.walletBalance.collectAsState()
+    var selectedPlan by remember { mutableStateOf(insuranceSubscription?.planName ?: "basic") }
+    var showConfirmDialog by remember { mutableStateOf(false) }
+    var showClaimDialog by remember { mutableStateOf(false) }
+    var claimDate by remember { mutableStateOf("") }
+    var claimDescription by remember { mutableStateOf("") }
+    var claimAmount by remember { mutableStateOf("") }
+
     val plans = listOf(
-        Triple("basic", "Essentiel", "7 500 F CFA/jour"),
-        Triple("standard", "Confort", "12 500 F CFA/jour"),
-        Triple("premium", "Premium", "20 000 F CFA/jour")
+        Triple("basic", "Basique", 5000),
+        Triple("standard", "Standard", 10000),
+        Triple("premium", "Premium", 20000)
+    )
+
+    val planCoverages = mapOf(
+        "basic" to listOf(
+            "Dommages matériels" to true,
+            "Vol et tentative de vol" to false,
+            "Incendie" to false,
+            "Assistance routière 24/7" to true,
+            "Responsabilité civile" to false
+        ),
+        "standard" to listOf(
+            "Dommages matériels" to true,
+            "Vol et tentative de vol" to true,
+            "Incendie" to true,
+            "Assistance routière 24/7" to true,
+            "Responsabilité civile" to false
+        ),
+        "premium" to listOf(
+            "Dommages matériels" to true,
+            "Vol et tentative de vol" to true,
+            "Incendie" to true,
+            "Assistance routière 24/7" to true,
+            "Responsabilité civile" to true
+        )
     )
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
@@ -57,23 +89,14 @@ fun InsuranceScreen(
         Text("Protégez votre location", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         Text("Choisissez une couverture adaptée à vos besoins", color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp, textAlign = TextAlign.Center)
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        plans.forEach { (id, name, price) ->
-            val isSelected = selectedPlan == id
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).clickable { selectedPlan = id },
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = if (isSelected) PrimaryGreen.copy(alpha = 0.08f) else Color(0xFF162133)),
-                border = BorderStroke(2.dp, if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.08f))
-            ) {
-                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(if (isSelected) PrimaryGreen.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.3f))
-                    }
+        if (insuranceSubscription != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.1f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
+                Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(28.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(name, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        Text(price, color = PrimaryGreen, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Couvert", color = PrimaryGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("Plan ${insuranceSubscription?.planName ?: ""} actif", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
                     }
                 }
             }
@@ -81,53 +104,196 @@ fun InsuranceScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Couverture incluse :", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                listOf("Dommages matériels", "Vol et tentative de vol", "Assistance routière 24/7", "Responsabilité civile").forEach { item ->
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(Icons.Rounded.Check, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(16.dp))
-                        Text(item, color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
+        LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            items(plans) { (id, name, price) ->
+                val isSelected = selectedPlan == id
+                val isCurrentPlan = insuranceSubscription?.planName == id
+                Card(
+                    modifier = Modifier.fillMaxWidth().clickable { selectedPlan = id },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = if (isSelected) PrimaryGreen.copy(alpha = 0.08f) else Color(0xFF162133)),
+                    border = BorderStroke(2.dp, if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.08f))
+                ) {
+                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(if (isSelected) PrimaryGreen.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = if (isSelected) PrimaryGreen else Color.White.copy(alpha = 0.3f))
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(name, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Text("${formatPriceCfa(price)}/mois", color = PrimaryGreen, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                        if (isCurrentPlan) {
+                            StatusBadge(text = "Actif", color = PrimaryGreen)
+                        }
+                    }
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Couverture ${plans.find { it.first == selectedPlan }?.second ?: ""} :", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        planCoverages[selectedPlan]?.forEach { (item, covered) ->
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Icon(
+                                    if (covered) Icons.Rounded.Check else Icons.Rounded.Close,
+                                    contentDescription = null,
+                                    tint = if (covered) PrimaryGreen else Color.Red.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(item, color = if (covered) Color.White.copy(alpha = 0.7f) else Color.White.copy(alpha = 0.35f), fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (insuranceSubscription != null) {
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = { showClaimDialog = true },
+                        modifier = Modifier.fillMaxWidth().height(44.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800), contentColor = Color.White)
+                    ) {
+                        Icon(Icons.Rounded.Report, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Déclarer un sinistre", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
+                }
+            }
+
+            if (insuranceClaims.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text("Historique des sinistres", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+                items(insuranceClaims) { claim ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))
+                    ) {
+                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
+                                Icon(Icons.Rounded.Report, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(18.dp))
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(claim.description.take(40), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                                Text(claim.incidentDate, color = Color.White.copy(alpha = 0.4f), fontSize = 10.sp)
+                            }
+                            StatusBadge(
+                                text = when(claim.status) { "pending" -> "En cours"; "approved" -> "Approuvé"; else -> "Refusé" },
+                                color = when(claim.status) { "pending" -> Color(0xFFFFB300); "approved" -> PrimaryGreen; else -> Color.Red }
+                            )
+                        }
                     }
                 }
             }
         }
 
-        if (showSubscribed) {
-            Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.1f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
-                Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(28.dp))
-                    Column {
-                        Text("Assurance souscrite !", color = PrimaryGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        Text("Vous êtes maintenant couvert pour cette location", color = Color.White.copy(alpha = 0.6f), fontSize = 11.sp)
-                    }
-                }
+        if (insuranceSubscription == null) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(
+                onClick = { showConfirmDialog = true },
+                modifier = Modifier.fillMaxWidth().height(52.dp).padding(bottom = 16.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy)
+            ) {
+                Icon(Icons.Rounded.Shield, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Souscrire à l'assurance", fontWeight = FontWeight.Bold)
             }
         }
+    }
 
-        Spacer(modifier = Modifier.weight(1f))
+    if (showConfirmDialog) {
+        val plan = plans.find { it.first == selectedPlan }
+        ConfirmDialog(
+            title = "Confirmer la souscription",
+            message = "Souscrire au plan ${plan?.second ?: ""} pour ${formatPriceCfa(plan?.third ?: 0)}/mois ? Le montant sera déduit de votre portefeuille.",
+            confirmText = "Souscrire",
+            onConfirm = {
+                viewModel.subscribeInsurance(selectedPlan)
+                showConfirmDialog = false
+            },
+            onDismiss = { showConfirmDialog = false }
+        )
+    }
 
-        Button(
-            onClick = { viewModel.subscribeInsurance(selectedPlan) },
-            enabled = activeInsurancePlan == null,
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
-            shape = RoundedCornerShape(14.dp),
-            modifier = Modifier.fillMaxWidth().height(52.dp).padding(bottom = 16.dp)
-        ) {
-            Icon(Icons.Rounded.Shield, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Souscrire à l'assurance", fontWeight = FontWeight.Bold)
-        }
+    if (showClaimDialog) {
+        AlertDialog(
+            onDismissRequest = { showClaimDialog = false },
+            containerColor = Color(0xFF162133),
+            title = { Text("Déclarer un sinistre", fontWeight = FontWeight.Bold, color = Color.White) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = claimDate,
+                        onValueChange = { claimDate = it },
+                        placeholder = { Text("Date de l'incident (JJ/MM/AAAA)", color = Color.White.copy(alpha = 0.4f)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedBorderColor = PrimaryGreen, unfocusedBorderColor = Color.White.copy(alpha = 0.12f), focusedContainerColor = Color(0xFF0D1B2A), unfocusedContainerColor = Color(0xFF0D1B2A))
+                    )
+                    OutlinedTextField(
+                        value = claimDescription,
+                        onValueChange = { claimDescription = it },
+                        placeholder = { Text("Description du sinistre", color = Color.White.copy(alpha = 0.4f)) },
+                        modifier = Modifier.fillMaxWidth().height(80.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedBorderColor = PrimaryGreen, unfocusedBorderColor = Color.White.copy(alpha = 0.12f), focusedContainerColor = Color(0xFF0D1B2A), unfocusedContainerColor = Color(0xFF0D1B2A))
+                    )
+                    OutlinedTextField(
+                        value = claimAmount,
+                        onValueChange = { claimAmount = it },
+                        placeholder = { Text("Montant réclamé (FCFA)", color = Color.White.copy(alpha = 0.4f)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedBorderColor = PrimaryGreen, unfocusedBorderColor = Color.White.copy(alpha = 0.12f), focusedContainerColor = Color(0xFF0D1B2A), unfocusedContainerColor = Color(0xFF0D1B2A))
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    if (claimDate.isNotBlank() && claimDescription.isNotBlank() && claimAmount.isNotBlank()) {
+                        viewModel.fileInsuranceClaim(
+                            planName = insuranceSubscription?.planName ?: "",
+                            incidentDate = claimDate,
+                            description = claimDescription,
+                            amountClaimed = claimAmount.toIntOrNull() ?: 0
+                        )
+                        showClaimDialog = false
+                        claimDate = ""
+                        claimDescription = ""
+                        claimAmount = ""
+                    }
+                }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen), shape = RoundedCornerShape(10.dp)) {
+                    Text("Soumettre", fontWeight = FontWeight.Bold, color = BrandNavy)
+                }
+            },
+            dismissButton = { TextButton(onClick = { showClaimDialog = false }) { Text("Annuler", color = Color.White.copy(alpha = 0.6f)) } }
+        )
     }
 }
 
 // ==================== DIGITAL DEPOSIT SCREEN ====================
 @Composable
 fun DigitalDepositScreen(
+    viewModel: RentalViewModel,
     onBack: () -> Unit
 ) {
+    val escrows by viewModel.escrows.collectAsState()
+    val walletBalance by viewModel.walletBalance.collectAsState()
     var depositMethod by remember { mutableStateOf("airtel") }
     var showPaid by remember { mutableStateOf(false) }
+
+    val activeEscrows = escrows.filter { it.status == "held" }
+    val releasedEscrows = escrows.filter { it.status == "released" || it.status == "refunded" }
+
+    BackHandler { onBack() }
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Spacer(modifier = Modifier.height(24.dp))
@@ -150,34 +316,112 @@ fun DigitalDepositScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        Text("MODE DE PAIEMENT", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
-        Spacer(modifier = Modifier.height(12.dp))
-
-        listOf(
-            Triple("airtel", "Airtel Money", Color(0xFFE53935)),
-            Triple("moov", "Moov Money", Color(0xFFFFB300)),
-            Triple("card", "Carte Bancaire", Color(0xFF4FC3F7))
-        ).forEach { (id, name, color) ->
-            val isSelected = depositMethod == id
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { depositMethod = id },
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = if (isSelected) color.copy(alpha = 0.08f) else Color(0xFF162133)),
-                border = BorderStroke(1.dp, if (isSelected) color else Color.White.copy(alpha = 0.08f))
-            ) {
-                Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(color.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
+        if (activeEscrows.isNotEmpty()) {
+            Text("CAUTIONS ACTIVES", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+            Spacer(modifier = Modifier.height(8.dp))
+            activeEscrows.forEach { escrow ->
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
+                    border = BorderStroke(1.dp, Color(0xFFFFB300).copy(alpha = 0.3f))
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Column {
+                                Text("Dépôt #${escrow.id}", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text("Réservation #${escrow.bookingId}", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
+                            }
+                            StatusBadge(text = "Retenu", color = Color(0xFFFFB300))
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Montant: ${formatPriceCfa(escrow.amount)}", color = PrimaryGreen, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("En attente", color = Color(0xFFFFB300), fontSize = 11.sp)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = { viewModel.releaseEscrow(escrow.id) },
+                                modifier = Modifier.weight(1f).height(36.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy)
+                            ) {
+                                Text("Libérer le dépôt", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(
+                                onClick = { viewModel.refundEscrow(escrow.id) },
+                                modifier = Modifier.weight(1f).height(36.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF5350), contentColor = Color.White)
+                            ) {
+                                Text("Retenir dommages", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
-                    Text(name, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                    if (isSelected) Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = color, modifier = Modifier.size(22.dp))
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        if (releasedEscrows.isNotEmpty()) {
+            Text("CAUTIONS LIBÉRÉES", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+            Spacer(modifier = Modifier.height(8.dp))
+            releasedEscrows.forEach { escrow ->
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))
+                ) {
+                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Box(modifier = Modifier.size(36.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(18.dp))
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Dépôt #${escrow.id} - Réservation #${escrow.bookingId}", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                            Text(formatPriceCfa(escrow.amount), color = Color.White.copy(alpha = 0.4f), fontSize = 11.sp)
+                        }
+                        StatusBadge(
+                            text = if (escrow.status == "released") "Libéré" else "Remboursé",
+                            color = if (escrow.status == "released") PrimaryGreen else Color(0xFF4FC3F7)
+                        )
+                    }
+                }
+            }
+        }
+
+        if (activeEscrows.isEmpty() && releasedEscrows.isEmpty()) {
+            Spacer(modifier = Modifier.height(20.dp))
+            Text("MODE DE PAIEMENT", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.5f), letterSpacing = 1.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            listOf(
+                Triple("airtel", "Airtel Money", Color(0xFFE53935)),
+                Triple("moov", "Moov Money", Color(0xFFFFB300)),
+                Triple("card", "Carte Bancaire", Color(0xFF4FC3F7))
+            ).forEach { (id, name, color) ->
+                val isSelected = depositMethod == id
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { depositMethod = id },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = if (isSelected) color.copy(alpha = 0.08f) else Color(0xFF162133)),
+                    border = BorderStroke(1.dp, if (isSelected) color else Color.White.copy(alpha = 0.08f))
+                ) {
+                    Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(color.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
+                        }
+                        Text(name, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                        if (isSelected) Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = color, modifier = Modifier.size(22.dp))
+                    }
                 }
             }
         }
 
         if (showPaid) {
+            Spacer(modifier = Modifier.height(8.dp))
             Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = PrimaryGreen.copy(alpha = 0.1f)), border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))) {
                 Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(28.dp))
@@ -191,13 +435,18 @@ fun DigitalDepositScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        Button(
-            onClick = { showPaid = true },
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
-            shape = RoundedCornerShape(14.dp),
-            modifier = Modifier.fillMaxWidth().height(52.dp).padding(bottom = 16.dp)
-        ) {
-            Text("Payer la caution de 50 000 F CFA", fontWeight = FontWeight.Bold)
+        if (activeEscrows.isEmpty() && releasedEscrows.isEmpty()) {
+            Button(
+                onClick = {
+                    viewModel.insertEscrow(com.example.data.model.BookingEscrow(bookingId = 1, amount = 50000, status = "held"))
+                    showPaid = true
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth().height(52.dp).padding(bottom = 16.dp)
+            ) {
+                Text("Payer la caution de 50 000 F CFA", fontWeight = FontWeight.Bold)
+            }
         }
     }
 }

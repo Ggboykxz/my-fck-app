@@ -35,14 +35,26 @@ fun NeighborhoodReviewsScreen(viewModel: RentalViewModel, onBack: () -> Unit) {
     var accessibilityRating by remember { mutableIntStateOf(3) }
 
     val cities = listOf("Libreville", "Port-Gentil", "Franceville", "Oyem", "Lambaréné", "Mouila")
-    val neighborhoods = listOf(
-        Triple("La Sablière", 4.5f, 4.2f),
-        Triple("Batterie IV", 4.3f, 4.0f),
-        Triple("Nkembo", 4.1f, 3.8f),
-        Triple("Nzeng-Ayong", 4.4f, 4.3f),
-        Triple("Oloumi", 4.0f, 3.5f),
-        Triple("Akanda", 4.2f, 4.1f)
-    )
+
+    val computedNeighborhoods = remember(reviews) {
+        val grouped = reviews.groupBy { it.neighborhood }
+        if (grouped.isNotEmpty()) {
+            grouped.map { (name, neighborhoodReviews) ->
+                val avgSafety = neighborhoodReviews.map { it.safetyRating }.average().toFloat()
+                val avgAccessibility = neighborhoodReviews.map { it.accessibilityRating }.average().toFloat()
+                Triple(name, avgSafety, avgAccessibility)
+            }
+        } else {
+            listOf(
+                Triple("La Sablière", 4.5f, 4.2f),
+                Triple("Batterie IV", 4.3f, 4.0f),
+                Triple("Nkembo", 4.1f, 3.8f),
+                Triple("Nzeng-Ayong", 4.4f, 4.3f),
+                Triple("Oloumi", 4.0f, 3.5f),
+                Triple("Akanda", 4.2f, 4.1f)
+            )
+        }
+    }
 
     BackHandler { onBack() }
 
@@ -101,7 +113,7 @@ fun NeighborhoodReviewsScreen(viewModel: RentalViewModel, onBack: () -> Unit) {
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            items(neighborhoods, key = { it.first }) { (name, safety, accessibility) ->
+            items(computedNeighborhoods, key = { it.first }) { (name, safety, accessibility) ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
@@ -262,16 +274,13 @@ fun NeighborhoodReviewsScreen(viewModel: RentalViewModel, onBack: () -> Unit) {
                 Button(
                     onClick = {
                         if (reviewNeighborhood.isNotBlank() && reviewComment.isNotBlank()) {
-                            viewModel.insertNeighborhoodReview(
-                                NeighborhoodReview(
-                                    neighborhood = reviewNeighborhood,
-                                    city = selectedCity,
-                                    userId = 1,
-                                    safetyRating = safetyRating,
-                                    noiseRating = noiseRating,
-                                    accessibilityRating = accessibilityRating,
-                                    comment = reviewComment
-                                )
+                            viewModel.submitNeighborhoodReview(
+                                neighborhood = reviewNeighborhood,
+                                city = selectedCity,
+                                safety = safetyRating,
+                                noise = noiseRating,
+                                accessibility = accessibilityRating,
+                                comment = reviewComment
                             )
                             showWriteReview = false
                             reviewNeighborhood = ""

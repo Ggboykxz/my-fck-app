@@ -56,6 +56,9 @@ class RentalRepository(private val rentalDao: RentalDao) {
     suspend fun insertChatMessage(message: ChatMessage) =
         rentalDao.insertChatMessage(message)
 
+    suspend fun updateMessageStatus(id: Int, status: String) =
+        rentalDao.updateMessageStatus(id, status)
+
     suspend fun getLastOwnerMessage(itemId: Int): ChatMessage? =
         rentalDao.getLastOwnerMessage(itemId)
 
@@ -259,6 +262,28 @@ class RentalRepository(private val rentalDao: RentalDao) {
 
     suspend fun deleteMediaItemsForListing(listingId: Int) =
         rentalDao.deleteMediaItemsForListing(listingId)
+
+    suspend fun updateDisputeEvidence(id: Int, evidence: List<String>) =
+        rentalDao.updateDisputeEvidence(id, evidence)
+
+    suspend fun insertInsuranceClaim(claim: InsuranceClaim) =
+        rentalDao.insertInsuranceClaim(claim)
+
+    val insuranceClaims: Flow<List<InsuranceClaim>> = rentalDao.getAllInsuranceClaims()
+
+    suspend fun insertInsuranceSubscription(sub: InsuranceSubscription) =
+        rentalDao.insertInsuranceSubscription(sub)
+
+    val insuranceSubscription: Flow<InsuranceSubscription?> = rentalDao.getInsuranceSubscription()
+
+    suspend fun updatePhoneVerified(verified: Boolean) =
+        rentalDao.updatePhoneVerified(verified)
+
+    suspend fun updateIdentityStatus(status: String) =
+        rentalDao.updateIdentityStatus(status)
+
+    suspend fun insertWalletTransaction(txn: WalletTransaction) =
+        rentalDao.insertWalletTransaction(txn)
 
     suspend fun seedDatabase() {
         val currentItems = allRentalItems.first()

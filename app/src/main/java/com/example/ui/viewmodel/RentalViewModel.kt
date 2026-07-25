@@ -14,6 +14,7 @@ import com.example.ui.state.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -272,6 +273,7 @@ class RentalViewModel(
         viewModelScope.launch {
             try {
                 repository.toggleSearchAlert(id, enabled)
+                showSnackbar(if (enabled) "Alertes activées" else "Alertes désactivées")
             } catch (e: Exception) {
                 showSnackbar("Une erreur est survenue: ${e.message}")
             }
@@ -441,6 +443,14 @@ class RentalViewModel(
     private val _activeInsurancePlan = MutableStateFlow<String?>(null)
     val activeInsurancePlan: StateFlow<String?> = _activeInsurancePlan.asStateFlow()
 
+    // Insurance subscription from Room
+    val insuranceSubscription: StateFlow<com.example.data.model.InsuranceSubscription?> = repository.insuranceSubscription
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // Insurance claims from Room
+    val insuranceClaims: StateFlow<List<com.example.data.model.InsuranceClaim>> = repository.insuranceClaims
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     // Payment history wired to Room
     private val _paymentHistory: StateFlow<List<PaymentEntry>> = repository.paymentHistory.map { entities ->
         entities.map { e -> PaymentEntry(e.id, e.amount, e.date, e.description, e.method) }
@@ -587,6 +597,7 @@ class RentalViewModel(
     fun addReferral() {
         _referralCount.value += 1
         _referralEarnings.value += 5000
+        onFirstShare()
         showSnackbar("5 000 F CFA de crédit ajouté pour le parrainage !")
     }
 
@@ -777,7 +788,18 @@ class RentalViewModel(
                     status = "Payé"
                 )
                 repository.insertBooking(newBooking)
+                val receipt = PaymentReceipt(
+                    bookingId = newBooking.id,
+                    receiptNumber = "LOC-${System.currentTimeMillis()}",
+                    amount = totalPrice,
+                    paymentMethod = paymentMethod,
+                    payerName = "Utilisateur",
+                    payeeName = rentalItem.ownerName,
+                    date = System.currentTimeMillis()
+                )
+                repository.insertPaymentReceipt(receipt)
                 _paymentState.value = PaymentState.Success(newBooking)
+                onBookingComplete()
             } catch (e: Exception) {
                 showSnackbar("Une erreur est survenue: ${e.message}")
             }
@@ -810,6 +832,81 @@ class RentalViewModel(
         _paymentState.value = PaymentState.Idle
     }
 
+    private val _selectedBookingForReceipt = MutableStateFlow<Booking?>(null)
+    val selectedBookingForReceipt: StateFlow<Booking?> = _selectedBookingForReceipt.asStateFlow()
+
+    fun showReceiptForBooking(booking: Booking) {
+        _selectedBookingForReceipt.value = booking
+    }
+
+    fun dismissReceiptDialog() {
+        _selectedBookingForReceipt.value = null
+    }
+
+    private val _bookingReviewTarget = MutableStateFlow<Booking?>(null)
+    val bookingReviewTarget: StateFlow<Booking?> = _bookingReviewTarget.asStateFlow()
+
+    fun startReviewForBooking(booking: Booking) {
+        _bookingReviewTarget.value = booking
+    }
+
+    fun dismissBookingReview() {
+        _bookingReviewTarget.value = null
+    }
+
+    fun submitBookingReview(booking: Booking, rating: Int, comment: String) {
+        viewModelScope.launch {
+            try {
+                repository.insertReview(
+                    ReviewEntity(
+                        rentalItemId = booking.rentalItemId,
+                        rating = rating,
+                        comment = comment,
+                        author = "Utilisateur",
+                        date = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.FRANCE).format(java.util.Date())
+                    )
+                )
+                repository.updateBookingStatus(booking.id, "Terminé", null)
+                _bookingReviewTarget.value = null
+                showSnackbar("Avis publié ! Merci pour votre retour")
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
+    }
+
+    fun respondToReview(reviewId: Int, response: String) {
+        viewModelScope.launch {
+            try {
+                showSnackbar("Réponse envoyée au locataire")
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
+    }
+
+    private val _inboxSearchQuery = MutableStateFlow("")
+    val inboxSearchQuery: StateFlow<String> = _inboxSearchQuery.asStateFlow()
+
+    fun setInboxSearchQuery(query: String) {
+        _inboxSearchQuery.value = query
+    }
+
+    val rawRentalItems: StateFlow<List<RentalItem>> = repository.allRentalItems
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val filteredInboxItems: StateFlow<List<RentalItem>> = combine(
+        rawRentalItems, _inboxSearchQuery
+    ) { items, query ->
+        if (query.isBlank()) items
+        else items.filter {
+            it.title.contains(query, ignoreCase = true) ||
+            it.ownerName.contains(query, ignoreCase = true) ||
+            it.city.contains(query, ignoreCase = true) ||
+            it.neighborhood.contains(query, ignoreCase = true)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     // ==================== REVIEWS ====================
     fun addReview(rentalItemId: Int, rating: Int, comment: String) {
         val authorName = "Visiteur Gabonais"
@@ -826,6 +923,7 @@ class RentalViewModel(
                     )
                 )
                 showSnackbar("Avis publié avec succès")
+                onReviewSubmit()
             } catch (e: Exception) {
                 showSnackbar("Une erreur est survenue: ${e.message}")
             }
@@ -834,9 +932,6 @@ class RentalViewModel(
 
     // ==================== REACTIVE DATA ====================
     val searchHistory: StateFlow<List<SearchHistoryEntry>> = repository.searchHistory
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    val rawRentalItems: StateFlow<List<RentalItem>> = repository.allRentalItems
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val bookmarkedItems: StateFlow<List<RentalItem>> = repository.bookmarkedItems
@@ -919,13 +1014,19 @@ class RentalViewModel(
         if (messageText.isBlank()) return
         viewModelScope.launch {
             try {
-                repository.insertChatMessage(
-                    ChatMessage(
-                        rentalItemId = rentalId,
-                        sender = "User",
-                        messageText = messageText
-                    )
+                val userMessage = ChatMessage(
+                    rentalItemId = rentalId,
+                    sender = "User",
+                    messageText = messageText,
+                    status = "sent"
                 )
+                repository.insertChatMessage(userMessage)
+
+                delay(1000)
+                repository.updateMessageStatus(userMessage.id, "delivered")
+
+                delay(2000)
+                repository.updateMessageStatus(userMessage.id, "read")
 
                 delay(1500)
                 val responseText = when {
@@ -1098,8 +1199,199 @@ class RentalViewModel(
     }
 
     fun subscribeInsurance(plan: String) {
-        _activeInsurancePlan.value = plan
-        showSnackbar("Assurance $plan souscrite !")
+        viewModelScope.launch {
+            try {
+                val planPrice = when(plan) {
+                    "basic" -> 5000
+                    "standard" -> 10000
+                    "premium" -> 20000
+                    else -> 0
+                }
+                if (_walletBalance.value >= planPrice) {
+                    _walletBalance.value -= planPrice
+                    repository.insertInsuranceSubscription(
+                        com.example.data.model.InsuranceSubscription(planName = plan)
+                    )
+                    repository.insertWalletTransaction(
+                        com.example.data.model.WalletTransaction(
+                            type = "insurance",
+                            amount = -planPrice,
+                            description = "Souscription assurance $plan"
+                        )
+                    )
+                    _activeInsurancePlan.value = plan
+                    showSnackbar("Assurance $plan souscrite ! -${planPrice} FCFA")
+                } else {
+                    showSnackbar("Solde insuffisant pour souscrire")
+                }
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    fun fileInsuranceClaim(planName: String, incidentDate: String, description: String, amountClaimed: Int) {
+        viewModelScope.launch {
+            try {
+                repository.insertInsuranceClaim(
+                    com.example.data.model.InsuranceClaim(
+                        planName = planName,
+                        incidentDate = incidentDate,
+                        description = description,
+                        amountClaimed = amountClaimed,
+                        status = "pending"
+                    )
+                )
+                showSnackbar("Sinistre déclaré. Examen en cours.")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    // ==================== TRUST SCORE ====================
+    private val _trustScore = MutableStateFlow(65)
+    val trustScore: StateFlow<Int> = _trustScore.asStateFlow()
+
+    private val _verificationPhone = MutableStateFlow(false)
+    val verificationPhone: StateFlow<Boolean> = _verificationPhone.asStateFlow()
+
+    private val _verificationEmail = MutableStateFlow(false)
+    val verificationEmail: StateFlow<Boolean> = _verificationEmail.asStateFlow()
+
+    private val _verificationIdCard = MutableStateFlow(false)
+    val verificationIdCard: StateFlow<Boolean> = _verificationIdCard.asStateFlow()
+
+    private val _verificationAddress = MutableStateFlow(false)
+    val verificationAddress: StateFlow<Boolean> = _verificationAddress.asStateFlow()
+
+    fun onVerificationComplete(type: String) {
+        val boost = when(type) {
+            "phone" -> 5
+            "email" -> 5
+            "id_card" -> 15
+            "address" -> 10
+            else -> 0
+        }
+        _trustScore.update { minOf(100, it + boost) }
+        when(type) {
+            "phone" -> _verificationPhone.value = true
+            "email" -> _verificationEmail.value = true
+            "id_card" -> _verificationIdCard.value = true
+            "address" -> _verificationAddress.value = true
+        }
+        val completedCount = listOf(
+            _verificationPhone.value,
+            _verificationEmail.value,
+            _verificationIdCard.value,
+            _verificationAddress.value
+        ).count { it }
+        val level = when {
+            completedCount == 4 -> "Entièrement vérifié"
+            completedCount >= 2 -> "Partiellement vérifié"
+            completedCount >= 1 -> "En cours de vérification"
+            else -> "Non vérifié"
+        }
+        _identityVerificationStatus.value = level
+        viewModelScope.launch {
+            try {
+                repository.updateIdentityStatus(level)
+            } catch (e: Exception) {
+                // silent
+            }
+        }
+        showSnackbar("Vérification $type réussie ! Score de confiance +$boost")
+    }
+
+    fun getVerificationProgress(): Float {
+        val count = listOf(
+            _verificationPhone.value,
+            _verificationEmail.value,
+            _verificationIdCard.value,
+            _verificationAddress.value
+        ).count { it }
+        return count / 4f
+    }
+
+    // ==================== COMMUNITY DISPUTES WITH EVIDENCE ====================
+    fun fileDispute(
+        listingId: Int,
+        reportedUserId: Int,
+        reason: String,
+        description: String
+    ) {
+        viewModelScope.launch {
+            try {
+                val dispute = com.example.data.model.CommunityDispute(
+                    listingId = listingId,
+                    reporterId = 1,
+                    reportedUserId = reportedUserId,
+                    reason = reason,
+                    description = description,
+                    status = "open",
+                    createdAt = System.currentTimeMillis()
+                )
+                repository.insertCommunityDispute(dispute)
+                showSnackbar("Signalement envoyé. Nous examinerons votre cas.")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    fun addEvidenceToDispute(disputeId: Int, evidenceUrl: String) {
+        viewModelScope.launch {
+            try {
+                val currentDisputes = repository.getAllCommunityDisputes().first()
+                val dispute = currentDisputes.find { it.id == disputeId }
+                if (dispute != null) {
+                    val newEvidence = dispute.evidence + evidenceUrl
+                    repository.updateDisputeEvidence(disputeId, newEvidence)
+                    showSnackbar("Preuve ajoutée avec succès")
+                }
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    fun voteOnDispute(disputeId: Int, isUpvote: Boolean) {
+        viewModelScope.launch {
+            try {
+                repository.voteDispute(disputeId, if (isUpvote) 1 else -1)
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
+
+    // ==================== NEIGHBORHOOD REVIEWS ====================
+    fun submitNeighborhoodReview(
+        neighborhood: String,
+        city: String,
+        safety: Int,
+        noise: Int,
+        accessibility: Int,
+        comment: String
+    ) {
+        viewModelScope.launch {
+            try {
+                val review = NeighborhoodReview(
+                    neighborhood = neighborhood,
+                    city = city,
+                    userId = 1,
+                    safetyRating = safety,
+                    noiseRating = noise,
+                    accessibilityRating = accessibility,
+                    comment = comment,
+                    createdAt = System.currentTimeMillis()
+                )
+                repository.insertNeighborhoodReview(review)
+                showSnackbar("Avis publié ! Merci")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
     }
 
     // ==================== SORT ====================
@@ -1159,6 +1451,17 @@ class RentalViewModel(
 
     val escrows: StateFlow<List<BookingEscrow>> = repository.getAllEscrows()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun insertEscrow(escrow: BookingEscrow) {
+        viewModelScope.launch {
+            try {
+                repository.insertEscrow(escrow)
+                showSnackbar("Caution enregistrée")
+            } catch (e: Exception) {
+                showSnackbar("Erreur: ${e.message}")
+            }
+        }
+    }
 
     fun releaseEscrow(id: Int) {
         viewModelScope.launch {
@@ -1339,6 +1642,108 @@ class RentalViewModel(
         WalletTxn(8, "earning", 45000, "Location Sono Concert", 5, "01/07/2026", "completed")
     ))
     val walletTransactions: StateFlow<List<WalletTxn>> = _walletTransactions.asStateFlow()
+
+    private val _loyaltyPoints = MutableStateFlow(1500)
+    val loyaltyPoints: StateFlow<Int> = _loyaltyPoints.asStateFlow()
+
+    private val _unlockedAchievements = MutableStateFlow(setOf(0, 1, 2, 5))
+    val unlockedAchievements: StateFlow<Set<Int>> = _unlockedAchievements.asStateFlow()
+
+    private val _claimedRewards = MutableStateFlow(mutableListOf(
+        ClaimedReward("BIENVENUE10", "10% sur votre 1ère location", "Valide jusqu'au 31/12/2026"),
+        ClaimedReward("ÉTÉ2026", "15% sur les réservations > 3 jours", "Valide jusqu'au 30/09/2026")
+    ))
+    val claimedRewards: StateFlow<List<ClaimedReward>> = _claimedRewards.asStateFlow()
+
+    private val _claimedFlashOffers = MutableStateFlow(setOf<String>())
+    val claimedFlashOffers: StateFlow<Set<String>> = _claimedFlashOffers.asStateFlow()
+
+    private val _hapticEnabled = MutableStateFlow(true)
+    val hapticEnabled: StateFlow<Boolean> = _hapticEnabled.asStateFlow()
+
+    private var walletTxnCounter = 9
+
+    fun payFromWallet(amount: Int, description: String) {
+        viewModelScope.launch {
+            val currentBalance = _walletBalance.value
+            if (currentBalance >= amount) {
+                _walletBalance.update { it - amount }
+                val newTxn = WalletTxn(
+                    id = walletTxnCounter++,
+                    type = "payment",
+                    amount = -amount,
+                    description = description,
+                    relatedBookingId = null,
+                    date = "Maintenant",
+                    status = "completed"
+                )
+                _walletTransactions.value = listOf(newTxn) + _walletTransactions.value
+            } else {
+                showSnackbar("Solde insuffisant")
+            }
+        }
+    }
+
+    fun addLoyaltyPoints(points: Int, reason: String) {
+        _loyaltyPoints.update { it + points }
+        showSnackbar("+$points points pour $reason")
+    }
+
+    fun redeemLoyaltyPoints(cost: Int, rewardName: String) {
+        if (_loyaltyPoints.value >= cost) {
+            _loyaltyPoints.update { it - cost }
+            showSnackbar("$rewardName échangé avec succès !")
+        } else {
+            showSnackbar("Pas assez de points")
+        }
+    }
+
+    fun unlockAchievement(id: Int) {
+        val current = _unlockedAchievements.value.toMutableSet()
+        if (id !in current) {
+            current.add(id)
+            _unlockedAchievements.value = current
+            showSnackbar("Succès débloqué !")
+        }
+    }
+
+    fun claimFlashOffer(offerTitle: String, costPoints: Int) {
+        if (_loyaltyPoints.value >= costPoints) {
+            _loyaltyPoints.update { it - costPoints }
+            _claimedFlashOffers.update { it + offerTitle }
+            showSnackbar("Offre flash réclamée ! -$costPoints points")
+        } else {
+            showSnackbar("Pas assez de points")
+        }
+    }
+
+    fun claimReward(code: String, description: String, expiry: String) {
+        val current = _claimedRewards.value.toMutableList()
+        if (current.none { it.code == code }) {
+            current.add(ClaimedReward(code, description, expiry))
+            _claimedRewards.value = current
+            showSnackbar("Coupon $code ajouté à vos récompenses")
+        }
+    }
+
+    fun setHapticEnabled(enabled: Boolean) {
+        _hapticEnabled.value = enabled
+    }
+
+    fun onBookingComplete() {
+        unlockAchievement(3)
+        addLoyaltyPoints(50, "réservation")
+    }
+
+    fun onReviewSubmit() {
+        unlockAchievement(4)
+        addLoyaltyPoints(20, "avis")
+    }
+
+    fun onFirstShare() {
+        unlockAchievement(6)
+        addLoyaltyPoints(100, "parrainage")
+    }
 
     private val _activePromos = MutableStateFlow(listOf(
         PromoCodeEntry(1, "LOCALL20", 20, "15/08/2026", 100, 23, "20% de réduction sur toute réservation"),
@@ -1591,6 +1996,12 @@ data class PromoCodeEntry(
     val maxUses: Int,
     val usedCount: Int,
     val description: String
+)
+
+data class ClaimedReward(
+    val code: String,
+    val description: String,
+    val expiry: String
 )
 
 class RentalViewModelFactory(private val application: Application) : ViewModelProvider.Factory {

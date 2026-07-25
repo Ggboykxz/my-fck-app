@@ -157,18 +157,30 @@ fun CommunityDisputesScreen(viewModel: RentalViewModel, onBack: () -> Unit) {
 
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Surface(
-                                    color = Color(0xFF4FC3F7).copy(alpha = 0.12f),
-                                    shape = RoundedCornerShape(8.dp)
-                                ) {
-                                    Text("📸 Photo 1", color = Color(0xFF4FC3F7), fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                            if (dispute.evidence.isNotEmpty()) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    dispute.evidence.forEach { ev ->
+                                        Surface(
+                                            color = Color(0xFF4FC3F7).copy(alpha = 0.12f),
+                                            shape = RoundedCornerShape(8.dp)
+                                        ) {
+                                            Text(ev, color = Color(0xFF4FC3F7), fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                                        }
+                                    }
                                 }
-                                Surface(
-                                    color = Color(0xFF4FC3F7).copy(alpha = 0.12f),
-                                    shape = RoundedCornerShape(8.dp)
-                                ) {
-                                    Text("📸 Photo 2", color = Color(0xFF4FC3F7), fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                            }
+
+                            Surface(
+                                onClick = {
+                                    val mockEvidence = "Preuve_${System.currentTimeMillis() % 10000}.jpg"
+                                    viewModel.addEvidenceToDispute(dispute.id, mockEvidence)
+                                },
+                                color = Color(0xFF4FC3F7).copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Icon(Icons.Rounded.Add, contentDescription = null, tint = Color(0xFF4FC3F7), modifier = Modifier.size(14.dp))
+                                    Text("Ajouter une preuve", color = Color(0xFF4FC3F7), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
 
