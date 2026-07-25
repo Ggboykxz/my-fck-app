@@ -123,7 +123,7 @@ fun CameraScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { }) {
+                IconButton(onClick = { viewModel.showSnackbar("Sélectionnez une photo depuis la galerie") }) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Rounded.PhotoLibrary, contentDescription = "Galerie", tint = Color.White, modifier = Modifier.size(28.dp))
                         Text("Galerie", color = Color.White, fontSize = 10.sp)

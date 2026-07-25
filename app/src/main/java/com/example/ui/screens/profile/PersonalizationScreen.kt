@@ -31,7 +31,8 @@ import com.example.ui.viewmodel.RentalViewModel
 @Composable
 fun PersonalizationScreen(
     viewModel: RentalViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigate: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val userName by viewModel.userName.collectAsState()
@@ -404,7 +405,7 @@ fun PersonalizationScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { },
+                    .clickable { onNavigate("language") },
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f))

@@ -423,7 +423,8 @@ fun ProfileNavHost(
         composable<RoutePersonalization> {
             com.example.ui.screens.profile.PersonalizationScreen(
                 viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onNavigate = { dest -> navController.navigate(destToRoute(dest)) }
             )
         }
 

@@ -1,5 +1,7 @@
 package com.example.ui.screens
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -396,6 +399,7 @@ fun LocalInquiryChip(text: String, onClick: () -> Unit) {
 fun AboutScreen(
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     var showCguDialog by remember { mutableStateOf(false) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
     var showLicensesDialog by remember { mutableStateOf(false) }
@@ -793,7 +797,12 @@ fun AboutScreen(
                                     .size(48.dp)
                                     .clip(RoundedCornerShape(14.dp))
                                     .background(Color(0xFF1A1A2E).copy(alpha = 0.8f))
-                                    .clickable { },
+                                    .clickable {
+                                        try {
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.instagram.com/locall_gabon"))
+                                            context.startActivity(intent)
+                                        } catch (_: Exception) {}
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(Icons.Rounded.CameraAlt, contentDescription = "Instagram", tint = Color(0xFFE1306C), modifier = Modifier.size(22.dp))
@@ -811,7 +820,12 @@ fun AboutScreen(
                                     .size(48.dp)
                                     .clip(RoundedCornerShape(14.dp))
                                     .background(Color(0xFF1A1A2E).copy(alpha = 0.8f))
-                                    .clickable { },
+                                    .clickable {
+                                        try {
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/locall.gabon"))
+                                            context.startActivity(intent)
+                                        } catch (_: Exception) {}
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(Icons.Rounded.Public, contentDescription = "Facebook", tint = Color(0xFF1877F2), modifier = Modifier.size(22.dp))
@@ -829,7 +843,12 @@ fun AboutScreen(
                                     .size(48.dp)
                                     .clip(RoundedCornerShape(14.dp))
                                     .background(Color(0xFF1A1A2E).copy(alpha = 0.8f))
-                                    .clickable { },
+                                    .clickable {
+                                        try {
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/24100000000"))
+                                            context.startActivity(intent)
+                                        } catch (_: Exception) {}
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(Icons.Rounded.Email, contentDescription = "Contact", tint = PrimaryGreen, modifier = Modifier.size(22.dp))

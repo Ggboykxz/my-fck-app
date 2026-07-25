@@ -3,6 +3,8 @@ package com.example.ui.screens
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -149,7 +151,12 @@ fun ReferralTrackingScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Card(
-                    modifier = Modifier.weight(1f).clickable { },
+                    modifier = Modifier.weight(1f).clickable {
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/?text=${Uri.encode("Rejoins LocAll! Code: $referralCode")}"))
+                            context.startActivity(intent)
+                        } catch (_: Exception) {}
+                    },
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF25D366).copy(alpha = 0.12f)),
                     border = BorderStroke(1.dp, Color(0xFF25D366).copy(alpha = 0.3f))
@@ -164,7 +171,13 @@ fun ReferralTrackingScreen(
                     }
                 }
                 Card(
-                    modifier = Modifier.weight(1f).clickable { },
+                    modifier = Modifier.weight(1f).clickable {
+                        try {
+                            val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:"))
+                            intent.putExtra("sms_body", "Utilise mon code $referralCode sur LocAll: https://locall.com")
+                            context.startActivity(intent)
+                        } catch (_: Exception) {}
+                    },
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF2196F3).copy(alpha = 0.12f)),
                     border = BorderStroke(1.dp, Color(0xFF2196F3).copy(alpha = 0.3f))
@@ -179,7 +192,15 @@ fun ReferralTrackingScreen(
                     }
                 }
                 Card(
-                    modifier = Modifier.weight(1f).clickable { },
+                    modifier = Modifier.weight(1f).clickable {
+                        try {
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, "Rejoins LocAll! Code: $referralCode https://locall.com")
+                            }
+                            context.startActivity(Intent.createChooser(intent, "Partager via"))
+                        } catch (_: Exception) {}
+                    },
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF4FC3F7).copy(alpha = 0.12f)),
                     border = BorderStroke(1.dp, Color(0xFF4FC3F7).copy(alpha = 0.3f))

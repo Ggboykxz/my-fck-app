@@ -199,6 +199,7 @@ fun ChatRoomScreen(
     var userMessageText by remember { mutableStateOf("") }
     var showTypingIndicator by remember { mutableStateOf(false) }
     var showReactionMenuForMessage by remember { mutableStateOf<Int?>(null) }
+    var showChatOptions by remember { mutableStateOf(false) }
 
     val isOnline = remember { mutableStateOf(Random.nextFloat() > 0.3f) }
     val lastSeen = remember { mutableStateOf(System.currentTimeMillis() - Random.nextLong(3600000)) }
@@ -319,6 +320,31 @@ fun ChatRoomScreen(
                                     .background(Color.Gray.copy(alpha = 0.5f))
                             )
                             Text("Vu $timeAgo", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
+                        }
+                    }
+
+                    Box {
+                        IconButton(onClick = { showChatOptions = true }) {
+                            Icon(Icons.Rounded.MoreVert, contentDescription = "Options", tint = Color.White)
+                        }
+
+                        DropdownMenu(
+                            expanded = showChatOptions,
+                            onDismissRequest = { showChatOptions = false },
+                            modifier = Modifier.background(Color(0xFF162133))
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Voir le profil", color = Color.White) },
+                                onClick = { showChatOptions = false }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Signaler", color = Color.White) },
+                                onClick = { showChatOptions = false; viewModel.showSnackbar("Utilisateur signalé") }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Bloquer", color = Color.Red) },
+                                onClick = { showChatOptions = false; viewModel.showSnackbar("Utilisateur bloqué") }
+                            )
                         }
                     }
                 }

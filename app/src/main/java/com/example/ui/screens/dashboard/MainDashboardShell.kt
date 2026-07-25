@@ -112,10 +112,7 @@ fun MainDashboardView(viewModel: RentalViewModel) {
                             viewModel = viewModel,
                             onBack = { viewModel.navigateTo("home") }
                         )
-                        is Screen.OwnerAnalytics -> {}
-                        is Screen.MarketInsights -> {}
-                        is Screen.NotificationSettings -> {}
-                        is Screen.ReferralTracking -> {}
+                        else -> {}
                     }
                 }
             }

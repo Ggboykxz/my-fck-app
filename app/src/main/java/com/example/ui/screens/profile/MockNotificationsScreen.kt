@@ -69,7 +69,25 @@ fun MockNotificationsScreen(onBack: () -> Unit) {
             Text("Notifications Push (Démo)", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Surface(
+            color = Color(0xFFFFB300).copy(alpha = 0.12f),
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, Color(0xFFFFB300).copy(alpha = 0.3f)),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Icon(Icons.Rounded.Info, contentDescription = null, tint = Color(0xFFFFB300), modifier = Modifier.size(20.dp))
+                Text("Mode Démo — Notifications de test", color = Color(0xFFFFB300), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(10.dp)

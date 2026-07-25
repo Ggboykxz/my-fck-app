@@ -39,18 +39,36 @@ fun InteractiveCalendarScreen(
     var selectedDate by remember { mutableIntStateOf(0) }
     var showBookingConfirm by remember { mutableStateOf(false) }
 
+    var showBookingSuccess by remember { mutableStateOf(false) }
+
     if (showBookingConfirm) {
         AlertDialog(
             onDismissRequest = { showBookingConfirm = false },
             containerColor = Color(0xFF162133),
-            title = { Text("Réserver le $selectedDate juillet 2026 ?", color = Color.White) },
-            text = { Text("Cette fonctionnalité sera disponible prochainement. Vous serez notifié quand le propriétaire confirmtera.", color = Color.White.copy(alpha = 0.7f)) },
+            title = { Text("Confirmer la réservation ?", color = Color.White) },
+            text = { Text("Réserver le $selectedDate juillet 2026 pour une nuit ?", color = Color.White.copy(alpha = 0.7f)) },
             confirmButton = {
-                Button(onClick = { showBookingConfirm = false }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)) {
-                    Text("OK", color = BrandNavy)
+                Button(onClick = {
+                    viewModel.createMockBooking(selectedDate, "Juillet 2026")
+                    showBookingConfirm = false
+                    showBookingSuccess = true
+                }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)) {
+                    Text("Confirmer", color = BrandNavy, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showBookingConfirm = false }) {
+                    Text("Annuler", color = Color.White.copy(alpha = 0.6f))
                 }
             }
         )
+    }
+
+    if (showBookingSuccess) {
+        LaunchedEffect(Unit) {
+            viewModel.showSnackbar("Réservation confirmée pour le $selectedDate juillet 2026 !")
+            showBookingSuccess = false
+        }
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {

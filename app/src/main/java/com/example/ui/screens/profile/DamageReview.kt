@@ -37,6 +37,7 @@ fun DamageReportingScreen(
     var detailsInput by remember { mutableStateOf("") }
     var compensValue by remember { mutableStateOf("") }
     var photoTaken by remember { mutableStateOf(false) }
+    var photoCount by remember { mutableIntStateOf(0) }
     var isSubmittedSuccess by remember { mutableStateOf(false) }
 
     if (isSubmittedSuccess) {
@@ -126,20 +127,26 @@ fun DamageReportingScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(130.dp)
+                .height(160.dp)
                 .padding(vertical = 10.dp)
-                .clickable { photoTaken = true },
+                .clickable {
+                    photoTaken = true
+                    photoCount++
+                },
             shape = RoundedCornerShape(14.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
             border = BorderStroke(1.dp, Color.White.copy(alpha = 0.10f))
         ) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                if (photoTaken) {
-                    Icon(Icons.Rounded.LinkedCamera, contentDescription = "Caméra", tint = PrimaryGreen, modifier = Modifier.size(36.dp))
+                if (!photoTaken) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Rounded.AddAPhoto, contentDescription = "Prendre une photo", tint = Color.Gray, modifier = Modifier.size(48.dp))
+                        Text("Appuyez pour prendre une photo", color = Color.Gray, fontSize = 12.sp)
+                    }
                 } else {
                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(Icons.Rounded.AddAPhoto, contentDescription = "Prendre une photo", tint = PrimaryGreen)
-                        Text("Prendre une photo du sinistre", color = Color.White.copy(alpha = 0.4f), fontSize = 12.sp)
+                        Icon(Icons.Rounded.CheckCircle, contentDescription = "Photo capturée", tint = Color(0xFF4CAF50), modifier = Modifier.size(48.dp))
+                        Text("$photoCount photo(s) capturée(s)", color = Color(0xFF4CAF50), fontSize = 12.sp)
                     }
                 }
             }

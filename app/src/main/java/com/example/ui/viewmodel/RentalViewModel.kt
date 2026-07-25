@@ -828,6 +828,31 @@ class RentalViewModel(
         }
     }
 
+    fun createMockBooking(day: Int, monthYear: String) {
+        viewModelScope.launch {
+            try {
+                val cal = java.util.Calendar.getInstance()
+                cal.set(java.util.Calendar.DAY_OF_MONTH, day)
+                val timestamp = cal.timeInMillis
+                val mockBooking = Booking(
+                    rentalItemId = 1,
+                    rentalItemTitle = "Réservation Calendrier",
+                    rentalItemCategory = "Immobilier",
+                    pricePerDay = 25000,
+                    days = 1,
+                    totalPrice = 25000,
+                    paymentMethod = "Airtel Money",
+                    paymentPhone = "+241 07 00 00 00",
+                    bookingTimestamp = timestamp,
+                    status = "Payé"
+                )
+                repository.insertBooking(mockBooking)
+            } catch (e: Exception) {
+                showSnackbar("Une erreur est survenue: ${e.message}")
+            }
+        }
+    }
+
     fun resetPaymentState() {
         _paymentState.value = PaymentState.Idle
     }

@@ -798,6 +798,8 @@ fun OwnerListingsScreen(
     onBack: () -> Unit
 ) {
     val listings by viewModel.rawRentalItems.collectAsState()
+    var showEditDialog by remember { mutableStateOf(false) }
+    var editingItem by remember { mutableStateOf<com.example.data.model.RentalItem?>(null) }
 
     Column(
         modifier = Modifier
@@ -888,7 +890,7 @@ fun OwnerListingsScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Surface(
-                                onClick = { },
+                                onClick = { editingItem = item; showEditDialog = true },
                                 color = Color(0xFF1A3324),
                                 shape = RoundedCornerShape(8.dp),
                                 border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))
@@ -960,6 +962,60 @@ fun OwnerListingsScreen(
                 Text("Aucune annonce inactive.", color = Color.White.copy(alpha = 0.4f), fontSize = 13.sp)
             }
         }
+    }
+
+    if (showEditDialog && editingItem != null) {
+        var editTitle by remember { mutableStateOf(editingItem!!.title) }
+        var editPrice by remember { mutableStateOf(editingItem!!.pricePerDay.toString()) }
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            containerColor = Color(0xFF162133),
+            title = { Text("Modifier l'annonce", color = Color.White, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = editTitle,
+                        onValueChange = { editTitle = it },
+                        label = { Text("Titre", color = Color.White.copy(alpha = 0.6f)) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = PrimaryGreen,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                            focusedContainerColor = Color.White.copy(alpha = 0.05f),
+                            unfocusedContainerColor = Color.White.copy(alpha = 0.05f)
+                        )
+                    )
+                    OutlinedTextField(
+                        value = editPrice,
+                        onValueChange = { editPrice = it },
+                        label = { Text("Prix / jour (F CFA)", color = Color.White.copy(alpha = 0.6f)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = PrimaryGreen,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                            focusedContainerColor = Color.White.copy(alpha = 0.05f),
+                            unfocusedContainerColor = Color.White.copy(alpha = 0.05f)
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showEditDialog = false; viewModel.showSnackbar("Annonce modifiée avec succès") },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
+                ) { Text("Enregistrer", color = BrandNavy, fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) { Text("Annuler", color = Color.White) }
+            }
+        )
     }
 }
 

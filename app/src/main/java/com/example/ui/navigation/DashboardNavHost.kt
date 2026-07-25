@@ -140,16 +140,6 @@ fun DashboardNavHost(
                 )
             }
 
-            composable<RouteNeighborhoodReviews>(
-                enterTransition = { slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
-                exitTransition = { slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300)) }
-            ) {
-                NeighborhoodReviewsScreen(
-                    viewModel = viewModel,
-                    onBack = { navController.popBackStack() }
-                )
-            }
-
             composable<RouteMedia>(
                 enterTransition = { slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
                 exitTransition = { slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300)) }

@@ -100,7 +100,7 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
                                 viewModel.openChatFor(item)
                                 viewModel.navigateTo("chat")
                             },
-                            onBook = {}
+                            onBook = { viewModel.showSnackbar("Ouvrez l'annonce pour réserver") }
                         )
                         IconButton(
                             onClick = {
