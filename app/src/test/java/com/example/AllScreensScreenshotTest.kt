@@ -13,11 +13,13 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.test.core.app.ApplicationProvider
+import androidx.room.Room
 import com.example.data.local.AppDatabase
 import com.example.data.model.Booking
 import com.example.data.model.RentalItem
 import com.example.data.repository.RentalRepository
 import com.example.ui.screens.*
+import com.example.ui.screens.auth.AuthNavigator
 import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.viewmodel.RentalViewModel
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
@@ -43,7 +45,11 @@ class AllScreensScreenshotTest {
     @Before
     fun setup() {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        viewModel = RentalViewModel(app)
+        val db = Room.databaseBuilder(app, AppDatabase::class.java, "locall_test_db")
+            .fallbackToDestructiveMigration()
+            .build()
+        val repo = RentalRepository(db.rentalDao())
+        viewModel = RentalViewModel(app, repo)
     }
 
     private fun screenshot(name: String) {

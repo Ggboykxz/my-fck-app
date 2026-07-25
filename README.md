@@ -1,28 +1,31 @@
 <div align="center">
-<img width="1200" height="475" alt="LocAll Banner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
 <h1>LocAll</h1>
 <p><strong>Louez tout, partout au Gabon</strong></p>
-<p>Application mobile de location entre particuliers — prototype fonctionnel (51 écrans)</p>
+<p>Application mobile de location entre particuliers — prototype fonctionnel (v1.8.0)</p>
 </div>
 
 ---
 
-## Aperçu
+## Apercu
 
-LocAll est une application Android de marketplace de location (véhicules, équipements, biens) ciblant le marché gabonais. Elle supporte les paiements via Airtel Money et Moov Money, avec une interface entièrement en français.
+LocAll est une application Android de marketplace de location (vehicules, equipements, biens) ciblant le marche gabonais. Elle supporte les paiements via Airtel Money et Moov Money, avec une interface entierement en francais.
 
 **Stack technique :**
 - Kotlin + Jetpack Compose (Material 3)
 - Room Database (SQLite local)
-- MVVM Architecture
-- Coil pour le chargement d'images
-- Coroutines + Flow
+- MVVM Architecture + Manual DI (AppContainer)
+- Coil 2.7.0 pour le chargement d'images
+- Coroutines + Flow + EventBus
+- Navigation Compose 2.9.0
+- CameraX + Media3
+- Roborazzi + JUnit4 (tests)
+- CI/CD GitHub Actions
 
 ---
 
-## Captures d'écran — 51 écrans
+## Captures d'ecran — 45 ecrans verifies
 
-### 1. Onboarding (4 écrans)
+### 1. Onboarding (4 ecrans)
 
 | 01 — Splash | 02 — Bienvenue | 03 — Paiements | 04 — Confiance |
 |:-----------:|:--------------:|:--------------:|:--------------:|
@@ -30,9 +33,9 @@ LocAll est une application Android de marketplace de location (véhicules, équi
 
 ---
 
-### 2. Authentification (12 écrans)
+### 2. Authentification (12 ecrans)
 
-| 05 — Connexion | 06 — Inscription | 07 — Mot de passe oublié |
+| 05 — Connexion | 06 — Inscription | 07 — Mot de passe oublie |
 |:--------------:|:----------------:|:------------------------:|
 | ![Login](docs/screenshots/05_login.png) | ![Register](docs/screenshots/06_register.png) | ![Forgot](docs/screenshots/07_forgot_password.png) |
 
@@ -40,23 +43,23 @@ LocAll est une application Android de marketplace de location (véhicules, équi
 |:-------------:|:------------------------:|:-------------------------:|
 | ![OTP](docs/screenshots/08_otp.png) | ![New Password](docs/screenshots/09_new_password.png) | ![Loading Login](docs/screenshots/10_loading_login.png) |
 
-| 11 — Succès connexion | 12 — Chargement inscription | 13 — Succès inscription |
+| 11 — Succes connexion | 12 — Chargement inscription | 13 — Succes inscription |
 |:---------------------:|:---------------------------:|:-----------------------:|
 | ![Login Success](docs/screenshots/11_login_success.png) | ![Loading Register](docs/screenshots/12_loading_register.png) | ![Register Success](docs/screenshots/13_register_success.png) |
 
-| 14 — Compléter profil | 15 — Succès profil | 16 — Mot de passe réinitialisé |
+| 14 — Completer profil | 15 — Succes profil | 16 — Mot de passe reinitialise |
 |:---------------------:|:------------------:|:-----------------------------:|
 | ![Complete Profile](docs/screenshots/14_complete_profile.png) | ![Profile Success](docs/screenshots/15_profile_success.png) | ![Password Reset](docs/screenshots/16_password_reset_success.png) |
 
 ---
 
-### 3. Application principale (7 écrans)
+### 3. Application principale (7 ecrans)
 
-| 17 — Exploration | 18 — Détail annonce | 19 — Favoris |
+| 17 — Exploration | 18 — Detail annonce | 19 — Favoris |
 |:----------------:|:-------------------:|:------------:|
 | ![Explore](docs/screenshots/17_explore.png) | ![Details](docs/screenshots/18_item_details.png) | ![Bookmarks](docs/screenshots/19_bookmarks.png) |
 
-| 20 — Réservations | 21 — Messages | 22 — Publier annonce |
+| 20 — Reservations | 21 — Messages | 22 — Publier annonce |
 |:-----------------:|:-------------:|:--------------------:|
 | ![Bookings](docs/screenshots/20_bookings.png) | ![Messages](docs/screenshots/21_messages.png) | ![Post Listing](docs/screenshots/22_post_listing.png) |
 
@@ -66,13 +69,13 @@ LocAll est une application Android de marketplace de location (véhicules, équi
 
 ---
 
-### 4. Profil & Paramètres (14 écrans)
+### 4. Profil & Parametres (14 ecrans)
 
-| 24 — Profil | 25 — Éditer profil | 26 — Vérification identité |
+| 24 — Profil | 25 — Editer profil | 26 — Verification identite |
 |:-----------:|:------------------:|:--------------------------:|
 | ![Profile](docs/screenshots/24_profile.png) | ![Edit Profile](docs/screenshots/25_edit_profile.png) | ![Identity](docs/screenshots/26_identity_verification.png) |
 
-| 27 — Langue | 28 — Sécurité | 29 — Notifications |
+| 27 — Langue | 28 — Securite | 29 — Notifications |
 |:-----------:|:-------------:|:------------------:|
 | ![Language](docs/screenshots/27_language.png) | ![Security](docs/screenshots/28_security.png) | ![Notifications](docs/screenshots/29_notifications.png) |
 
@@ -80,29 +83,29 @@ LocAll est une application Android de marketplace de location (véhicules, équi
 |:-------------------:|:-----------------------:|:------------:|
 | ![Help](docs/screenshots/30_help.png) | ![Payment Methods](docs/screenshots/31_payment_methods.png) | ![Disputes](docs/screenshots/32_disputes.png) |
 
-| 33 — Médiation | 34 — Réservations locataire | 35 — Signaler dommage |
+| 33 — Mediation | 34 — Reservations locataire | 35 — Signaler dommage |
 |:--------------:|:---------------------------:|:---------------------:|
 | ![Mediation](docs/screenshots/33_mediation.png) | ![Tenant Bookings](docs/screenshots/34_tenant_bookings.png) | ![Damage Report](docs/screenshots/35_damage_report.png) |
 
-| 36 — Avis locataire | 37 — À propos |
+| 36 — Avis locataire | 37 — A propos |
 |:--------------------:|:-------------:|
 | ![Tenant Review](docs/screenshots/36_tenant_review.png) | ![About](docs/screenshots/37_about.png) |
 
 ---
 
-### 5. Espace propriétaire (6 écrans)
+### 5. Espace proprietaire (6 ecrans)
 
 | 38 — Tableau de bord | 39 — Historique revenus | 40 — Portefeuille |
 |:--------------------:|:----------------------:|:-----------------:|
 | ![Owner Dashboard](docs/screenshots/38_owner_dashboard.png) | ![Earnings](docs/screenshots/39_earnings.png) | ![Wallet](docs/screenshots/40_wallet.png) |
 
-| 41 — Mes annonces | 42 — Calendrier | 43 — Réservations reçues |
+| 41 — Mes annonces | 42 — Calendrier | 43 — Reservations recues |
 |:-----------------:|:---------------:|:------------------------:|
 | ![Owner Listings](docs/screenshots/41_owner_listings.png) | ![Calendar](docs/screenshots/42_calendar.png) | ![Received Bookings](docs/screenshots/43_received_bookings.png) |
 
 ---
 
-### 6. États spéciaux (2 écrans)
+### 6. Etats speciaux (2 ecrans)
 
 | 44 — Paiement en cours | 45 — Skeleton loading |
 |:----------------------:|:---------------------:|
@@ -110,95 +113,108 @@ LocAll est une application Android de marketplace de location (véhicules, équi
 
 ---
 
-## Fonctionnalités
+## Fonctionnalites
 
 ### Authentification
 - Connexion / Inscription avec validation de formulaires
-- Mot de passe oublié avec OTP (timer + renvoi)
+- Mot de passe oublie avec OTP (timer + renvoi)
 - Indicateur de force du mot de passe
-- Acceptation des conditions générales
+- Acceptation des conditions generales
 
 ### Exploration & Recherche
-- Grille d'annonces avec skeleton loading
-- Pull-to-refresh
-- Recherche par texte (quartier, description)
-- Filtres par catégorie, ville, prix max
-- Tri (prix croissant/décroissant, récent, note)
+- Grille d'annonces avec skeleton loading et 68 annonces pre-chargees
+- Pull-to-refresh sur tous les listes
+- Recherche floue avec autocompletion et suggestions
+- Recherche intelligente avec analytics et tendances
+- Filtres par categorie (Immobilier, Vehicules, Materiel, evenements), ville, prix max
+- Tri (prix croissant/decroissant, recent, note)
 - Tags populaires cliquables
+- Recherche vocale (simulee)
+- Listes sauvegardee avec alertes
 
-### Détail d'une annonce
-- Galerie d'images (hero banner)
-- Récapitulatif de réservation (prix + commission 5%)
+### Detail d'une annonce
+- Carrousel d'images (HorizontalPager)
+- Comparaison de prix avec la moyenne du marche
+- Fiche contact proprietaire (WhatsApp, Telephone, SMS, Message)
 - Annonces similaires
-- Bouton de partage (intent Android)
-- Géolocalisation du bien
-- Fiche du propriétaire (note, téléphone masqué)
+- Bouton de partage avec QR code
+- Signalement d'annonce
+- Geolocalisation du bien
 
-### Réservation
-- Dialog interactif de réservation
-- Sélection du nombre de jours
-- Choix du mode de paiement (Airtel Money / Moov Money)
-- Saisie du numéro de téléphone
-- Confirmation PIN
-- Annulation avec confirmation
+### Reservation (4 etapes)
+- Calendrier interactif avec disponibilites
+- Confirmation avec recu PDF
+- Paiement via Airtel Money / Moov Money (sous sequestre)
+- Annulation avec confirmation et remboursement
+- Avis et evaluation apres reservation
 
-### Messagerie
-- Liste des conversations
-- Bulles de messages (utilisateur / propriétaire)
-- Indicateur de saisie ("écrit...")
+### Messagerie temps reel
+- Liste des conversations avec recherche
+- Bulles de messages avec progression (envoye/lu/recu)
+- Indicateur de saisie
 - Badge de notifications non lues
+- Reactions emoji
+- Messages image
+- Menu contextuel (supprimer, archiver, bloquer)
 
 ### Profil utilisateur
-- Édition du profil (nom, téléphone)
-- Vérification d'identité
-- Historique des réservations
-- Litiges & médiation
-- Notifications
-- Portefeuille & retraits
-- Aide & support
+- Edition du profil (nom, telephone)
+- Verification d'identite 4 niveaux (CNI, Selfie 3D, selfie bio, video)
+- Historique des reservations
+- Litiges & mediation avec votes
+- Notifications parametrables
+- Portefeuille avec transactions et retraits
+- Aide & support avec chatbot Kassa
 - Moyens de paiement (Airtel Money / Moov Money)
-- Sécurité & langue
-- À propos
+- Securite & langue (FR/EN/Gabonese)
+- A propos avec easter egg
 
-### Espace propriétaire
-- Tableau de bord (annonces, revenus, portefeuille)
-- Gestion des annonces (actives, en révision, suspendues)
-- Édition / Suppression d'annonces
-- Calendrier de disponibilités
-- Réservations reçues (accepter / refuser avec confirmation)
-- Signalement de dommages
-- Avis locataire
+### Espace proprietaire
+- Tableau de bord avec graphique de revenus
+- Gestion des annonces (actives, en revision, suspendues)
+- Edition / Suppression d'annonces
+- Calendrier de disponibilites interactif
+- Reservations recues (accepter / refuser)
+- Analytics owner (vues, conversions, revenus)
+- Insights du marche
 
-### Fonctionnalités additionnelles
-- Recherche avancée avec filtres (catégorie, ville, prix)
-- Paramètres généraux (notifications, thème, géolocalisation)
-- Système d'invitation d'amis (5 000 F CFA par parrainage)
-- Formulaire d'avis avec notation par étoiles
-- Détail de réservation avec annulation
-- Historique des paiements avec résumé
-- Badges sur les annonces (Nouveau, Populaire)
+### Fonctionnalites additionnelles
+- **Gamification** : Badges, achievements, programme de parrainage (5 000 F CFA)
+- **Offres flash** avec countdown timer
+- **Loyalite** avec points et niveaux
+- **Portefeuille** avec top-up, paiement, retrait, transactions
+- **Codes promo** (LOCALL20, BIENVENUE, AMIS10)
+- **Assurance** dommages et depots numeriques
+- **Litiges communautaires** avec votes
+- **Avis de quartier** (16 quartiers guides)
+- **Recherche avancee** avec filtres
+- **Parametres generaux** (notifications, theme, geolocalisation)
+- **Mode hors ligne** avec banner et retry queue
+- **Badges** sur les annonces (Nouveau, Populaire, Spotlight)
 
 ### Design & UX
-- Thème dark/light
-- Numéros de téléphone masqués
-- Skeleton loading
-- Empty states réutilisables
+- Theme dark avec palette BrandNavy/PrimaryGreen
+- Transitions fluides (fade-in staggered, scale animations)
+- Skeleton loading sur tous les listes
+- Empty states reutilisables
 - ConfirmDialog pour actions destructives
 - Badges de notification
-- Accessibilité (contentDescription)
+- Accessibilite (contentDescription sur 50+ icones, WCAG AA contrast)
+- Touch targets minimum 48dp
+- Typographie Material 3 complete
 
 ---
 
 ## Installation
 
-### Prérequis
-- [Android Studio](https://developer.android.com/studio) (Ladybug ou plus récent)
-- JDK 17+
+### Pre requis
+- [Android Studio](https://developer.android.com/studio) (Ladybug ou plus recent)
+- JDK 21+
 - Android SDK 36
 
-### Étapes
+### Etapes
 
-1. Cloner le dépôt :
+1. Cloner le depot :
 ```bash
 git clone https://github.com/Ggboykxz/my-fck-app.git
 cd my-fck-app
@@ -206,12 +222,23 @@ cd my-fck-app
 
 2. Ouvrir le projet dans Android Studio
 
-3. Compiler et installer sur un émulateur ou device physique :
+3. Compiler et installer sur un emulateur ou device physique :
 ```bash
 ./gradlew assembleDebug
 ```
 
-L'APK sera généré dans `app/build/outputs/apk/debug/`.
+L'APK sera genere dans `app/build/outputs/apk/debug/`.
+
+### Build Release
+```bash
+export JAVA_HOME=/path/to/jdk-21
+export ANDROID_HOME=$HOME/android-sdk
+export KEYSTORE_PATH=/path/to/my-upload-key.jks
+export STORE_PASSWORD=localdemo123
+export KEY_ALIAS=upload
+export KEY_PASSWORD=localdemo123
+./gradlew assembleRelease
+```
 
 ---
 
@@ -220,32 +247,63 @@ L'APK sera généré dans `app/build/outputs/apk/debug/`.
 ```
 app/src/main/java/com/example/
 ├── data/
-│   ├── local/          # Room DB, DAO
-│   ├── model/          # Entités (RentalItem, Booking, ChatMessage, UserProfile...)
-│   └── repository/     # RentalRepository
+│   ├── local/          # Room DB (v8), DAO (80+ methodes)
+│   ├── model/          # 20+ entites (RentalItem, Booking, Wallet, etc.)
+│   └── repository/     # RentalRepository (68 annonces seed)
 ├── ui/
-│   ├── components/     # Composants réutilisables (SkeletonCard, EmptyState, etc.)
-│   ├── screens/        # Écrans (Auth, Dashboard, Profile, Onboarding)
-│   ├── theme/          # Couleurs, typographie, thème
-│   └── viewmodel/      # RentalViewModel (état + logique)
-└── MainActivity.kt
+│   ├── components/     # 40+ composants (AppCard, ValidatedTextField, etc.)
+│   ├── navigation/     # 4 NavHosts (Root, Auth, Dashboard, Profile)
+│   ├── screens/        # 45+ ecrans (auth/, dashboard/, profile/)
+│   ├── theme/          # Couleurs, typographie, Material 3
+│   └── viewmodel/      # RentalViewModel + UIEvent bus
+├── connectivity/       # ConnectivityMonitor (online/metered)
+├── di/                 # AppContainer (manual DI)
+├── notifications/      # NotificationHelper (4 canaux)
+├── preferences/        # UserPreferences
+├── security/           # SecureStorage (EncryptedSharedPreferences)
+├── util/               # LocationUtils, FilePicker
+└── worker/             # SyncWorker (background)
 ```
 
 ---
 
-## État du projet
+## Tests
 
-> **Prototype fonctionnel** — toutes les données sont simulées (Room DB locale, pas de backend).
+- **51 tests Roborazzi** : captures d'ecrans automotisees de tous les ecrans
+- **8 tests ViewModel** : recherche, bookmarks, filtres, litiges
+- **1 test Robolectric** : validation du contexte
+- **CI/CD** : GitHub Actions (JDK 21, build debug, tests, upload artifacts)
 
-### 51 écrans implémentés
-- 4 écrans d'onboarding
-- 12 écrans d'authentification
-- 7 écrans du dashboard principal
-- 14 écrans de profil & paramètres
-- 6 écrans d'espace propriétaire
-- 6 écrans additionnels (recherche avancée, paramètres, invitation, avis, détail réservation, historique paiements)
-- 2 états spéciaux (paiement, skeleton)
+```bash
+# Executer tous les tests
+./gradlew testDebugUnitTest
+
+# Executer uniquement les screenshots
+./gradlew testDebugUnitTest --tests "com.example.AllScreensScreenshotTest"
+```
+
+---
+
+## Etat du projet
+
+> **Prototype fonctionnel v1.8.0** — toutes les donnees sont simulees (Room DB locale, pas de backend).
+
+### 45 ecrans verifies avec captures
+- 4 ecrans d'onboarding
+- 12 ecrans d'authentification
+- 7 ecrans du dashboard principal
+- 14 ecrans de profil & parametres
+- 6 ecrans d'espace proprietaire
+- 2 etats speciaux (paiement, skeleton)
+
+### Donnees pre-chargees
+- **68 annonces** dans 8 categories et 5 villes
+- **20 utilisateurs** profiles
+- **28+ avis** et evaluations
+- **16 guides de quartier**
+- **6 promotions saisonnieres**
+- **4 canaux de notification**
 
 ## Licence
 
-Projet privé — prototype de démonstration.
+Projet prive — prototype de demonstration.
