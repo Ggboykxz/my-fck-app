@@ -357,23 +357,24 @@ fun SearchIntelligenceScreen(
                 item {
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(trendingSearches, key = { it.id }) { s ->
+                            val isActive = searchQuery == s.query
                             Surface(
                                 onClick = {
                                     viewModel.setIntelligentSearchQuery(s.query)
                                     viewModel.setSearchQuery(s.query)
                                 },
-                                color = PrimaryGreen.copy(alpha = 0.12f),
+                                color = if (isActive) PrimaryGreen else PrimaryGreen.copy(alpha = 0.12f),
                                 shape = RoundedCornerShape(20.dp),
-                                border = BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))
+                                border = BorderStroke(1.dp, if (isActive) PrimaryGreen else PrimaryGreen.copy(alpha = 0.3f))
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
-                                    Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(14.dp))
-                                    Text(s.query, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = PrimaryGreen)
-                                    Text("${s.searchCount}", fontSize = 10.sp, color = PrimaryGreen.copy(alpha = 0.7f))
+                                    Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = if (isActive) BrandNavy else PrimaryGreen, modifier = Modifier.size(14.dp))
+                                    Text(s.query, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (isActive) BrandNavy else PrimaryGreen)
+                                    Text("${s.searchCount}", fontSize = 10.sp, color = if (isActive) BrandNavy.copy(alpha = 0.7f) else PrimaryGreen.copy(alpha = 0.7f))
                                 }
                             }
                         }

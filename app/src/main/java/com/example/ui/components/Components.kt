@@ -678,57 +678,65 @@ fun StepIndicator(
     stepLabels: List<String>,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        for (i in 1..totalSteps) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(
-                            when {
-                                i < currentStep -> PrimaryGreen
-                                i == currentStep -> PrimaryGreen
-                                else -> Color.White.copy(alpha = 0.1f)
-                            }
-                        ),
-                    contentAlignment = Alignment.Center
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            for (i in 1..totalSteps) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    if (i < currentStep) {
-                        Icon(Icons.Rounded.Check, contentDescription = null, tint = BrandNavy, modifier = Modifier.size(18.dp))
-                    } else {
+                    val stepScale by animateFloatAsState(
+                        targetValue = if (i == currentStep) 1.15f else 1f,
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                        label = "step_scale_$i"
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .scale(stepScale)
+                            .clip(CircleShape)
+                            .background(
+                                when {
+                                    i < currentStep -> PrimaryGreen
+                                    i == currentStep -> PrimaryGreen
+                                    else -> Color.White.copy(alpha = 0.1f)
+                                }
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (i < currentStep) {
+                            Icon(Icons.Rounded.Check, contentDescription = null, tint = BrandNavy, modifier = Modifier.size(18.dp))
+                        } else {
+                            Text(
+                                text = "$i",
+                                color = if (i == currentStep) BrandNavy else Color.White.copy(alpha = 0.5f),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                    if (i <= stepLabels.size) {
                         Text(
-                            text = "$i",
-                            color = if (i == currentStep) BrandNavy else Color.White.copy(alpha = 0.5f),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold
+                            text = stepLabels[i - 1],
+                            color = if (i <= currentStep) Color.White else Color.White.copy(alpha = 0.4f),
+                            fontSize = 10.sp,
+                            fontWeight = if (i == currentStep) FontWeight.Bold else FontWeight.Normal
                         )
                     }
                 }
-                if (i <= stepLabels.size) {
-                    Text(
-                        text = stepLabels[i - 1],
-                        color = if (i <= currentStep) Color.White else Color.White.copy(alpha = 0.4f),
-                        fontSize = 10.sp,
-                        fontWeight = if (i == currentStep) FontWeight.Bold else FontWeight.Normal
+                if (i < totalSteps) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(2.dp)
+                            .padding(horizontal = 4.dp)
+                            .align(Alignment.CenterVertically)
+                            .background(if (i < currentStep) PrimaryGreen else Color.White.copy(alpha = 0.1f))
                     )
                 }
-            }
-            if (i < totalSteps) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(2.dp)
-                        .padding(horizontal = 4.dp)
-                        .align(Alignment.CenterVertically)
-                        .background(if (i < currentStep) PrimaryGreen else Color.White.copy(alpha = 0.1f))
-                )
             }
         }
     }

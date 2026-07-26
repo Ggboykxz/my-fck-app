@@ -30,6 +30,8 @@ import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import com.example.ui.components.*
 import com.example.ui.components.SmoothIcon
 import com.example.ui.components.StatusBadge
@@ -457,6 +459,7 @@ fun SettingsScreen(
     var hapticEnabled by remember { mutableStateOf(hapticEnabledValue) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
+    val hapticFeedback = LocalHapticFeedback.current
     LaunchedEffect(Unit) { delay(600); isLoading = false }
 
     if (showDeleteDialog) {
@@ -513,7 +516,7 @@ fun SettingsScreen(
                     SmoothIcon(icon = Icons.Rounded.Notifications, tint = Color(0xFFFFB300), backgroundColor = Color(0xFFFFB300).copy(alpha = 0.12f))
                     Column { Text("Notifications", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold); Text("Alertes push et emails", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp) }
                 }
-                Switch(checked = notificationsEnabled, onCheckedChange = { notificationsEnabled = it; UserPreferences.setNotificationsEnabled(context, it) }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
+                Switch(checked = notificationsEnabled, onCheckedChange = { notificationsEnabled = it; UserPreferences.setNotificationsEnabled(context, it); hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress) }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
             }
         }
 
@@ -525,7 +528,7 @@ fun SettingsScreen(
                     SmoothIcon(icon = Icons.Rounded.DarkMode, tint = Color(0xFF4FC3F7), backgroundColor = Color(0xFF4FC3F7).copy(alpha = 0.12f))
                     Column { Text("Mode Sombre", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold); Text("Thème sombre de l'application", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp) }
                 }
-                Switch(checked = isDarkMode, onCheckedChange = { isDarkMode = it; DarkModeHelper.saveDarkMode(context, it) }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
+                Switch(checked = isDarkMode, onCheckedChange = { isDarkMode = it; DarkModeHelper.saveDarkMode(context, it); hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress) }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
             }
         }
 
@@ -537,7 +540,7 @@ fun SettingsScreen(
                     SmoothIcon(icon = Icons.Rounded.LocationOn, tint = PrimaryGreen, backgroundColor = PrimaryGreen.copy(alpha = 0.12f))
                     Column { Text("Géolocalisation", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold); Text("Autoriser l'accès à votre position", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp) }
                 }
-                Switch(checked = locationEnabled, onCheckedChange = { locationEnabled = it }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
+                Switch(checked = locationEnabled, onCheckedChange = { locationEnabled = it; hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress) }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
             }
         }
 
@@ -549,7 +552,7 @@ fun SettingsScreen(
                     SmoothIcon(icon = Icons.Rounded.DataSaverOn, tint = Color(0xFFAB47BC), backgroundColor = Color(0xFFAB47BC).copy(alpha = 0.12f))
                     Column { Text("Mode économie données", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold); Text("Réduire le chargement des images", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp) }
                 }
-                Switch(checked = dataSavingEnabled, onCheckedChange = { dataSavingEnabled = it; DarkModeHelper.saveDataSavingMode(context, it); Toast.makeText(context, if (it) "Mode économie activé" else "Mode économie désactivé", Toast.LENGTH_SHORT).show() }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
+                Switch(checked = dataSavingEnabled, onCheckedChange = { dataSavingEnabled = it; DarkModeHelper.saveDataSavingMode(context, it); hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress); Toast.makeText(context, if (it) "Mode économie activé" else "Mode économie désactivé", Toast.LENGTH_SHORT).show() }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
             }
         }
 
@@ -561,7 +564,7 @@ fun SettingsScreen(
                     SmoothIcon(icon = Icons.Rounded.Vibration, tint = Color(0xFFFF7043), backgroundColor = Color(0xFFFF7043).copy(alpha = 0.12f))
                     Column { Text("Retour haptique", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold); Text("Vibrations sur les interactions", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp) }
                 }
-                Switch(checked = hapticEnabled, onCheckedChange = { hapticEnabled = it; viewModel.setHapticEnabled(it) }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
+                Switch(checked = hapticEnabled, onCheckedChange = { hapticEnabled = it; viewModel.setHapticEnabled(it); hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress) }, colors = SwitchDefaults.colors(checkedThumbColor = BrandNavy, checkedTrackColor = PrimaryGreen, uncheckedTrackColor = Color.White.copy(alpha = 0.15f)))
             }
         }
 

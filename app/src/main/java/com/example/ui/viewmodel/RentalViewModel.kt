@@ -685,11 +685,21 @@ class RentalViewModel(
     fun navigateTo(screen: String) {
         _currentScreen.value = when (screen) {
             "home" -> Screen.Home
-            "details" -> Screen.Details
+            "details" -> {
+                if (_selectedItem.value == null && filteredRentalItems.value.isNotEmpty()) {
+                    _selectedItem.value = filteredRentalItems.value.first()
+                }
+                Screen.Details
+            }
             "bookmarks" -> Screen.Bookmarks
             "bookings" -> Screen.Bookings
             "messages" -> Screen.Messages
-            "chat" -> Screen.Chat
+            "chat" -> {
+                if (_selectedItem.value == null && filteredRentalItems.value.isNotEmpty()) {
+                    _selectedItem.value = filteredRentalItems.value.first()
+                }
+                Screen.Chat
+            }
             "post_listing" -> Screen.PostListing
             "profile" -> Screen.Profile
             "map_explorer" -> Screen.MapExplorer

@@ -532,6 +532,7 @@ fun PostListingScreen(viewModel: RentalViewModel) {
 
             // Submit
             item {
+                val isFormValid = title.isNotBlank() && priceStr.toIntOrNull() != null && neighborhood.isNotBlank() && description.isNotBlank()
                 Button(
                     onClick = {
                         val price = priceStr.toIntOrNull()
@@ -547,13 +548,22 @@ fun PostListingScreen(viewModel: RentalViewModel) {
                             isSuccessPost = true
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+                    enabled = isFormValid,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryGreen,
+                        contentColor = BrandNavy,
+                        disabledContainerColor = Color.White.copy(alpha = 0.08f),
+                        disabledContentColor = Color.White.copy(alpha = 0.3f)
+                    ),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth().height(56.dp).testTag("submit_post_button")
                 ) {
                     Icon(Icons.Rounded.Publish, contentDescription = "Publier", modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Publier l'annonce", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        if (isFormValid) "Publier l'annonce" else "Remplissez tous les champs",
+                        fontSize = 16.sp, fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

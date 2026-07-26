@@ -239,15 +239,26 @@ fun ExploreScreen(
                     )
                 }
 
-                SmoothIconButton(
-                    imageVector = Icons.Rounded.Tune,
-                    contentDescription = "Filtres",
+                Surface(
                     onClick = { showFilterSheet = true },
-                    tint = BrandNavy,
-                    backgroundColor = PrimaryGreen,
-                    modifier = Modifier.size(48.dp).testTag("filter_button"),
-                    iconSize = 20.dp
-                )
+                    color = PrimaryGreen,
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, PrimaryGreen)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Tune,
+                            contentDescription = null,
+                            tint = BrandNavy,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Filtres", color = BrandNavy, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
             }
 
             if (searchQuery.length >= 2) {

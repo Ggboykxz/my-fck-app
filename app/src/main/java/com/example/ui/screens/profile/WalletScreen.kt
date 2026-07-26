@@ -268,6 +268,13 @@ fun WalletScreen(
         } else {
             items(filteredTransactions, key = { it.id }) { txn ->
                 WalletTransactionItem(txn = txn, modifier = Modifier.animateItem())
+                if (txn != filteredTransactions.last()) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 14.dp),
+                        color = Color.White.copy(alpha = 0.06f),
+                        thickness = 1.dp
+                    )
+                }
             }
         }
 
