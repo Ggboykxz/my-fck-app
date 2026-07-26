@@ -1980,7 +1980,7 @@ class RentalViewModel(
         val current = _recentlyViewed.value.toMutableList()
         current.removeAll { it.id == item.id }
         current.add(0, item)
-        if (current.size > 50) current.removeLast()
+        if (current.size > 50) current.removeAt(current.lastIndex)
         _recentlyViewed.value = current
     }
 

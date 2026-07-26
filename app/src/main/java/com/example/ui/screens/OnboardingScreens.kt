@@ -215,7 +215,7 @@ private fun WelcomeOnboardingContent() {
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .fillMaxWidth(1.2f)
+                    .fillMaxWidth(1.0f)
                     .fillMaxHeight()
                     .offset(y = (-50).dp)
                     .clip(CircleShape)
@@ -689,7 +689,7 @@ private fun TrustOnboardingContent(onStart: () -> Unit) {
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
-                .fillMaxWidth(1.1f)
+                .fillMaxWidth(1.0f)
                 .fillMaxHeight(0.5f)
                 .offset(y = (-50).dp)
                 .clip(CircleShape)
@@ -1071,7 +1071,7 @@ fun WelcomeOnboardingScreen(onNext: () -> Unit, onSkip: () -> Unit) {
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .fillMaxWidth(1.2f)
+                    .fillMaxWidth(1.0f)
                     .fillMaxHeight()
                     .offset(y = (-50).dp)
                     .clip(CircleShape)
@@ -1659,7 +1659,7 @@ fun TrustOnboardingScreen(onStart: () -> Unit) {
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
-                .fillMaxWidth(1.1f)
+                .fillMaxWidth(1.0f)
                 .fillMaxHeight(0.5f)
                 .offset(y = (-50).dp)
                 .clip(CircleShape)

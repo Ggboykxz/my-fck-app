@@ -23,7 +23,7 @@ LocAll est une application Android de marketplace de location (vehicules, equipe
 
 ---
 
-## Captures d'ecran — 45 ecrans verifies
+## Captures d'ecran — 51 ecrans verifies
 
 ### 1. Onboarding (4 ecrans)
 
@@ -110,6 +110,18 @@ LocAll est une application Android de marketplace de location (vehicules, equipe
 | 44 — Paiement en cours | 45 — Skeleton loading |
 |:----------------------:|:---------------------:|
 | ![Payment Processing](docs/screenshots/44_payment_processing.png) | ![Skeleton](docs/screenshots/45_skeleton_loading.png) |
+
+---
+
+### 7. Ecrans supplementaires (6 ecrans)
+
+| 46 — Recherche avancee | 47 — Parametres | 48 — Inviter un ami |
+|:----------------------:|:---------------:|:-------------------:|
+| ![Advanced Search](docs/screenshots/46_advanced_search.png) | ![Settings](docs/screenshots/47_settings.png) | ![Invite Friend](docs/screenshots/48_invite_friend.png) |
+
+| 49 — Donner un avis | 50 — Detail reservation | 51 — Historique paiements |
+|:-------------------:|:----------------------:|:-------------------------:|
+| ![Rating](docs/screenshots/49_rating.png) | ![Reservation Detail](docs/screenshots/50_reservation_detail.png) | ![Payment History](docs/screenshots/51_payment_history.png) |
 
 ---
 
@@ -288,13 +300,14 @@ app/src/main/java/com/example/
 
 > **Prototype fonctionnel v1.8.0** — toutes les donnees sont simulees (Room DB locale, pas de backend).
 
-### 45 ecrans verifies avec captures
+### 51 ecrans verifies avec captures
 - 4 ecrans d'onboarding
 - 12 ecrans d'authentification
 - 7 ecrans du dashboard principal
 - 14 ecrans de profil & parametres
 - 6 ecrans d'espace proprietaire
-- 2 etats speciaux (paiement, skeleton)
+- 2 etats speciaux
+- 6 ecrans supplementaires (recherche, parametres, parrainage, avis, detail, historique)
 
 ### Donnees pre-chargees
 - **68 annonces** dans 8 categories et 5 villes
