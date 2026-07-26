@@ -26,7 +26,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.material.icons.rounded.Refresh
 import kotlinx.coroutines.delay
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun BookmarksScreen(viewModel: RentalViewModel) {
     val items by viewModel.bookmarkedItems.collectAsState()
@@ -90,7 +90,7 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(items, key = { it.id }) { item ->
-                    Box {
+                    Box(Modifier.animateItem()) {
                         RentalCard(
                             item = item,
                             onSelect = { selectedItemForModal = item },

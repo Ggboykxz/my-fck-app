@@ -97,6 +97,7 @@ fun LanguageSelectionScreen(
 
 // ---------------- NOTIFICATIONS SCREEN ----------------
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NotificationsScreen(
     viewModel: RentalViewModel,
@@ -239,6 +240,7 @@ fun NotificationsScreen(
                     items(notifications, key = { it.id }) { notif ->
                     Card(
                         modifier = Modifier
+                            .animateItem()
                             .fillMaxWidth()
                             .clickable { markAsRead(notif.id) },
                         shape = RoundedCornerShape(16.dp),
@@ -914,6 +916,7 @@ fun PaymentMethodsScreen(
 }
 
 // ==================== PAYMENT HISTORY SCREEN ====================
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PaymentHistoryScreen(
     viewModel: RentalViewModel,
@@ -977,7 +980,7 @@ fun PaymentHistoryScreen(
                 }
             } else {
                 items(payments, key = { it.id }) { payment ->
-                    Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
+                    Card(modifier = Modifier.animateItem(), shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF162133))) {
                         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                             Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(Color.White.copy(alpha = 0.05f)), contentAlignment = Alignment.Center) {
                                 Icon(Icons.Rounded.Receipt, contentDescription = "Reçu", tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(20.dp))

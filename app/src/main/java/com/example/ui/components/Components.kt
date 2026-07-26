@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -1683,6 +1684,22 @@ fun ValidatedTextField(
 @Composable
 fun SuccessCheckmark(modifier: Modifier = Modifier) {
     var playAnimation by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (playAnimation) 1f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "checkmark_scale"
+    )
+    val rotation by animateFloatAsState(
+        targetValue = if (playAnimation) 0f else -30f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "checkmark_rotation"
+    )
 
     LaunchedEffect(Unit) { playAnimation = true }
 
@@ -1692,9 +1709,11 @@ fun SuccessCheckmark(modifier: Modifier = Modifier) {
         tint = Color(0xFF4CAF50),
         modifier = modifier
             .size(80.dp)
-            .then(
-                if (playAnimation) Modifier.scale(1f) else Modifier.scale(0f)
-            )
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                rotationZ = rotation
+            }
     )
 }
 

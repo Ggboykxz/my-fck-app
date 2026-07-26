@@ -31,7 +31,7 @@ import com.example.ui.viewmodel.RentalViewModel
 import com.example.ui.viewmodel.WalletTxn
 import kotlinx.coroutines.delay
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun WalletScreen(
     viewModel: RentalViewModel,
@@ -267,7 +267,7 @@ fun WalletScreen(
             }
         } else {
             items(filteredTransactions, key = { it.id }) { txn ->
-                WalletTransactionItem(txn = txn)
+                WalletTransactionItem(txn = txn, modifier = Modifier.animateItem())
             }
         }
 
@@ -302,7 +302,7 @@ private fun WalletActionButton(
 }
 
 @Composable
-private fun WalletTransactionItem(txn: WalletTxn) {
+private fun WalletTransactionItem(txn: WalletTxn, modifier: Modifier = Modifier) {
     val isCredit = txn.amount > 0
     val iconBg = when (txn.type) {
         "topup" -> Color(0xFF4CAF50).copy(alpha = 0.15f)
@@ -338,7 +338,7 @@ private fun WalletTransactionItem(txn: WalletTxn) {
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        modifier = modifier.fillMaxWidth().padding(vertical = 4.dp),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF162133)),
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
