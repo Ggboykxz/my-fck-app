@@ -1,6 +1,11 @@
 package com.example.ui.screens.auth
 
 import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -165,9 +170,13 @@ fun LoginScreenView(
                         unfocusedContainerColor = Color(0xFF162133)
                     )
                 )
-                if (emailError != null) {
+                AnimatedVisibility(
+                    visible = emailError != null,
+                    enter = slideInVertically(initialOffsetY = { -it / 2 }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { -it / 2 }) + fadeOut()
+                ) {
                     Text(
-                        text = emailError!!,
+                        text = emailError ?: "",
                         color = Color.Red,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(start = 4.dp)
@@ -225,15 +234,23 @@ fun LoginScreenView(
                         unfocusedContainerColor = Color(0xFF162133)
                     )
                 )
-                if (passwordError != null) {
+                AnimatedVisibility(
+                    visible = passwordError != null,
+                    enter = slideInVertically(initialOffsetY = { -it / 2 }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { -it / 2 }) + fadeOut()
+                ) {
                     Text(
-                        text = passwordError!!,
+                        text = passwordError ?: "",
                         color = Color.Red,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(start = 4.dp)
                     )
                 }
-                if (showErrors && password.length < 6) {
+                AnimatedVisibility(
+                    visible = showErrors && password.length < 6,
+                    enter = slideInVertically(initialOffsetY = { -it / 2 }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { -it / 2 }) + fadeOut()
+                ) {
                     Text("Le mot de passe doit contenir au moins 6 caractères", color = Color(0xFFEF5350), fontSize = 11.sp)
                 }
 

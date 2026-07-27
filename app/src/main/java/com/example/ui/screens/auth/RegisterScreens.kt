@@ -1,6 +1,11 @@
 package com.example.ui.screens.auth
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -202,9 +207,13 @@ fun RegisterScreenView(
                         unfocusedContainerColor = Color(0xFF162133)
                     )
                 )
-                if (nameError != null) {
+                AnimatedVisibility(
+                    visible = nameError != null,
+                    enter = slideInVertically(initialOffsetY = { -it / 2 }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { -it / 2 }) + fadeOut()
+                ) {
                     Text(
-                        text = nameError!!,
+                        text = nameError ?: "",
                         color = Color.Red,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(start = 4.dp)
@@ -252,15 +261,23 @@ fun RegisterScreenView(
                         unfocusedContainerColor = Color(0xFF162133)
                     )
                 )
-                if (emailError != null) {
+                AnimatedVisibility(
+                    visible = emailError != null,
+                    enter = slideInVertically(initialOffsetY = { -it / 2 }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { -it / 2 }) + fadeOut()
+                ) {
                     Text(
-                        text = emailError!!,
+                        text = emailError ?: "",
                         color = Color.Red,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(start = 4.dp)
                     )
                 }
-                if (showErrors && email.isNotEmpty() && !email.contains("@")) {
+                AnimatedVisibility(
+                    visible = showErrors && email.isNotEmpty() && !email.contains("@"),
+                    enter = slideInVertically(initialOffsetY = { -it / 2 }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { -it / 2 }) + fadeOut()
+                ) {
                     Text("Format d'email invalide", color = Color(0xFFEF5350), fontSize = 11.sp)
                 }
             }
@@ -305,9 +322,13 @@ fun RegisterScreenView(
                         unfocusedContainerColor = Color(0xFF162133)
                     )
                 )
-                if (phoneError != null) {
+                AnimatedVisibility(
+                    visible = phoneError != null,
+                    enter = slideInVertically(initialOffsetY = { -it / 2 }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { -it / 2 }) + fadeOut()
+                ) {
                     Text(
-                        text = phoneError!!,
+                        text = phoneError ?: "",
                         color = Color.Red,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(start = 4.dp)
@@ -365,15 +386,23 @@ fun RegisterScreenView(
                         unfocusedContainerColor = Color(0xFF162133)
                     )
                 )
-                if (passwordError != null) {
+                AnimatedVisibility(
+                    visible = passwordError != null,
+                    enter = slideInVertically(initialOffsetY = { -it / 2 }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { -it / 2 }) + fadeOut()
+                ) {
                     Text(
-                        text = passwordError!!,
+                        text = passwordError ?: "",
                         color = Color.Red,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(start = 4.dp)
                     )
                 }
-                if (showErrors && password.isNotEmpty() && password.length < 6) {
+                AnimatedVisibility(
+                    visible = showErrors && password.isNotEmpty() && password.length < 6,
+                    enter = slideInVertically(initialOffsetY = { -it / 2 }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { -it / 2 }) + fadeOut()
+                ) {
                     Text("Le mot de passe doit contenir au moins 6 caractères", color = Color(0xFFEF5350), fontSize = 11.sp)
                 }
                 if (password.isNotEmpty()) {
@@ -442,9 +471,13 @@ fun RegisterScreenView(
                         .padding(start = 4.dp)
                 )
             }
-            if (termsError != null) {
+            AnimatedVisibility(
+                visible = termsError != null,
+                enter = slideInVertically(initialOffsetY = { -it / 2 }) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { -it / 2 }) + fadeOut()
+            ) {
                 Text(
-                    text = termsError!!,
+                    text = termsError ?: "",
                     color = Color.Red,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(start = 4.dp)

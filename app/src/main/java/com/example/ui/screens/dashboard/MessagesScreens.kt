@@ -191,6 +191,7 @@ fun InboxScreen(viewModel: RentalViewModel) {
 
 // ----------------- ACTIVE CHAT ROOM SCREEN -----------------
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ChatRoomScreen(
     item: RentalItem,
@@ -391,7 +392,7 @@ fun ChatRoomScreen(
                     else -> message.messageText
                 }
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().animateItem(),
                     horizontalAlignment = if (isMe) Alignment.End else Alignment.Start
                 ) {
                     if (!isMe) {
