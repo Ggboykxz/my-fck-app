@@ -293,18 +293,18 @@ fun ImageModerationScreen(
                                     IconButton(
                                         onClick = { viewModel.moderateMediaItem(item.id, "approved") },
                                         modifier = Modifier
-                                            .size(36.dp)
+                                            .size(48.dp)
                                             .background(PrimaryGreen.copy(alpha = 0.12f), CircleShape)
                                     ) {
-                                        Icon(Icons.Rounded.Check, contentDescription = "Approuver", tint = PrimaryGreen, modifier = Modifier.size(18.dp))
+                                        Icon(Icons.Rounded.Check, contentDescription = "Approuver", tint = PrimaryGreen, modifier = Modifier.size(22.dp))
                                     }
                                     IconButton(
                                         onClick = { viewModel.moderateMediaItem(item.id, "rejected") },
                                         modifier = Modifier
-                                            .size(36.dp)
+                                            .size(48.dp)
                                             .background(Color(0xFFEF5350).copy(alpha = 0.12f), CircleShape)
                                     ) {
-                                        Icon(Icons.Rounded.Close, contentDescription = "Rejeter", tint = Color(0xFFEF5350), modifier = Modifier.size(18.dp))
+                                        Icon(Icons.Rounded.Close, contentDescription = "Rejeter", tint = Color(0xFFEF5350), modifier = Modifier.size(22.dp))
                                     }
                                 }
                             } else {

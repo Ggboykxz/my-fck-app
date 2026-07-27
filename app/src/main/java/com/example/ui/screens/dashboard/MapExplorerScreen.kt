@@ -508,7 +508,7 @@ fun MapExplorerScreen(
                         IconButton(
                             onClick = { selectedCity = null },
                             modifier = Modifier
-                                .size(30.dp)
+                                .size(48.dp)
                                 .clip(CircleShape)
                                 .background(Color.White.copy(alpha = 0.08f))
                         ) {

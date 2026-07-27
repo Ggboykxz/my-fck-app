@@ -200,7 +200,7 @@ fun ItemDetailsScreen(
                             isFavorite = item.isBookmarked,
                             onClick = { viewModel.toggleBookmark(item) },
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(48.dp)
                                 .background(Color.Black.copy(alpha = 0.6f), CircleShape)
                         )
                         // Like counter

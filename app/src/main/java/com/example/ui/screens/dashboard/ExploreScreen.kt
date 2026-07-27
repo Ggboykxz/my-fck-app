@@ -1019,7 +1019,7 @@ fun RentalCard(
                         isFavorite = item.isBookmarked,
                         onClick = onBookmarkToggle,
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(48.dp)
                             .background(Color.Black.copy(alpha = 0.6f), CircleShape)
                             .testTag("bookmark_toggle_button_${item.id}")
                     )
@@ -1710,7 +1710,7 @@ fun RentalCardCompact(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
-                        .size(28.dp)
+                        .size(48.dp)
                         .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                 )
             }

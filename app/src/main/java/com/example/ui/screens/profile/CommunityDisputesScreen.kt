@@ -133,18 +133,18 @@ fun CommunityDisputesScreen(viewModel: RentalViewModel, onBack: () -> Unit) {
                                 color = Color.White.copy(alpha = 0.5f),
                                 fontSize = 11.sp
                             )
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 IconButton(
                                     onClick = { viewModel.voteDispute(dispute.id, 1) },
-                                    modifier = Modifier.size(32.dp)
+                                    modifier = Modifier.size(48.dp)
                                 ) {
-                                    Icon(Icons.Rounded.ThumbUp, contentDescription = "+1", tint = PrimaryGreen, modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Rounded.ThumbUp, contentDescription = "+1", tint = PrimaryGreen, modifier = Modifier.size(20.dp))
                                 }
                                 IconButton(
                                     onClick = { viewModel.voteDispute(dispute.id, -1) },
-                                    modifier = Modifier.size(32.dp)
+                                    modifier = Modifier.size(48.dp)
                                 ) {
-                                    Icon(Icons.Rounded.ThumbDown, contentDescription = "-1", tint = Color(0xFFEF5350), modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Rounded.ThumbDown, contentDescription = "-1", tint = Color(0xFFEF5350), modifier = Modifier.size(20.dp))
                                 }
                             }
                         }

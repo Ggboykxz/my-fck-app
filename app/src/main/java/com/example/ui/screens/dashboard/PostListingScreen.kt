@@ -698,10 +698,10 @@ private fun ImageSlot(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(4.dp)
-                        .size(24.dp)
+                        .size(48.dp)
                         .background(Color.Black.copy(alpha = 0.6f), CircleShape)
                 ) {
-                    Icon(Icons.Rounded.Close, contentDescription = "Supprimer", tint = Color.White, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Rounded.Close, contentDescription = "Supprimer", tint = Color.White, modifier = Modifier.size(18.dp))
                 }
             } else {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

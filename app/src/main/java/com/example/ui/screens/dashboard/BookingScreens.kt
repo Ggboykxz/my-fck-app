@@ -937,9 +937,9 @@ fun BookingsScreen(viewModel: RentalViewModel) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(booking.rentalItemTitle, color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
                     Text("Note", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(0.dp)) {
                         (1..5).forEach { star ->
-                            IconButton(onClick = { reviewRating = star }, modifier = Modifier.size(36.dp)) {
+                            IconButton(onClick = { reviewRating = star }, modifier = Modifier.size(48.dp)) {
                                 Icon(
                                     if (star <= reviewRating) Icons.Rounded.Star else Icons.Rounded.StarBorder,
                                     contentDescription = "$star étoiles",

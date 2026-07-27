@@ -103,9 +103,9 @@ fun SplitPaymentScreen(bookingId: Int, viewModel: RentalViewModel, onBack: () ->
                     Text(split, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
                     IconButton(
                         onClick = { splits = splits.toMutableList().apply { removeAt(index) } },
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(48.dp)
                     ) {
-                        Icon(Icons.Rounded.Close, contentDescription = null, tint = Color(0xFFEF5350), modifier = Modifier.size(14.dp))
+                        Icon(Icons.Rounded.Close, contentDescription = null, tint = Color(0xFFEF5350), modifier = Modifier.size(18.dp))
                     }
                 }
             }
@@ -164,9 +164,9 @@ fun SplitPaymentScreen(bookingId: Int, viewModel: RentalViewModel, onBack: () ->
                                     showAddPerson = false
                                 }
                             },
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(48.dp)
                         ) {
-                            Icon(Icons.Rounded.Check, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Rounded.Check, contentDescription = null, tint = PrimaryGreen, modifier = Modifier.size(22.dp))
                         }
                     }
                 }
