@@ -20,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,6 +58,7 @@ fun ProfileMainScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
     var isRefreshing by remember { mutableStateOf(false) }
+    val hapticFeedback = LocalHapticFeedback.current
     LaunchedEffect(Unit) { delay(600); isLoading = false }
     LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(800); isRefreshing = false } }
 
@@ -292,7 +295,7 @@ fun ProfileMainScreen(
 
                     Switch(
                         checked = isOwnerMode,
-                        onCheckedChange = { viewModel.setOwnerMode(it) },
+                        onCheckedChange = { hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.setOwnerMode(it) },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = BrandNavy,
                             checkedTrackColor = PrimaryGreen,

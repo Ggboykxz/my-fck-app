@@ -16,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -33,6 +35,7 @@ fun UserProfileScreen(userId: Int, viewModel: RentalViewModel, onBack: () -> Uni
     val isFollowing by viewModel.isFollowing(userId).collectAsState(initial = null)
     val followerCount by viewModel.getFollowerCount(userId).collectAsState(initial = 0)
     val followingCount by viewModel.getFollowingCount(userId).collectAsState(initial = 0)
+    val hapticFeedback = LocalHapticFeedback.current
     val badges by viewModel.getVerificationBadges(userId).collectAsState(initial = emptyList())
     val bookings by viewModel.bookings.collectAsState()
     var showReportDialog by remember { mutableStateOf(false) }
@@ -188,7 +191,7 @@ fun UserProfileScreen(userId: Int, viewModel: RentalViewModel, onBack: () -> Uni
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
-                onClick = { viewModel.toggleFollow(userId) },
+                onClick = { hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.toggleFollow(userId) },
                 modifier = Modifier.fillMaxWidth().height(48.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(

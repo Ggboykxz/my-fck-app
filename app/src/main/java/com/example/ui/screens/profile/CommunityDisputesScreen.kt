@@ -14,6 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,6 +30,7 @@ import java.util.*
 fun CommunityDisputesScreen(viewModel: RentalViewModel, onBack: () -> Unit) {
     val disputes by viewModel.communityDisputes.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
+    val hapticFeedback = LocalHapticFeedback.current
     var showNewDisputeDialog by remember { mutableStateOf(false) }
     var newReason by remember { mutableStateOf("") }
     var newDescription by remember { mutableStateOf("") }
@@ -135,13 +138,13 @@ fun CommunityDisputesScreen(viewModel: RentalViewModel, onBack: () -> Unit) {
                             )
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 IconButton(
-                                    onClick = { viewModel.voteDispute(dispute.id, 1) },
+                                    onClick = { hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.voteDispute(dispute.id, 1) },
                                     modifier = Modifier.size(48.dp)
                                 ) {
                                     Icon(Icons.Rounded.ThumbUp, contentDescription = "+1", tint = PrimaryGreen, modifier = Modifier.size(20.dp))
                                 }
                                 IconButton(
-                                    onClick = { viewModel.voteDispute(dispute.id, -1) },
+                                    onClick = { hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.voteDispute(dispute.id, -1) },
                                     modifier = Modifier.size(48.dp)
                                 ) {
                                     Icon(Icons.Rounded.ThumbDown, contentDescription = "-1", tint = Color(0xFFEF5350), modifier = Modifier.size(20.dp))

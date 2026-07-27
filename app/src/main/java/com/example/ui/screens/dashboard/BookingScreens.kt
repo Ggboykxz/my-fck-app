@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -53,6 +55,7 @@ fun BookingInteractiveDialog(
     var selectedStartDate by remember { mutableStateOf<Long?>(null) }
 
     val paymentState by viewModel.paymentState.collectAsState()
+    val hapticFeedback = LocalHapticFeedback.current
     val today = remember { java.util.Calendar.getInstance() }
 
     BackHandler {
@@ -405,6 +408,7 @@ fun BookingInteractiveDialog(
                             Button(
                                 onClick = {
                                     if (phoneNumber.trim().length >= 8) {
+                                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                                         viewModel.initiateBooking(
                                             rentalItem = item,
                                             days = daysCount,
@@ -570,6 +574,7 @@ fun BookingInteractiveDialog(
                                     Button(
                                         onClick = {
                                             if (pinCode.length == 4) {
+                                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 viewModel.confirmBookingPayment(
                                                     rentalItem = state.rentalItem,
                                                     days = state.days,
@@ -725,6 +730,7 @@ fun BookingsScreen(viewModel: RentalViewModel) {
     val bookingReviewTarget by viewModel.bookingReviewTarget.collectAsState()
     var reviewRating by remember { mutableStateOf(0) }
     var reviewComment by remember { mutableStateOf("") }
+    val hapticFeedback = LocalHapticFeedback.current
 
     Column(
         modifier = Modifier
@@ -970,6 +976,7 @@ fun BookingsScreen(viewModel: RentalViewModel) {
                 Button(
                     onClick = {
                         if (reviewRating > 0) {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                             viewModel.submitBookingReview(booking, reviewRating, reviewComment)
                             reviewRating = 0
                             reviewComment = ""

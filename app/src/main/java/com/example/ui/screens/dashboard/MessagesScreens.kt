@@ -22,6 +22,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -200,6 +202,7 @@ fun ChatRoomScreen(
     var showTypingIndicator by remember { mutableStateOf(false) }
     var showReactionMenuForMessage by remember { mutableStateOf<Int?>(null) }
     var showChatOptions by remember { mutableStateOf(false) }
+    val hapticFeedback = LocalHapticFeedback.current
 
     val isOnline = remember { mutableStateOf(Random.nextFloat() > 0.3f) }
     val lastSeen = remember { mutableStateOf(System.currentTimeMillis() - Random.nextLong(3600000)) }
@@ -630,6 +633,7 @@ fun ChatRoomScreen(
                 IconButton(
                     onClick = {
                         if (userMessageText.isNotBlank()) {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                             viewModel.sendChatMessage(item.id, userMessageText, item.ownerName)
                             userMessageText = ""
                             showTypingIndicator = true

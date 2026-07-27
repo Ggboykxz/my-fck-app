@@ -470,6 +470,7 @@ fun SettingsScreen(
             text = { Text("Cette action est irréversible. Toutes vos données seront supprimées définitivement.", color = Color.White.copy(alpha = 0.7f)) },
             confirmButton = {
                 Button(onClick = {
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                     showDeleteDialog = false
                     viewModel.deleteAccount()
                 }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF5350))) {

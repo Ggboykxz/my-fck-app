@@ -18,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,6 +42,7 @@ fun PersonalizationScreen(
     val profileCity by viewModel.profileCity.collectAsState()
     val profileDob by viewModel.profileDob.collectAsState()
     val profileLanguage by viewModel.profileLanguage.collectAsState()
+    val hapticFeedback = LocalHapticFeedback.current
 
     var darkMode by remember { mutableStateOf(UserPreferences.isDarkMode(context)) }
     var notificationsEnabled by remember { mutableStateOf(UserPreferences.notificationsEnabled(context)) }
@@ -110,6 +113,7 @@ fun PersonalizationScreen(
                     Switch(
                         checked = darkMode,
                         onCheckedChange = {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                             darkMode = it
                             UserPreferences.setDarkMode(context, it)
                         },
@@ -147,6 +151,7 @@ fun PersonalizationScreen(
                         Switch(
                             checked = notificationsEnabled,
                             onCheckedChange = {
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                                 notificationsEnabled = it
                                 UserPreferences.setNotificationsEnabled(context, it)
                             },
@@ -183,7 +188,7 @@ fun PersonalizationScreen(
                                 }
                                 Switch(
                                     checked = enabled,
-                                    onCheckedChange = { enabled = it },
+                                    onCheckedChange = { hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress); enabled = it },
                                     colors = SwitchDefaults.colors(
                                         checkedThumbColor = BrandNavy,
                                         checkedTrackColor = PrimaryGreen,
@@ -324,6 +329,7 @@ fun PersonalizationScreen(
                         Switch(
                             checked = priceAlertsEnabled,
                             onCheckedChange = {
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                                 priceAlertsEnabled = it
                                 UserPreferences.setPriceAlertsEnabled(context, it)
                             },
@@ -387,6 +393,7 @@ fun PersonalizationScreen(
                     Switch(
                         checked = dataSavingMode,
                         onCheckedChange = {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                             dataSavingMode = it
                             UserPreferences.setDataSavingMode(context, it)
                         },
