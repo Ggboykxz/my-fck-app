@@ -278,7 +278,7 @@ fun DashboardBottomBarLegacy(
                 val isSel = currentScreen is Screen.Messages
                 BadgedBox(
                     badge = {
-                        if (unreadCount > 0) {
+                        androidx.compose.animation.AnimatedVisibility(visible = unreadCount > 0, enter = scaleIn(tween(200)) + fadeIn(tween(200)), exit = scaleOut(tween(150)) + fadeOut(tween(150))) {
                             Badge(containerColor = Color.Red, contentColor = Color.White) {
                                 Text("$unreadCount", fontSize = 9.sp)
                             }
@@ -303,7 +303,7 @@ fun DashboardBottomBarLegacy(
                 val isSel = currentScreen is Screen.Profile
                 BadgedBox(
                     badge = {
-                        if (bookingCount > 0) {
+                        androidx.compose.animation.AnimatedVisibility(visible = bookingCount > 0, enter = scaleIn(tween(200)) + fadeIn(tween(200)), exit = scaleOut(tween(150)) + fadeOut(tween(150))) {
                             Badge(containerColor = PrimaryGreen) {
                                 Text("$bookingCount", fontSize = 9.sp, color = BrandNavy)
                             }
@@ -403,7 +403,7 @@ fun DashboardBottomBar(
                 val isSel = isSelected(RouteMessages::class.qualifiedName!!)
                 BadgedBox(
                     badge = {
-                        if (unreadCount > 0) {
+                        androidx.compose.animation.AnimatedVisibility(visible = unreadCount > 0, enter = scaleIn(tween(200)) + fadeIn(tween(200)), exit = scaleOut(tween(150)) + fadeOut(tween(150))) {
                             Badge(containerColor = Color.Red, contentColor = Color.White) {
                                 Text("$unreadCount", fontSize = 9.sp)
                             }
@@ -431,7 +431,7 @@ fun DashboardBottomBar(
                 val isSel = isSelected(RouteProfile::class.qualifiedName!!)
                 BadgedBox(
                     badge = {
-                        if (bookingCount > 0) {
+                        androidx.compose.animation.AnimatedVisibility(visible = bookingCount > 0, enter = scaleIn(tween(200)) + fadeIn(tween(200)), exit = scaleOut(tween(150)) + fadeOut(tween(150))) {
                             Badge(containerColor = PrimaryGreen) {
                                 Text("$bookingCount", fontSize = 9.sp, color = BrandNavy)
                             }

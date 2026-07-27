@@ -6,6 +6,11 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -406,6 +411,21 @@ fun RegisterScreenView(
                     Text("Le mot de passe doit contenir au moins 6 caractères", color = Color(0xFFEF5350), fontSize = 11.sp)
                 }
                 if (password.isNotEmpty()) {
+                    val targetFill = when (passwordStrength) {
+                        PasswordStrength.WEAK -> 0.33f
+                        PasswordStrength.MEDIUM -> 0.66f
+                        PasswordStrength.STRONG -> 1f
+                    }
+                    val animatedFill by animateFloatAsState(
+                        targetValue = targetFill,
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                        label = "password_strength"
+                    )
+                    val animatedColor by animateColorAsState(
+                        targetValue = passwordStrength.color,
+                        animationSpec = tween(300),
+                        label = "password_color"
+                    )
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -420,21 +440,15 @@ fun RegisterScreenView(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .fillMaxWidth(
-                                        when (passwordStrength) {
-                                            PasswordStrength.WEAK -> 0.33f
-                                            PasswordStrength.MEDIUM -> 0.66f
-                                            PasswordStrength.STRONG -> 1f
-                                        }
-                                    )
+                                    .fillMaxWidth(animatedFill)
                                     .fillMaxHeight()
                                     .clip(RoundedCornerShape(2.dp))
-                                    .background(passwordStrength.color)
+                                    .background(animatedColor)
                             )
                         }
                         Text(
                             text = passwordStrength.label,
-                            color = passwordStrength.color,
+                            color = animatedColor,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
