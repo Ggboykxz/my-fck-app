@@ -40,6 +40,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.activity.compose.BackHandler
 import kotlinx.coroutines.delay
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 
 @Composable
 fun BookingInteractiveDialog(
@@ -720,10 +721,13 @@ fun BookingInteractiveDialog(
     }
 }
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun BookingsScreen(viewModel: RentalViewModel) {
     val bookings by viewModel.bookings.collectAsState()
     val isLoading by viewModel.isBookingsLoading.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     var showCancelDialog by remember { mutableStateOf<Booking?>(null) }
     var selectedBooking by remember { mutableStateOf<Booking?>(null) }
     val selectedBookingForReceipt by viewModel.selectedBookingForReceipt.collectAsState()
@@ -732,6 +736,15 @@ fun BookingsScreen(viewModel: RentalViewModel) {
     var reviewComment by remember { mutableStateOf("") }
     val hapticFeedback = LocalHapticFeedback.current
 
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            errorMessage = null
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+        },
+        modifier = Modifier.fillMaxSize()
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -760,7 +773,17 @@ fun BookingsScreen(viewModel: RentalViewModel) {
 
         HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
-        if (isLoading) {
+        if (errorMessage != null) {
+            Box(modifier = Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
+                AnimatedErrorState(
+                    message = errorMessage ?: "Erreur inconnue",
+                    onRetry = {
+                        errorMessage = null
+                        isRefreshing = true
+                    }
+                )
+            }
+        } else if (isLoading) {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(3) { SkeletonBookingItem() }
             }
@@ -995,6 +1018,7 @@ fun BookingsScreen(viewModel: RentalViewModel) {
                 }
             }
         )
+    }
     }
 }
 

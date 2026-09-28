@@ -1001,6 +1001,66 @@ fun AnimatedEmptyState(
     }
 }
 
+@Composable
+fun AnimatedErrorState(
+    message: String,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "errorShake")
+    val offsetX by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 6f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(100, easing = LinearOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "shakeX"
+    )
+    Box(
+        modifier = modifier.fillMaxWidth().padding(vertical = 48.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .offset(x = offsetX.dp)
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFFF5252).copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Rounded.Error,
+                    contentDescription = "Erreur",
+                    tint = Color(0xFFFF5252),
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+            Text(
+                text = message,
+                color = Color.White.copy(alpha = 0.8f),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Button(
+                onClick = onRetry,
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen, contentColor = BrandNavy),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Icon(Icons.Rounded.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Réessayer", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
 // ==================== SMOOTH ICON ====================
 @Composable
 fun SmoothIcon(
@@ -1481,7 +1541,7 @@ fun ErrorBoundary(
     if (hasError) {
         Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0D1B2A)), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Rounded.ErrorOutline, contentDescription = null, modifier = Modifier.size(64.dp), tint = Color(0xFFE53935))
+                Icon(Icons.Rounded.Error, contentDescription = null, modifier = Modifier.size(64.dp), tint = Color(0xFFE53935))
                 Spacer(modifier = Modifier.height(16.dp))
                 Text("Une erreur s'est produite", color = Color.White, style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))

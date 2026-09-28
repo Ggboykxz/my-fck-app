@@ -42,11 +42,6 @@
 -keep class coil.size.** { *; }
 -keep class coil.cache.** { *; }
 
-# Hilt
--keep class dagger.hilt.** { *; }
--keep class javax.inject.** { *; }
--keep class * extends dagger.hilt.android.internal.managers.ViewComponentManager$FragmentContextWrapper { *; }
-
 # EncryptedSharedPreferences
 -keep class androidx.security.crypto.** { *; }
 

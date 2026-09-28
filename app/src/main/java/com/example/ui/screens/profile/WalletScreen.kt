@@ -332,8 +332,8 @@ private fun WalletTransactionItem(txn: WalletTxn, modifier: Modifier = Modifier)
         "payment" -> Icons.Rounded.ShoppingCart
         "earning" -> Icons.Rounded.TrendingUp
         "refund" -> Icons.Rounded.Undo
-        "withdrawal" -> Icons.Rounded.AccountBalance
-        else -> Icons.Rounded.Receipt
+        "withdrawal" -> Icons.Rounded.MoneyOff
+        else -> Icons.Rounded.Description
     }
     val typeLabel = when (txn.type) {
         "topup" -> "Recharge"

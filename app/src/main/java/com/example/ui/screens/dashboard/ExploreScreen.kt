@@ -49,6 +49,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import com.example.ui.theme.DarkModeHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -72,6 +73,7 @@ fun ExploreScreen(
     var showBookingFromModal by remember { mutableStateOf<RentalItem?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var isRefreshing by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     var showFilterSheet by remember { mutableStateOf(false) }
     var showFab by remember { mutableStateOf(false) }
     var showActionsSheet by remember { mutableStateOf(false) }
@@ -84,6 +86,7 @@ fun ExploreScreen(
     val context = LocalContext.current
     val isDataSaving by remember { mutableStateOf(DarkModeHelper.loadDataSavingMode(context)) }
     val appearedItems = remember { mutableStateMapOf<Int, Boolean>() }
+    val hapticFeedback = LocalHapticFeedback.current
 
     LaunchedEffect(Unit) { delay(300); isLoading = false }
     LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(300); isRefreshing = false } }
@@ -100,28 +103,52 @@ fun ExploreScreen(
         displayedCount = 10
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-    val lazyListState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
-    LaunchedEffect(lazyListState) {
-        snapshotFlow { lazyListState.firstVisibleItemIndex }
-            .collect { index -> showFab = index > 3 }
-    }
-    Box(modifier = Modifier.fillMaxSize()) {
-        if (isRefreshing) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.TopCenter).padding(8.dp),
-                color = PrimaryGreen,
-                strokeWidth = 2.dp
-            )
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            errorMessage = null
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+        },
+        modifier = Modifier.fillMaxSize()
+    ) {
+        val lazyListState = rememberLazyListState()
+        val coroutineScope = rememberCoroutineScope()
+        LaunchedEffect(lazyListState) {
+            snapshotFlow { lazyListState.firstVisibleItemIndex }
+                .collect { index -> showFab = index > 3 }
         }
+
+        if (errorMessage != null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                AnimatedErrorState(
+                    message = errorMessage ?: "Erreur inconnue",
+                    onRetry = {
+                        errorMessage = null
+                        isRefreshing = true
+                    }
+                )
+            }
+        } else if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = PrimaryGreen, strokeWidth = 2.dp)
+            }
+        } else if (displayItems.isEmpty() && !isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                AnimatedEmptyState(
+                    icon = Icons.Rounded.SearchOff,
+                    title = "Aucune annonce",
+                    subtitle = "Modifiez vos filtres ou explorez d'autres catégories"
+                )
+            }
+        } else {
         LazyColumn(
             state = lazyListState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
-            contentPadding = PaddingValues(top = if (isRefreshing) 48.dp else 0.dp)
+            contentPadding = PaddingValues(top = 16.dp, bottom = 80.dp)
         ) {
         // Welcome Header
         item {
@@ -612,10 +639,10 @@ fun ExploreScreen(
                     }
                 }
             }
-        }
 
-        item {
-            Spacer(modifier = Modifier.height(32.dp))
+            item {
+                Spacer(modifier = Modifier.height(32.dp))
+            }
         }
     }
     }

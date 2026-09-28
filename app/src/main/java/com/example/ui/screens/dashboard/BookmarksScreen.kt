@@ -25,18 +25,32 @@ import com.example.ui.viewmodel.RentalViewModel
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.material.icons.rounded.Refresh
 import kotlinx.coroutines.delay
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 
-@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalFoundationApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun BookmarksScreen(viewModel: RentalViewModel) {
     val items by viewModel.bookmarkedItems.collectAsState()
     val isLoading by viewModel.isBookmarksLoading.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(800); isRefreshing = false } }
 
     var selectedItemForModal by remember { mutableStateOf<RentalItem?>(null) }
     var showBookingFromModal by remember { mutableStateOf<RentalItem?>(null) }
+    val hapticFeedback = LocalHapticFeedback.current
 
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            errorMessage = null
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+        },
+        modifier = Modifier.fillMaxSize()
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -56,7 +70,10 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
                 color = Color.White,
                 modifier = Modifier.weight(1f)
             )
-            IconButton(onClick = { isRefreshing = true }) {
+            IconButton(onClick = {
+                isRefreshing = true
+                errorMessage = null
+            }) {
                 if (isRefreshing) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = Color(0xFF4FC3F7))
                 } else {
@@ -67,7 +84,17 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
 
         HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
-        if (isLoading) {
+        if (errorMessage != null) {
+            Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                AnimatedErrorState(
+                    message = errorMessage ?: "Erreur inconnue",
+                    onRetry = {
+                        errorMessage = null
+                        isRefreshing = true
+                    }
+                )
+            }
+        } else if (isLoading) {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(4) { SkeletonCard() }
             }
@@ -94,7 +121,10 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
                         RentalCard(
                             item = item,
                             onSelect = { selectedItemForModal = item },
-                            onBookmarkToggle = { viewModel.toggleBookmark(item) },
+                            onBookmarkToggle = {
+                                viewModel.toggleBookmark(item)
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                            },
                             onChat = {
                                 viewModel.selectItem(item)
                                 viewModel.openChatFor(item)
@@ -105,6 +135,7 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
                         IconButton(
                             onClick = {
                                 viewModel.toggleBookmark(item)
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                                 SnackbarHelper.showUndoableDelete("Annonce retirée des favoris") {
                                     viewModel.toggleBookmark(item)
                                 }
@@ -118,6 +149,7 @@ fun BookmarksScreen(viewModel: RentalViewModel) {
                 }
             }
         }
+    }
     }
 
     // Beautiful Details Modal Dialog

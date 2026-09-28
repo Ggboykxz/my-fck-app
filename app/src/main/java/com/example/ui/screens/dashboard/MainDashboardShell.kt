@@ -2,17 +2,16 @@ package com.example.ui.screens
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -120,99 +119,6 @@ fun MainDashboardView(viewModel: RentalViewModel) {
     }
 }
 
-@Composable
-fun MainDashboardViewNavHost(viewModel: RentalViewModel) {
-    val navController = rememberNavController()
-    val currentScreen by viewModel.currentScreen.collectAsState()
-    val unreadCount by viewModel.unreadMessageCount.collectAsState()
-    val bookings by viewModel.bookings.collectAsState()
-
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-    val isOverlay = currentRoute == RouteDetails::class.qualifiedName ||
-            currentRoute == RouteChat::class.qualifiedName
-
-    val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
-
-    LaunchedEffect(snackbarHostState, coroutineScope) {
-        SnackbarHelper.init(snackbarHostState, coroutineScope)
-    }
-
-    val snackbarMessage by viewModel.snackbarMessage.collectAsState()
-
-    LaunchedEffect(snackbarMessage) {
-        snackbarMessage?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.dismissSnackbar()
-        }
-    }
-
-    Scaffold(
-        snackbarHost = {
-            SnackbarHost(snackbarHostState) { data ->
-                Snackbar(
-                    snackbarData = data,
-                    containerColor = PrimaryGreen,
-                    contentColor = BrandNavy,
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
-        },
-        bottomBar = {
-            if (!isOverlay) {
-                DashboardBottomBar(
-                    navController = navController,
-                    unreadCount = unreadCount,
-                    bookingCount = bookings.size
-                )
-            }
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-                .background(BrandNavy)
-        ) {
-            Column {
-                OfflineBanner()
-                DashboardNavHost(
-                    navController = navController,
-                    viewModel = viewModel
-                )
-            }
-        }
-    }
-
-    LaunchedEffect(currentScreen) {
-        val targetRoute = when (currentScreen) {
-            is Screen.Home -> RouteHome::class.qualifiedName
-            is Screen.Bookings -> RouteBookings::class.qualifiedName
-            is Screen.PostListing -> RoutePostListing::class.qualifiedName
-            is Screen.Bookmarks -> RouteBookmarks::class.qualifiedName
-            is Screen.Messages -> RouteMessages::class.qualifiedName
-            is Screen.Profile -> RouteProfile::class.qualifiedName
-            is Screen.Details -> RouteDetails::class.qualifiedName
-            is Screen.Chat -> RouteChat::class.qualifiedName
-            is Screen.MapExplorer -> RouteMapExplorer::class.qualifiedName
-            is Screen.SearchIntelligence -> RouteSearchIntelligence::class.qualifiedName
-            is Screen.OwnerAnalytics -> null
-            is Screen.MarketInsights -> null
-            is Screen.NotificationSettings -> null
-            is Screen.ReferralTracking -> null
-        }
-        if (targetRoute != null && currentRoute != targetRoute) {
-            navController.navigate(targetRoute) {
-                popUpTo(RouteHome::class.qualifiedName!!) { saveState = true }
-                launchSingleTop = true
-                restoreState = true
-            }
-        }
-    }
-}
 
 @Composable
 fun DashboardBottomBarLegacy(
@@ -320,6 +226,102 @@ fun DashboardBottomBarLegacy(
                 indicatorColor = Color.White.copy(alpha = 0.12f)
             )
         )
+    }
+}
+
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+fun MainDashboardViewNavHost(viewModel: RentalViewModel) {
+    val navController = rememberNavController()
+    val currentScreen by viewModel.currentScreen.collectAsState()
+    val unreadCount by viewModel.unreadMessageCount.collectAsState()
+    val bookings by viewModel.bookings.collectAsState()
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val isOverlay = currentRoute == RouteDetails::class.qualifiedName ||
+            currentRoute == RouteChat::class.qualifiedName
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(snackbarHostState, coroutineScope) {
+        SnackbarHelper.init(snackbarHostState, coroutineScope)
+    }
+
+    val snackbarMessage by viewModel.snackbarMessage.collectAsState()
+
+    LaunchedEffect(snackbarMessage) {
+        snackbarMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.dismissSnackbar()
+        }
+    }
+
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = PrimaryGreen,
+                    contentColor = BrandNavy,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        },
+        bottomBar = {
+            if (!isOverlay) {
+                DashboardBottomBar(
+                    navController = navController,
+                    unreadCount = unreadCount,
+                    bookingCount = bookings.size
+                )
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .background(BrandNavy)
+        ) {
+            Column {
+                OfflineBanner()
+                DashboardNavHost(
+                    navController = navController,
+                    viewModel = viewModel
+                )
+            }
+        }
+    }
+
+    LaunchedEffect(currentScreen) {
+        val targetRoute = when (currentScreen) {
+            is Screen.Home -> RouteHome::class.qualifiedName
+            is Screen.Bookings -> RouteBookings::class.qualifiedName
+            is Screen.PostListing -> RoutePostListing::class.qualifiedName
+            is Screen.Bookmarks -> RouteBookmarks::class.qualifiedName
+            is Screen.Messages -> RouteMessages::class.qualifiedName
+            is Screen.Profile -> RouteProfile::class.qualifiedName
+            is Screen.Details -> RouteDetails::class.qualifiedName
+            is Screen.Chat -> RouteChat::class.qualifiedName
+            is Screen.MapExplorer -> RouteMapExplorer::class.qualifiedName
+            is Screen.SearchIntelligence -> RouteSearchIntelligence::class.qualifiedName
+            is Screen.OwnerAnalytics -> null
+            is Screen.MarketInsights -> null
+            is Screen.NotificationSettings -> null
+            is Screen.ReferralTracking -> null
+        }
+        if (targetRoute != null && currentRoute != targetRoute) {
+            navController.navigate(targetRoute) {
+                popUpTo(RouteHome::class.qualifiedName!!) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
     }
 }
 

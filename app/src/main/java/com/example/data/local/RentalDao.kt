@@ -181,7 +181,7 @@ interface RentalDao {
     suspend fun toggleSearchAlert(id: Int, enabled: Boolean)
 
     // Search Suggestions
-    @Query("SELECT * FROM search_suggestions WHERE query LIKE '%' || :prefix || '%' ORDER BY searchCount DESC LIMIT :limit")
+    @Query("SELECT * FROM search_suggestions WHERE REPLACE(REPLACE(REPLACE(query, '%', ''), '_', ''), '[', '') LIKE '%' || REPLACE(REPLACE(REPLACE(:prefix, '%', ''), '_', ''), '[', '') || '%' ESCAPE '\\' ORDER BY searchCount DESC LIMIT :limit")
     fun getSearchSuggestions(prefix: String, limit: Int = 5): Flow<List<SearchSuggestion>>
 
     @Query("INSERT OR IGNORE INTO search_suggestions (query, searchCount, lastSearchedAt) VALUES (:query, 1, :timestamp)")

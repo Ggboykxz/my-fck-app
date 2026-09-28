@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.R
 import com.example.data.local.AppDatabase
 import com.example.data.model.*
 import com.example.data.repository.RentalRepository
@@ -252,9 +253,9 @@ class RentalViewModel(
                     minPrice = null,
                     maxPrice = _selectedMaxPrice.value
                 )
-                showSnackbar("Recherche sauvegardée")
+                showSnackbar(str(R.string.search_saved))
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -264,7 +265,7 @@ class RentalViewModel(
             try {
                 repository.deleteSavedSearch(id)
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -273,9 +274,9 @@ class RentalViewModel(
         viewModelScope.launch {
             try {
                 repository.toggleSearchAlert(id, enabled)
-                showSnackbar(if (enabled) "Alertes activées" else "Alertes désactivées")
+                showSnackbar(if (enabled) str(R.string.alerts_enabled) else str(R.string.alerts_disabled))
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -335,7 +336,7 @@ class RentalViewModel(
             try {
                 repository.insertPushNotificationSettings(settings)
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -408,7 +409,7 @@ class RentalViewModel(
     fun markAllNotificationsRead() {
         viewModelScope.launch {
             repository.markAllNotificationsRead()
-            showSnackbar("Toutes les notifications marquées comme lues")
+            showSnackbar(str(R.string.notifications_marked_read))
         }
     }
 
@@ -419,7 +420,7 @@ class RentalViewModel(
     fun clearAllNotifications() {
         viewModelScope.launch {
             repository.clearAllNotifications()
-            showSnackbar("Notifications effacées")
+            showSnackbar(str(R.string.notifications_cleared))
         }
     }
 
@@ -495,10 +496,10 @@ class RentalViewModel(
     init {
         viewModelScope.launch {
             try {
-                repository.seedDatabase()
+                repository.seedDatabase(application)
                 seedAnalyticsData()
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
 
@@ -510,7 +511,7 @@ class RentalViewModel(
                 delay(1200)
                 _isHomeLoading.value = false
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
         viewModelScope.launch {
@@ -518,7 +519,7 @@ class RentalViewModel(
                 delay(800)
                 _isBookmarksLoading.value = false
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
         viewModelScope.launch {
@@ -526,7 +527,7 @@ class RentalViewModel(
                 delay(1000)
                 _isBookingsLoading.value = false
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
         viewModelScope.launch {
@@ -534,7 +535,7 @@ class RentalViewModel(
                 delay(600)
                 _isInboxLoading.value = false
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -598,7 +599,7 @@ class RentalViewModel(
         _referralCount.value += 1
         _referralEarnings.value += 5000
         onFirstShare()
-        showSnackbar("5 000 F CFA de crédit ajouté pour le parrainage !")
+        showSnackbar(str(R.string.credit_added_referral))
     }
 
     fun acceptReceivedBooking(id: String) {
@@ -616,6 +617,8 @@ class RentalViewModel(
     fun dismissSnackbar() {
         _snackbarMessage.value = null
     }
+
+    private fun str(resId: Int, vararg args: Any): String = getApplication<Application>().getString(resId, *args)
 
     // ==================== PROFILE ACTIONS ====================
     fun setOwnerMode(enabled: Boolean) {
@@ -660,7 +663,7 @@ class RentalViewModel(
                     )
                 )
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -744,10 +747,10 @@ class RentalViewModel(
                     _selectedItem.value = _selectedItem.value?.copy(isBookmarked = !item.isBookmarked)
                 }
                 showSnackbar(
-                    if (!item.isBookmarked) "Ajouté aux favoris" else "Retiré des favoris"
+                    if (!item.isBookmarked) str(R.string.added_to_favorites) else str(R.string.removed_from_favorites)
                 )
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -769,7 +772,7 @@ class RentalViewModel(
                 delay(1500)
                 _paymentState.value = PaymentState.AwaitingPin(rentalItem, days, paymentMethod, phoneInput)
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -811,7 +814,7 @@ class RentalViewModel(
                 _paymentState.value = PaymentState.Success(newBooking)
                 onBookingComplete()
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -820,9 +823,9 @@ class RentalViewModel(
         viewModelScope.launch {
             try {
                 repository.updateBookingStatus(bookingId, "Annulé", reason)
-                showSnackbar("Réservation annulée")
+                showSnackbar(str(R.string.booking_cancelled))
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -833,7 +836,7 @@ class RentalViewModel(
                 repository.updateBookingStatus(bookingId, newStatus, null)
                 showSnackbar("Réservation ${newStatus.lowercase()} !")
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -858,7 +861,7 @@ class RentalViewModel(
                 )
                 repository.insertBooking(mockBooking)
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -903,9 +906,9 @@ class RentalViewModel(
                 )
                 repository.updateBookingStatus(booking.id, "Terminé", null)
                 _bookingReviewTarget.value = null
-                showSnackbar("Avis publié ! Merci pour votre retour")
+                showSnackbar(str(R.string.review_published_thanks))
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -913,9 +916,9 @@ class RentalViewModel(
     fun respondToReview(reviewId: Int, response: String) {
         viewModelScope.launch {
             try {
-                showSnackbar("Réponse envoyée au locataire")
+                showSnackbar(str(R.string.review_response_sent))
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -957,10 +960,10 @@ class RentalViewModel(
                         date = currentDate
                     )
                 )
-                showSnackbar("Avis publié avec succès")
+                showSnackbar(str(R.string.review_published))
                 onReviewSubmit()
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -975,6 +978,18 @@ class RentalViewModel(
     val bookings: StateFlow<List<Booking>> = repository.allBookings
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    data class FilterArgs(
+        val allItems: List<RentalItem>,
+        val query: String,
+        val category: String,
+        val city: String,
+        val maxPrice: Int,
+        val sort: SortOption,
+        val startDate: String?,
+        val endDate: String?,
+        val maxDistance: Float
+    )
+
     val filteredRentalItems: StateFlow<List<RentalItem>> = combine(
         rawRentalItems, _searchQuery, _selectedCategory, _selectedCity, _selectedMaxPrice, _sortOption, _startDate, _endDate, _maxDistance
     ) { args ->
@@ -987,13 +1002,33 @@ class RentalViewModel(
         val startDate = args[6] as String?
         val endDate = args[7] as String?
         val maxDistance = args[8] as Float
+        FilterArgs(
+            allItems = allItems,
+            query = query,
+            category = category,
+            city = city,
+            maxPrice = maxPrice,
+            sort = sort,
+            startDate = startDate,
+            endDate = endDate,
+            maxDistance = maxDistance
+        )
+    }.map { args ->
+        val allItems = args.allItems
+        val query = args.query
+        val category = args.category
+        val city = args.city
+        val maxPrice = args.maxPrice
+        val sort = args.sort
+        val startDate = args.startDate
+        val endDate = args.endDate
+        val maxDistance = args.maxDistance
 
         allItems.filter { item ->
             val matchesQuery = query.isEmpty() || item.title.contains(query, ignoreCase = true) || item.description.contains(query, ignoreCase = true) || item.neighborhood.contains(query, ignoreCase = true)
             val matchesCategory = category == "Tous" || item.category.equals(category, ignoreCase = true)
             val matchesCity = city == "Tous" || item.city.equals(city, ignoreCase = true)
             val matchesPrice = maxPrice == 0 || item.pricePerDay <= maxPrice
-            // Date and distance filters are UI-only for now (no real geolocation data)
             matchesQuery && matchesCategory && matchesCity && matchesPrice
         }.let { filtered ->
             when (sort) {
@@ -1040,7 +1075,7 @@ class RentalViewModel(
                     )
                 }
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -1086,7 +1121,7 @@ class RentalViewModel(
                     )
                 )
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -1137,7 +1172,7 @@ class RentalViewModel(
                 repository.insertRentalItem(newItem)
                 showSnackbar("Annonce publiée avec succès !")
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -1146,9 +1181,9 @@ class RentalViewModel(
         viewModelScope.launch {
             try {
                 repository.deleteRentalItem(itemId)
-                showSnackbar("Annonce supprimée")
+                showSnackbar(str(R.string.listing_deleted))
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -1164,9 +1199,9 @@ class RentalViewModel(
                 }
                 _userName.value = name
                 _userPhone.value = phone
-                showSnackbar("Profil mis à jour avec succès")
+                showSnackbar(str(R.string.profile_updated))
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -1184,9 +1219,9 @@ class RentalViewModel(
                 _profileGender.value = gender
                 _profileProfession.value = profession
                 _profileCity.value = city
-                showSnackbar("Profil mis à jour avec succès")
+                showSnackbar(str(R.string.profile_updated))
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -1202,9 +1237,9 @@ class RentalViewModel(
                 _profileProfession.value = ""
                 _profileCity.value = ""
                 _isLoggedIn.value = false
-                showSnackbar("Compte supprimé avec succès")
+                showSnackbar(str(R.string.account_deleted))
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -1226,9 +1261,9 @@ class RentalViewModel(
                     MediationMessage("Système", "Nouveau litige '$type' ouvert", "Maintenant", true),
                     MediationMessage("Vous", description, "Maintenant")
                 ) + _mediationMessages.value
-                showSnackbar("Litige créé avec succès")
+                showSnackbar(str(R.string.dispute_created))
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -1367,7 +1402,7 @@ class RentalViewModel(
                     createdAt = System.currentTimeMillis()
                 )
                 repository.insertCommunityDispute(dispute)
-                showSnackbar("Signalement envoyé. Nous examinerons votre cas.")
+                showSnackbar(str(R.string.dispute_sent))
             } catch (e: Exception) {
                 showSnackbar("Erreur: ${e.message}")
             }
@@ -1382,7 +1417,7 @@ class RentalViewModel(
                 if (dispute != null) {
                     val newEvidence = dispute.evidence + evidenceUrl
                     repository.updateDisputeEvidence(disputeId, newEvidence)
-                    showSnackbar("Preuve ajoutée avec succès")
+                    showSnackbar(str(R.string.evidence_added))
                 }
             } catch (e: Exception) {
                 showSnackbar("Erreur: ${e.message}")
@@ -1422,7 +1457,7 @@ class RentalViewModel(
                     createdAt = System.currentTimeMillis()
                 )
                 repository.insertNeighborhoodReview(review)
-                showSnackbar("Avis publié ! Merci")
+                showSnackbar(str(R.string.neighborhood_review_published))
             } catch (e: Exception) {
                 showSnackbar("Erreur: ${e.message}")
             }
@@ -1477,7 +1512,7 @@ class RentalViewModel(
         viewModelScope.launch {
             try {
                 repository.insertNeighborhoodReview(review)
-                showSnackbar("Avis publié avec succès")
+                showSnackbar(str(R.string.review_published))
             } catch (e: Exception) {
                 showSnackbar("Erreur: ${e.message}")
             }
@@ -1491,7 +1526,7 @@ class RentalViewModel(
         viewModelScope.launch {
             try {
                 repository.insertEscrow(escrow)
-                showSnackbar("Caution enregistrée")
+                showSnackbar(str(R.string.escrow_recorded))
             } catch (e: Exception) {
                 showSnackbar("Erreur: ${e.message}")
             }
@@ -1502,7 +1537,7 @@ class RentalViewModel(
         viewModelScope.launch {
             try {
                 repository.updateEscrowStatus(id, "released", System.currentTimeMillis())
-                showSnackbar("Fonds libérés avec succès")
+                showSnackbar(str(R.string.escrow_released))
             } catch (e: Exception) {
                 showSnackbar("Erreur: ${e.message}")
             }
@@ -1513,7 +1548,7 @@ class RentalViewModel(
         viewModelScope.launch {
             try {
                 repository.updateEscrowStatus(id, "refunded", System.currentTimeMillis())
-                showSnackbar("Fonds remboursés")
+                showSnackbar(str(R.string.escrow_refunded))
             } catch (e: Exception) {
                 showSnackbar("Erreur: ${e.message}")
             }
@@ -1860,7 +1895,7 @@ class RentalViewModel(
                 val suggestions = repository.searchSuggestions(query).first()
                 _searchUiState.update { it.copy(suggestions = suggestions.map { s -> s.query }) }
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -1905,7 +1940,7 @@ class RentalViewModel(
                 }
                 _searchUiState.update { it.copy(results = sorted) }
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -1943,7 +1978,7 @@ class RentalViewModel(
                 val updated = msg.copy(reactions = currentReactions)
                 repository.insertChatMessage(updated)
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -1978,7 +2013,7 @@ class RentalViewModel(
                     )
                 )
             } catch (e: Exception) {
-                showSnackbar("Une erreur est survenue: ${e.message}")
+                showSnackbar(str(R.string.error_occurred, e.message ?: ""))
             }
         }
     }
@@ -1996,7 +2031,7 @@ class RentalViewModel(
 
     fun clearRecentlyViewed() {
         _recentlyViewed.value = emptyList()
-        showSnackbar("Historique effacé")
+        showSnackbar(str(R.string.recently_viewed_cleared))
     }
 
     private val _profileCompletion = MutableStateFlow(60)

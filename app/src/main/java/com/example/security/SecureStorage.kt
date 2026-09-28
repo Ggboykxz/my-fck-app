@@ -2,15 +2,15 @@ package com.example.security
 
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKeys
+import androidx.security.crypto.MasterKey
 
 object SecureStorage {
     private const val PREFS_NAME = "locall_secure_prefs"
 
     private fun getPrefs(context: Context) = EncryptedSharedPreferences.create(
-        PREFS_NAME,
-        MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
         context,
+        PREFS_NAME,
+        MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build(),
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )

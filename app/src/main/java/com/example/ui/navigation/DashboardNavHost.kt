@@ -29,7 +29,7 @@ fun DashboardNavHost(
             is Screen.Bookmarks -> RouteBookmarks
             is Screen.Messages -> RouteMessages
             is Screen.Profile -> RouteProfile
-            is Screen.Details -> RouteDetails
+            is Screen.Details -> RouteDetails()
             is Screen.Chat -> RouteChat
             is Screen.MapExplorer -> RouteMapExplorer
             is Screen.SearchIntelligence -> RouteSearchIntelligence

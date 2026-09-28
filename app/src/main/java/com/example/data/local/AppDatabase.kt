@@ -45,7 +45,7 @@ import com.example.data.model.*
         PromoCode::class
     ],
     version = 7,
-    exportSchema = false
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -62,7 +62,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "localall_database"
                 )
-                .fallbackToDestructiveMigration()
+                .addMigrations(MIGRATION_6_7)
                 .build()
                 INSTANCE = instance
                 instance

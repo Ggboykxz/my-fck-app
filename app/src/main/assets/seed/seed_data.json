@@ -1,0 +1,148 @@
+{
+  "rentalItems": [
+    {
+      "title": "Villa de Luxe meublée - La Sablière",
+      "description": "Splendide villa meublée avec piscine et 4 chambres située en bordure de plage à la Sablière (Libreville).",
+      "category": "Immobilier",
+      "pricePerDay": 150000,
+      "city": "Libreville",
+      "neighborhood": "La Sablière",
+      "ownerName": "Kofi Mensah",
+      "ownerPhone": "077894512",
+      "ownerRating": 4.9,
+      "imageUrl": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+      "isVerified": true
+    },
+    {
+      "title": "Appartement Chic Vue Mer - Batterie IV",
+      "description": "Magnifique T3 meublé moderne et ultra-sécurisé à Batterie IV (Libreville).",
+      "category": "Immobilier",
+      "pricePerDay": 75000,
+      "city": "Libreville",
+      "neighborhood": "Batterie IV",
+      "ownerName": "Marie-Claire Nzamba",
+      "ownerPhone": "066451298",
+      "ownerRating": 4.7,
+      "imageUrl": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
+      "isVerified": true
+    },
+    {
+      "title": "Toyota Prado VXR V6 2023 avec Chauffeur",
+      "description": "Toyota Land Cruiser Prado VIP tout confort, boîte automatique séquentielle.",
+      "category": "Véhicules",
+      "pricePerDay": 95000,
+      "city": "Libreville",
+      "neighborhood": "Aéroport",
+      "ownerName": "Mael Koumba",
+      "ownerPhone": "077145263",
+      "ownerRating": 4.8,
+      "imageUrl": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80",
+      "isVerified": true
+    },
+    {
+      "title": "Pack Sono Concert Pro + Jeux de Lumière",
+      "description": "Matériel haut de gamme complet pour vos soirées festives ou d'entreprise au Gabon.",
+      "category": "Équipements",
+      "pricePerDay": 60000,
+      "city": "Akanda",
+      "neighborhood": "Angondjé",
+      "ownerName": "Avenir Événementiel",
+      "ownerPhone": "074558833",
+      "ownerRating": 4.6,
+      "imageUrl": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80",
+      "isVerified": true
+    },
+    {
+      "title": "Mercedes-Benz Classe C 2024 - VIP",
+      "description": "Berline premium allemande entièrement noire, intérieur cuir beige, toit ouvrant panoramique.",
+      "category": "Véhicules",
+      "pricePerDay": 120000,
+      "city": "Libreville",
+      "neighborhood": "Batterie IV",
+      "ownerName": "Luxury Cars Gabon",
+      "ownerPhone": "077987654",
+      "ownerRating": 4.9,
+      "imageUrl": "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80",
+      "isVerified": true
+    }
+  ],
+  "chatMessages": [
+    {
+      "rentalItemId": 1,
+      "sender": "Kofi Mensah",
+      "messageText": "Bonjour ! La villa est disponible du 15 au 20 juillet. Souhaitez-vous réserver ?",
+      "timestamp": 1723822800000
+    },
+    {
+      "rentalItemId": 1,
+      "sender": "User",
+      "messageText": "Oui, elle correspond parfaitement à mes critères. Le WiFi est inclus ?",
+      "timestamp": 1723822900000
+    },
+    {
+      "rentalItemId": 5,
+      "sender": "Mael Koumba",
+      "messageText": "Le Prado est disponible dès demain. Besoin d'un chauffeur ?",
+      "timestamp": 1723819200000
+    },
+    {
+      "rentalItemId": 5,
+      "sender": "User",
+      "messageText": "Non merci, je conduis moi-même. Le GPS est fonctionnel ?",
+      "timestamp": 1723819300000
+    }
+  ],
+  "notifications": [
+    {
+      "type": "reservation",
+      "title": "Réservation confirmée",
+      "message": "Votre réservation Villa La Sablière est confirmée",
+      "time": "Il y a 2 heures",
+      "isRead": false
+    },
+    {
+      "type": "message",
+      "title": "Nouveau message",
+      "message": "Kofi: La villa est disponible du 15 au 20",
+      "time": "Il y a 3 heures",
+      "isRead": false
+    },
+    {
+      "type": "payment",
+      "title": "Paiement reçu",
+      "message": "45 000 F CFA reçus via Airtel Money",
+      "time": "Il y a 5 heures",
+      "isRead": true
+    }
+  ],
+  "reviews": [
+    {
+      "rentalItemId": 1,
+      "rating": 5,
+      "comment": "Superbe villa, très propre et spacieuse. La piscine est un vrai plus.",
+      "author": "Stéphane Koumba",
+      "date": "20/06/2026"
+    },
+    {
+      "rentalItemId": 1,
+      "rating": 4,
+      "comment": "Belle vue sur la mer, accès facile. La climatisation fonctionne parfaitement.",
+      "author": "Patricia Ndong",
+      "date": "15/05/2026"
+    },
+    {
+      "rentalItemId": 2,
+      "rating": 5,
+      "comment": "Appartement moderne avec une vue imprenable sur l'estuaire.",
+      "author": "Rodrigue Mintsa",
+      "date": "18/06/2026"
+    },
+    {
+      "rentalItemId": 5,
+      "rating": 5,
+      "comment": "Le Prado est impeccable, très robuste.",
+      "author": "Marc Aubame",
+      "date": "10/06/2026"
+    }
+  ]
+}

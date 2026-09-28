@@ -41,16 +41,29 @@ import com.example.ui.theme.*
 import com.example.ui.viewmodel.RentalViewModel
 import kotlinx.coroutines.delay
 import kotlin.random.Random
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun InboxScreen(viewModel: RentalViewModel) {
     val items by viewModel.filteredInboxItems.collectAsState()
     val isLoading by viewModel.isInboxLoading.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     var inboxSearch by remember { mutableStateOf("") }
+    val hapticFeedback = LocalHapticFeedback.current
 
     LaunchedEffect(isRefreshing) { if (isRefreshing) { delay(1500); isRefreshing = false } }
 
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            errorMessage = null
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+        },
+        modifier = Modifier.fillMaxSize()
+    ) {
     Box(modifier = Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
@@ -97,14 +110,24 @@ fun InboxScreen(viewModel: RentalViewModel) {
 
         HorizontalDivider(color = Color.White.copy(alpha = 0.12f))
 
-        if (isLoading) {
+        if (errorMessage != null) {
+            Box(modifier = Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
+                AnimatedErrorState(
+                    message = errorMessage ?: "Erreur inconnue",
+                    onRetry = {
+                        errorMessage = null
+                        isRefreshing = true
+                    }
+                )
+            }
+        } else if (isLoading) {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(5) { SkeletonChatItem() }
             }
         } else if (items.isEmpty()) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
@@ -125,6 +148,7 @@ fun InboxScreen(viewModel: RentalViewModel) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                             viewModel.selectItem(item)
                             viewModel.openChatFor(item)
                             viewModel.navigateTo("chat")
@@ -187,6 +211,8 @@ fun InboxScreen(viewModel: RentalViewModel) {
         }
     }
     }
+}
+
 }
 
 // ----------------- ACTIVE CHAT ROOM SCREEN -----------------
