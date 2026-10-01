@@ -299,6 +299,12 @@ fun MainDashboardViewNavHost(viewModel: RentalViewModel) {
     }
 
     LaunchedEffect(currentScreen) {
+        // Scaffold composes its content (and therefore the NavHost, which installs the
+        // navigation graph) lazily during layout. Navigating before the graph exists
+        // throws IllegalArgumentException("Navigation graph has not been set for
+        // NavController") and crashes the app as soon as the dashboard mounts.
+        if (currentRoute == null) return@LaunchedEffect
+
         val targetRoute = when (currentScreen) {
             is Screen.Home -> RouteHome::class.qualifiedName
             is Screen.Bookings -> RouteBookings::class.qualifiedName
@@ -306,7 +312,9 @@ fun MainDashboardViewNavHost(viewModel: RentalViewModel) {
             is Screen.Bookmarks -> RouteBookmarks::class.qualifiedName
             is Screen.Messages -> RouteMessages::class.qualifiedName
             is Screen.Profile -> RouteProfile::class.qualifiedName
-            is Screen.Details -> RouteDetails::class.qualifiedName
+            // RouteDetails is registered with an argument, so its bare qualified name is
+            // not a valid destination. Details is entered through typed navigation.
+            is Screen.Details -> null
             is Screen.Chat -> RouteChat::class.qualifiedName
             is Screen.MapExplorer -> RouteMapExplorer::class.qualifiedName
             is Screen.SearchIntelligence -> RouteSearchIntelligence::class.qualifiedName
@@ -317,9 +325,8 @@ fun MainDashboardViewNavHost(viewModel: RentalViewModel) {
         }
         if (targetRoute != null && currentRoute != targetRoute) {
             navController.navigate(targetRoute) {
-                popUpTo(RouteHome::class.qualifiedName!!) { saveState = true }
+                popUpTo(RouteHome::class.qualifiedName!!) { inclusive = false }
                 launchSingleTop = true
-                restoreState = true
             }
         }
     }
@@ -344,8 +351,8 @@ fun DashboardBottomBar(
         NavigationBarItem(
             selected = isSelected(RouteHome::class.qualifiedName!!) || isSelected(RouteDetails::class.qualifiedName!!),
             onClick = { navController.navigate(RouteHome::class.qualifiedName!!) {
-                popUpTo(RouteHome::class.qualifiedName!!) { saveState = true }
-                launchSingleTop = true; restoreState = true
+                popUpTo(RouteHome::class.qualifiedName!!) { inclusive = false }
+                launchSingleTop = true
             }},
             icon = {
                 val isSel = isSelected(RouteHome::class.qualifiedName!!) || isSelected(RouteDetails::class.qualifiedName!!)
@@ -362,8 +369,8 @@ fun DashboardBottomBar(
         NavigationBarItem(
             selected = isSelected(RoutePostListing::class.qualifiedName!!),
             onClick = { navController.navigate(RoutePostListing::class.qualifiedName!!) {
-                popUpTo(RouteHome::class.qualifiedName!!) { saveState = true }
-                launchSingleTop = true; restoreState = true
+                popUpTo(RouteHome::class.qualifiedName!!) { inclusive = false }
+                launchSingleTop = true
             }},
             icon = {
                 val isSel = isSelected(RoutePostListing::class.qualifiedName!!)
@@ -380,8 +387,8 @@ fun DashboardBottomBar(
         NavigationBarItem(
             selected = isSelected(RouteBookmarks::class.qualifiedName!!),
             onClick = { navController.navigate(RouteBookmarks::class.qualifiedName!!) {
-                popUpTo(RouteHome::class.qualifiedName!!) { saveState = true }
-                launchSingleTop = true; restoreState = true
+                popUpTo(RouteHome::class.qualifiedName!!) { inclusive = false }
+                launchSingleTop = true
             }},
             icon = {
                 val isSel = isSelected(RouteBookmarks::class.qualifiedName!!)
@@ -398,8 +405,8 @@ fun DashboardBottomBar(
         NavigationBarItem(
             selected = isSelected(RouteMessages::class.qualifiedName!!),
             onClick = { navController.navigate(RouteMessages::class.qualifiedName!!) {
-                popUpTo(RouteHome::class.qualifiedName!!) { saveState = true }
-                launchSingleTop = true; restoreState = true
+                popUpTo(RouteHome::class.qualifiedName!!) { inclusive = false }
+                launchSingleTop = true
             }},
             icon = {
                 val isSel = isSelected(RouteMessages::class.qualifiedName!!)
@@ -426,8 +433,8 @@ fun DashboardBottomBar(
         NavigationBarItem(
             selected = isSelected(RouteProfile::class.qualifiedName!!),
             onClick = { navController.navigate(RouteProfile::class.qualifiedName!!) {
-                popUpTo(RouteHome::class.qualifiedName!!) { saveState = true }
-                launchSingleTop = true; restoreState = true
+                popUpTo(RouteHome::class.qualifiedName!!) { inclusive = false }
+                launchSingleTop = true
             }},
             icon = {
                 val isSel = isSelected(RouteProfile::class.qualifiedName!!)

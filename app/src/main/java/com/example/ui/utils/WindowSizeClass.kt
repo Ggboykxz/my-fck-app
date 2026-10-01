@@ -20,11 +20,9 @@ val LocalWindowSizeClass = compositionLocalOf {
     )
 }
 
-@androidx.compose.runtime.Composable
-fun currentWindowSizeClass(): WindowSizeClass {
-    val config = LocalConfiguration.current
-    val width = config.screenWidthDp.dp
-    val height = config.screenHeightDp.dp
+fun windowSizeClassOf(widthDp: Int, heightDp: Int): WindowSizeClass {
+    val width = widthDp.dp
+    val height = heightDp.dp
     return WindowSizeClass(
         width = when {
             width < 600.dp -> WindowWidthSize.Compact
@@ -37,4 +35,10 @@ fun currentWindowSizeClass(): WindowSizeClass {
             else -> WindowHeightSize.Expanded
         }
     )
+}
+
+@androidx.compose.runtime.Composable
+fun currentWindowSizeClass(): WindowSizeClass {
+    val config = LocalConfiguration.current
+    return windowSizeClassOf(config.screenWidthDp, config.screenHeightDp)
 }
